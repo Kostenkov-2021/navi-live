@@ -5,7 +5,7 @@ enum AddressFormattingCore {
     guard let address else { return normalizeFallbackAddress(fallback) }
 
     let streetName = firstNonBlank(address, keys: SharedProductRules.Address.streetPriorityKeys)
-    let houseNumber = cleanAddressValue(address["house_number"])
+    let houseNumber = houseNumberWithUnit(address)
     let streetLine: String? = {
       if !streetName.isEmpty, let houseNumber {
         return "\(streetName) \(houseNumber)"
@@ -68,6 +68,17 @@ enum AddressFormattingCore {
     let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     guard !trimmed.isEmpty, trimmed.lowercased() != "null" else { return nil }
     return trimmed
+  }
+
+  private static func houseNumberWithUnit(_ address: [String: String]) -> String? {
+    let houseNumber = cleanAddressValue(address["house_number"])
+    let unit = cleanAddressValue(address["unit"])
+      ?? cleanAddressValue(address["door"])
+      ?? cleanAddressValue(address["flats"])
+    if let houseNumber, let unit {
+      return "\(houseNumber)/\(unit)"
+    }
+    return houseNumber
   }
 
   private static func streetLineFromFallback(_ fallback: String, houseNumber: String?) -> String? {

@@ -14,9 +14,13 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.navilive.android.model.AnnouncementCadenceMode
+import com.navilive.android.model.NearbyPoiCacheMode
 import com.navilive.android.model.UpdateChannel
 import com.navilive.android.model.SpeechOutputMode
 import com.navilive.android.model.SettingsState
+import com.navilive.android.model.ShakeStrength
+import com.navilive.android.model.SharedProductRules
+import com.navilive.android.model.SoundCueTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -101,9 +105,33 @@ class NaviLivePreferencesStore(
         }
     }
 
+    suspend fun setShakeGestureEnabled(enabled: Boolean) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.ShakeGestureEnabled] = enabled
+        }
+    }
+
+    suspend fun setShakeStrength(strength: ShakeStrength) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.ShakeStrength] = strength.storageValue
+        }
+    }
+
     suspend fun setSoundCuesEnabled(enabled: Boolean) {
         context.naviLiveDataStore.edit { prefs ->
             prefs[Keys.SoundCuesEnabled] = enabled
+        }
+    }
+
+    suspend fun setSoundCueVolumePercent(percent: Int) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.SoundCueVolumePercent] = percent.coerceIn(0, 100)
+        }
+    }
+
+    suspend fun setSoundCueTheme(theme: SoundCueTheme) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.SoundCueTheme] = theme.storageValue
         }
     }
 
@@ -119,6 +147,12 @@ class NaviLivePreferencesStore(
         }
     }
 
+    suspend fun setPedestrianCrossingAlerts(enabled: Boolean) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.PedestrianCrossingAlerts] = enabled
+        }
+    }
+
     suspend fun setTurnByTurnAnnouncements(enabled: Boolean) {
         context.naviLiveDataStore.edit { prefs ->
             prefs[Keys.TurnByTurnAnnouncements] = enabled
@@ -128,6 +162,42 @@ class NaviLivePreferencesStore(
     suspend fun setAnnouncementCadenceMode(mode: AnnouncementCadenceMode) {
         context.naviLiveDataStore.edit { prefs ->
             prefs[Keys.AnnouncementCadenceMode] = mode.storageValue
+        }
+    }
+
+    suspend fun setSearchRadiusKm(radiusKm: Int) {
+        val normalized = radiusKm.coerceIn(
+            SharedProductRules.Search.minimumRadiusKm,
+            SharedProductRules.Search.maximumRadiusKm,
+        )
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.SearchRadiusKm] = normalized
+        }
+    }
+
+    suspend fun setSearchResultLimit(limit: Int) {
+        val normalized = limit.coerceIn(
+            SharedProductRules.Search.minimumResultLimit,
+            SharedProductRules.Search.maximumResultLimit,
+        )
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.SearchResultLimit] = normalized
+        }
+    }
+
+    suspend fun setNearbyPoiCacheMode(mode: NearbyPoiCacheMode) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.NearbyPoiCacheMode] = mode.storageValue
+        }
+    }
+
+    suspend fun setNearbyPoiCacheRadiusKm(radiusKm: Int) {
+        val normalized = radiusKm.coerceIn(
+            SharedProductRules.Search.minimumRadiusKm,
+            5,
+        )
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.NearbyPoiCacheRadiusKm] = normalized
         }
     }
 
@@ -189,13 +259,36 @@ class NaviLivePreferencesStore(
                 showTutorialOnStartup = preferences[Keys.ShowTutorialOnStartup]
                     ?: SettingsState().showTutorialOnStartup,
                 vibrationEnabled = preferences[Keys.VibrationEnabled] ?: SettingsState().vibrationEnabled,
+                shakeGestureEnabled = preferences[Keys.ShakeGestureEnabled]
+                    ?: SettingsState().shakeGestureEnabled,
+                shakeStrength = ShakeStrength.fromStorageValue(preferences[Keys.ShakeStrength]),
                 soundCuesEnabled = preferences[Keys.SoundCuesEnabled] ?: SettingsState().soundCuesEnabled,
+                soundCueVolumePercent = (preferences[Keys.SoundCueVolumePercent]
+                    ?: SettingsState().soundCueVolumePercent).coerceIn(0, 100),
+                soundCueTheme = SoundCueTheme.fromStorageValue(preferences[Keys.SoundCueTheme]),
                 autoRecalculate = preferences[Keys.AutoRecalculate] ?: SettingsState().autoRecalculate,
                 junctionAlerts = preferences[Keys.JunctionAlerts] ?: SettingsState().junctionAlerts,
+                pedestrianCrossingAlerts = preferences[Keys.PedestrianCrossingAlerts]
+                    ?: SettingsState().pedestrianCrossingAlerts,
                 turnByTurnAnnouncements = preferences[Keys.TurnByTurnAnnouncements]
                     ?: SettingsState().turnByTurnAnnouncements,
                 announcementCadenceMode = AnnouncementCadenceMode.fromStorageValue(
                     preferences[Keys.AnnouncementCadenceMode],
+                ),
+                searchRadiusKm = (preferences[Keys.SearchRadiusKm] ?: SettingsState().searchRadiusKm).coerceIn(
+                    SharedProductRules.Search.minimumRadiusKm,
+                    SharedProductRules.Search.maximumRadiusKm,
+                ),
+                searchResultLimit = (preferences[Keys.SearchResultLimit]
+                    ?: SettingsState().searchResultLimit).coerceIn(
+                    SharedProductRules.Search.minimumResultLimit,
+                    SharedProductRules.Search.maximumResultLimit,
+                ),
+                nearbyPoiCacheMode = NearbyPoiCacheMode.fromStorageValue(preferences[Keys.NearbyPoiCacheMode]),
+                nearbyPoiCacheRadiusKm = (preferences[Keys.NearbyPoiCacheRadiusKm]
+                    ?: SettingsState().nearbyPoiCacheRadiusKm).coerceIn(
+                    SharedProductRules.Search.minimumRadiusKm,
+                    5,
                 ),
                 updateChannel = UpdateChannel.fromStorageValue(preferences[Keys.UpdateChannel]),
                 speechOutputMode = SpeechOutputMode.fromStorageValue(preferences[Keys.SpeechOutputMode]),
@@ -221,11 +314,20 @@ class NaviLivePreferencesStore(
         val Language = stringPreferencesKey("language")
         val ShowTutorialOnStartup = booleanPreferencesKey("show_tutorial_on_startup")
         val VibrationEnabled = booleanPreferencesKey("vibration_enabled")
+        val ShakeGestureEnabled = booleanPreferencesKey("shake_gesture_enabled")
+        val ShakeStrength = stringPreferencesKey("shake_strength")
         val SoundCuesEnabled = booleanPreferencesKey("sound_cues_enabled")
+        val SoundCueVolumePercent = intPreferencesKey("sound_cue_volume_percent")
+        val SoundCueTheme = stringPreferencesKey("sound_cue_theme")
         val AutoRecalculate = booleanPreferencesKey("auto_recalculate")
         val JunctionAlerts = booleanPreferencesKey("junction_alerts")
+        val PedestrianCrossingAlerts = booleanPreferencesKey("pedestrian_crossing_alerts")
         val TurnByTurnAnnouncements = booleanPreferencesKey("turn_by_turn_announcements")
         val AnnouncementCadenceMode = stringPreferencesKey("announcement_cadence_mode")
+        val SearchRadiusKm = intPreferencesKey("search_radius_km")
+        val SearchResultLimit = intPreferencesKey("search_result_limit")
+        val NearbyPoiCacheMode = stringPreferencesKey("nearby_poi_cache_mode")
+        val NearbyPoiCacheRadiusKm = intPreferencesKey("nearby_poi_cache_radius_km")
         val UpdateChannel = stringPreferencesKey("update_channel")
         val SpeechOutputMode = stringPreferencesKey("speech_output_mode")
         val SelectedSystemTtsEnginePackage = stringPreferencesKey("selected_system_tts_engine_package")

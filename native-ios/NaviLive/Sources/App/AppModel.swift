@@ -1,6 +1,7 @@
 import Combine
 import CoreLocation
 import Foundation
+import Network
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -17,6 +18,8 @@ final class AppModel: ObservableObject {
   @Published var searchResults: [Place] = []
   @Published var hasPerformedSearch = false
   @Published var currentLocationDescription = ""
+  @Published var currentPositionStatusMessage = ""
+  @Published var currentPositionStatusIsWarning = false
   @Published var statusMessage = ""
   @Published var settings: AppSettings
   @Published var favorites: [Place]
@@ -28,6 +31,7 @@ final class AppModel: ObservableObject {
   @Published var isRouting = false
   @Published var hasCompletedOnboarding: Bool
   @Published var isLiveTracking = false
+  @Published var nearbyPOICacheState = NearbyPOICacheState()
 
   let locationService: LocationService
 
@@ -38,6 +42,11 @@ final class AppModel: ObservableObject {
 
   private var knownPlaces: [String: Place] = [:]
   private var cancellables: Set<AnyCancellable> = []
+  private let pathMonitor = NWPathMonitor()
+  private let pathMonitorQueue = DispatchQueue(label: "NaviLive.NearbyPOICache.Network")
+  private var currentNetworkPath: NWPath?
+  private var nearbyPOICacheRefreshTask: Task<Void, Never>?
+  private var lastNearbyPOICacheAttemptAt: Date?
   private var isNavigationLive = false
   private var lastCountdownAnnouncementStepIndex = -1
   private var lastCountdownMilestoneMeters: Int?
@@ -61,6 +70,9 @@ final class AppModel: ObservableObject {
       arrowRotationDegrees: 0
     )
   ]
+  private static let nearbyPOICacheFreshInterval: TimeInterval = 24 * 60 * 60
+  private static let nearbyPOICacheMoveThresholdMeters: Double = 800
+  private static let nearbyPOICacheAttemptThrottle: TimeInterval = 2 * 60
 
   convenience init() {
     self.init(
@@ -91,7 +103,9 @@ final class AppModel: ObservableObject {
     hasCompletedOnboarding = snapshot.hasCompletedOnboarding
     favorites.forEach { knownPlaces[$0.id] = $0 }
 
+    startNetworkMonitor()
     bindLocation()
+    Task { await refreshNearbyPOICacheState() }
   }
 
   var appVersionLabel: String {
@@ -181,17 +195,53 @@ final class AppModel: ObservableObject {
   }
 
   func saveCurrentLocationAsFavorite() async {
-    guard let fix = locationService.latestFix else { return }
+    guard let fix = locationService.latestFix else {
+      let message = L10n.text("current.position.save_unavailable", table: .home)
+      statusMessage = message
+      currentPositionStatusMessage = message
+      currentPositionStatusIsWarning = true
+      announceWarning(message: message)
+      return
+    }
+    let savedName = L10n.text("current.position.saved_name", table: .home)
     let address = currentLocationDescription.isEmpty ? L10n.text("current.position.unknown", table: .home) : currentLocationDescription
+    if favorites.contains(where: { isSameSavedCurrentPosition($0, savedName: savedName, address: address, point: fix.point) }) {
+      let message = L10n.text("current.position.already_saved", table: .home)
+      statusMessage = message
+      currentPositionStatusMessage = message
+      currentPositionStatusIsWarning = false
+      announceSuccess(message: message)
+      return
+    }
     let place = Place(
-      id: "current-\(Int(Date().timeIntervalSince1970))",
-      name: L10n.text("current.position.saved_name", table: .home),
+      id: "current-\(Int(Date().timeIntervalSince1970 * 1000))",
+      name: savedName,
       address: address,
       walkDistanceMeters: 0,
       walkEtaMinutes: 0,
       point: fix.point
     )
-    toggleFavorite(place)
+    favorites.append(place)
+    knownPlaces[place.id] = place
+    settingsStore.setFavorites(favorites)
+    let message = L10n.text("current.position.saved_status", table: .home)
+    statusMessage = message
+    currentPositionStatusMessage = message
+    currentPositionStatusIsWarning = false
+    announceSuccess(message: message)
+  }
+
+  private func isSameSavedCurrentPosition(
+    _ favorite: Place,
+    savedName: String,
+    address: String,
+    point: GeoPoint
+  ) -> Bool {
+    guard favorite.name == savedName else { return false }
+    if let favoritePoint = favorite.point, favoritePoint.distance(to: point) <= 25 {
+      return true
+    }
+    return !address.isEmpty && favorite.address == address
   }
 
   func loadCurrentAddress() async {
@@ -220,7 +270,12 @@ final class AppModel: ObservableObject {
     defer { isSearching = false }
 
     do {
-      let results = try await navigationAPI.searchPlaces(query: query, near: locationService.latestFix?.point)
+      let results = try await navigationAPI.searchPlaces(
+        query: query,
+        near: locationService.latestFix?.point,
+        searchRadiusKilometers: settings.searchRadiusKilometers,
+        resultLimit: settings.searchResultLimit
+      )
       searchResults = results
       results.forEach { knownPlaces[$0.id] = $0 }
       statusMessage = results.isEmpty
@@ -242,7 +297,11 @@ final class AppModel: ObservableObject {
     defer { isRouting = false }
 
     do {
-      let summary = try await navigationAPI.buildWalkingRoute(from: start, to: place)
+      let summary = try await navigationAPI.buildWalkingRoute(
+        from: start,
+        to: place,
+        includePedestrianCrossings: settings.pedestrianCrossingAlerts
+      )
       selectedRouteSummary = summary
       lastRoutePlaceID = place.id
       settingsStore.setLastRoutePlaceID(place.id)
@@ -305,6 +364,22 @@ final class AppModel: ObservableObject {
     announceNavigationPrompt(message)
   }
 
+  func announcePreviousInstruction() {
+    announceRouteInstruction(
+      offset: -1,
+      spokenKey: "active.spoken.previous_instruction",
+      unavailableKey: "active.status.no_previous_instruction"
+    )
+  }
+
+  func announceNextInstruction() {
+    announceRouteInstruction(
+      offset: 1,
+      spokenKey: "active.spoken.next_instruction",
+      unavailableKey: "active.status.no_next_instruction"
+    )
+  }
+
   func togglePauseNavigation() {
     activeNavigationState.isPaused.toggle()
     if activeNavigationState.isPaused {
@@ -324,6 +399,23 @@ final class AppModel: ObservableObject {
     Task {
       await recalculateRoute(autoTriggered: false)
     }
+  }
+
+  private func announceRouteInstruction(offset: Int, spokenKey: String, unavailableKey: String) {
+    let steps = selectedRouteSummary?.steps ?? []
+    let targetIndex = activeNavigationState.currentStepIndex + offset
+    guard steps.indices.contains(targetIndex) else {
+      let message = L10n.text(unavailableKey, table: .navigation)
+      statusMessage = message
+      announceNavigationPrompt(message, warning: true)
+      return
+    }
+
+    let instruction = steps[targetIndex].instruction.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !instruction.isEmpty else { return }
+    let message = L10n.text(spokenKey, table: .navigation, instruction)
+    statusMessage = message
+    announceNavigationPrompt(message)
   }
 
   func stopNavigation() {
@@ -378,6 +470,8 @@ final class AppModel: ObservableObject {
   }
 
   func openCurrentPosition() {
+    currentPositionStatusMessage = ""
+    currentPositionStatusIsWarning = false
     path.append(.currentPosition)
   }
 
@@ -403,13 +497,40 @@ final class AppModel: ObservableObject {
     settingsStore.updateSettings { $0.vibrationEnabled = enabled }
   }
 
+  func updateShakeGestureEnabled(_ enabled: Bool) {
+    settings.shakeGestureEnabled = enabled
+    settingsStore.updateSettings { $0.shakeGestureEnabled = enabled }
+  }
+
+  func updateShakeStrength(_ strength: ShakeStrength) {
+    settings.shakeStrength = strength
+    settingsStore.updateSettings { $0.shakeStrength = strength }
+  }
+
+  func onShakeGestureDetected() {
+    guard settings.shakeGestureEnabled else { return }
+    guard !activeNavigationState.currentInstruction.isEmpty else { return }
+    repeatCurrentInstruction()
+  }
+
   func updateSoundCuesEnabled(_ enabled: Bool) {
     settings.soundCuesEnabled = enabled
     settingsStore.updateSettings { $0.soundCuesEnabled = enabled }
   }
 
+  func updateSoundCueVolume(_ value: Double) {
+    let normalized = min(max(value, 0.0), 1.0)
+    settings.soundCueVolume = normalized
+    settingsStore.updateSettings { $0.soundCueVolume = normalized }
+  }
+
+  func updateSoundCueTheme(_ theme: SoundCueTheme) {
+    settings.soundCueTheme = theme
+    settingsStore.updateSettings { $0.soundCueTheme = theme }
+  }
+
   func previewSoundCue(_ cue: NavigationSoundCue) {
-    announcer.playSoundCue(cue)
+    announcer.playSoundCue(cue, volume: settings.soundCueVolume, theme: settings.soundCueTheme)
   }
 
   func previewSpeechSettings() {
@@ -429,6 +550,11 @@ final class AppModel: ObservableObject {
     settingsStore.updateSettings { $0.junctionAlerts = enabled }
   }
 
+  func updatePedestrianCrossingAlerts(_ enabled: Bool) {
+    settings.pedestrianCrossingAlerts = enabled
+    settingsStore.updateSettings { $0.pedestrianCrossingAlerts = enabled }
+  }
+
   func updateTurnByTurnAnnouncements(_ enabled: Bool) {
     settings.turnByTurnAnnouncements = enabled
     settingsStore.updateSettings { $0.turnByTurnAnnouncements = enabled }
@@ -440,10 +566,65 @@ final class AppModel: ObservableObject {
     resetCountdownAnnouncementState()
   }
 
+  func updateSearchRadiusKilometers(_ value: Int) {
+    let normalized = min(
+      max(value, SharedProductRules.Search.minimumRadiusKm),
+      SharedProductRules.Search.maximumRadiusKm
+    )
+    settings.searchRadiusKilometers = normalized
+    settingsStore.updateSettings { $0.searchRadiusKilometers = normalized }
+  }
+
+  func updateSearchResultLimit(_ value: Int) {
+    let normalized = min(
+      max(value, SharedProductRules.Search.minimumResultLimit),
+      SharedProductRules.Search.maximumResultLimit
+    )
+    settings.searchResultLimit = normalized
+    settingsStore.updateSettings { $0.searchResultLimit = normalized }
+  }
+
+  func updateNearbyPOICacheMode(_ mode: NearbyPOICacheMode) {
+    settings.nearbyPOICacheMode = mode
+    settingsStore.updateSettings { $0.nearbyPOICacheMode = mode }
+    if mode != .disabled {
+      refreshNearbyPOICacheNow()
+    }
+  }
+
+  func updateNearbyPOICacheRadiusKilometers(_ value: Int) {
+    let normalized = min(max(value, SharedProductRules.Search.minimumRadiusKm), 5)
+    settings.nearbyPOICacheRadiusKilometers = normalized
+    settingsStore.updateSettings { $0.nearbyPOICacheRadiusKilometers = normalized }
+    refreshNearbyPOICacheNow()
+  }
+
+  func refreshNearbyPOICacheNow() {
+    guard let fix = locationService.latestFix else {
+      statusMessage = L10n.text("settings.local_search.status.waiting_location", table: .settings)
+      return
+    }
+    maybeRefreshNearbyPOICache(fix: fix, force: true)
+  }
+
+  func clearNearbyPOICache() {
+    Task {
+      nearbyPOICacheState = await navigationAPI.clearNearbyPOICache()
+      statusMessage = L10n.text("settings.local_search.status.cleared", table: .settings)
+    }
+  }
+
   func updateSpeechMode(_ mode: GuidanceSpeechMode) {
-    settings.speechMode = mode
-    settingsStore.updateSettings { $0.speechMode = mode }
+    let normalizedMode: GuidanceSpeechMode = mode == .automatic ? .voiceOver : mode
+    settings.speechMode = normalizedMode
+    settingsStore.updateSettings { $0.speechMode = normalizedMode }
     announcer.announce(L10n.text("settings.speech_mode.updated", table: .settings), settings: settings)
+  }
+
+  func updateSpeechVoiceIdentifier(_ identifier: String?) {
+    let normalized = identifier?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true ? nil : identifier
+    settings.selectedSpeechVoiceIdentifier = normalized
+    settingsStore.updateSettings { $0.selectedSpeechVoiceIdentifier = normalized }
   }
 
   func updateSpeechRate(_ value: Double) {
@@ -473,6 +654,7 @@ final class AppModel: ObservableObject {
         guard let self else { return }
         Task { await self.loadCurrentAddress() }
         self.syncActiveNavigationWithLocation(fix)
+        self.maybeRefreshNearbyPOICache(fix: fix)
       }
       .store(in: &cancellables)
 
@@ -482,6 +664,82 @@ final class AppModel: ObservableObject {
         self?.isLiveTracking = isUpdating
       }
       .store(in: &cancellables)
+  }
+
+  private func startNetworkMonitor() {
+    pathMonitor.pathUpdateHandler = { [weak self] path in
+      Task { @MainActor in
+        self?.currentNetworkPath = path
+      }
+    }
+    pathMonitor.start(queue: pathMonitorQueue)
+  }
+
+  private func refreshNearbyPOICacheState() async {
+    nearbyPOICacheState = await navigationAPI.nearbyPOICacheState()
+  }
+
+  private func maybeRefreshNearbyPOICache(fix: LocationFix, force: Bool = false) {
+    guard canRefreshNearbyPOICache(mode: settings.nearbyPOICacheMode) else {
+      if force && settings.nearbyPOICacheMode == .wifiOnly {
+        statusMessage = L10n.text("settings.local_search.status.waiting_wifi", table: .settings)
+      }
+      return
+    }
+    if nearbyPOICacheRefreshTask != nil { return }
+    let now = Date()
+    if !force,
+       let lastAttempt = lastNearbyPOICacheAttemptAt,
+       now.timeIntervalSince(lastAttempt) < Self.nearbyPOICacheAttemptThrottle {
+      return
+    }
+    if !force && !shouldRefreshNearbyPOICache(fix: fix, now: now) {
+      return
+    }
+    lastNearbyPOICacheAttemptAt = now
+    nearbyPOICacheState.isRefreshing = true
+    statusMessage = L10n.text("settings.local_search.status.refreshing", table: .settings)
+
+    nearbyPOICacheRefreshTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        let refreshed = try await navigationAPI.refreshNearbyPOICache(
+          near: fix.point,
+          radiusKilometers: settings.nearbyPOICacheRadiusKilometers
+        )
+        nearbyPOICacheState = NearbyPOICacheState(
+          cachedPlaceCount: refreshed.cachedPlaceCount,
+          lastUpdatedAt: refreshed.lastUpdatedAt,
+          lastCenter: refreshed.lastCenter
+        )
+        statusMessage = L10n.text("settings.local_search.status.updated", table: .settings, refreshed.cachedPlaceCount)
+      } catch {
+        nearbyPOICacheState.isRefreshing = false
+        if force {
+          statusMessage = L10n.text("settings.local_search.status.failed", table: .settings)
+        }
+      }
+      nearbyPOICacheRefreshTask = nil
+    }
+  }
+
+  private func shouldRefreshNearbyPOICache(fix: LocationFix, now: Date) -> Bool {
+    guard let lastUpdatedAt = nearbyPOICacheState.lastUpdatedAt else { return true }
+    if now.timeIntervalSince(lastUpdatedAt) > Self.nearbyPOICacheFreshInterval { return true }
+    guard let lastCenter = nearbyPOICacheState.lastCenter else { return true }
+    return fix.point.distance(to: lastCenter) >= Self.nearbyPOICacheMoveThresholdMeters
+  }
+
+  private func canRefreshNearbyPOICache(mode: NearbyPOICacheMode) -> Bool {
+    switch mode {
+    case .enabled:
+      return true
+    case .disabled:
+      return false
+    case .wifiOnly:
+      guard let currentNetworkPath else { return false }
+      return currentNetworkPath.status == .satisfied && !currentNetworkPath.isExpensive
+    }
   }
 
   private func syncActiveNavigationWithLocation(_ fix: LocationFix) {
@@ -497,6 +755,7 @@ final class AppModel: ObservableObject {
     activeNavigationState = update.state
     if update.stepChanged && settings.turnByTurnAnnouncements {
       if update.currentStepIndex != lastImmediateAnnouncementStepIndex {
+        playSoundCueIfEnabled(soundCue(for: update.currentStepKind, defaultCue: .turnNow))
         announceNavigationPrompt(
           L10n.text("active.spoken.now", table: .navigation, update.state.currentInstruction)
         )
@@ -542,7 +801,11 @@ final class AppModel: ObservableObject {
     }
 
     do {
-      let summary = try await navigationAPI.buildWalkingRoute(from: start, to: place)
+      let summary = try await navigationAPI.buildWalkingRoute(
+        from: start,
+        to: place,
+        includePedestrianCrossings: settings.pedestrianCrossingAlerts
+      )
       selectedRouteSummary = summary
       activeNavigationState = liveNavigationEngine.loadRoute(
         destination: place,
@@ -620,7 +883,7 @@ final class AppModel: ObservableObject {
       )
     }
     announceNavigationPrompt(message)
-    playSoundCueIfEnabled(.countdown)
+    playSoundCueIfEnabled(soundCue(for: update.upcomingStepKind, defaultCue: .countdown))
     return true
   }
 
@@ -641,7 +904,7 @@ final class AppModel: ObservableObject {
     }
 
     lastImmediateAnnouncementStepIndex = upcomingStepIndex
-    playSoundCueIfEnabled(.turnNow)
+    playSoundCueIfEnabled(soundCue(for: update.upcomingStepKind, defaultCue: .turnNow))
     announceNavigationPrompt(
       L10n.text("active.spoken.now", table: .navigation, upcomingInstruction)
     )
@@ -684,7 +947,16 @@ final class AppModel: ObservableObject {
 
   private func playSoundCueIfEnabled(_ cue: NavigationSoundCue) {
     if settings.soundCuesEnabled {
-      announcer.playSoundCue(cue)
+      announcer.playSoundCue(cue, volume: settings.soundCueVolume, theme: settings.soundCueTheme)
+    }
+  }
+
+  private func soundCue(for stepKind: RouteStepKind?, defaultCue: NavigationSoundCue) -> NavigationSoundCue {
+    switch stepKind {
+    case .pedestrianCrossing:
+      return .pedestrianCrossing
+    case .instruction, .none:
+      return defaultCue
     }
   }
 

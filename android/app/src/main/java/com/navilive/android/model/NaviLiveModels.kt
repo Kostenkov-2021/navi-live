@@ -26,10 +26,16 @@ data class RouteSummary(
     val pathPoints: List<GeoPoint> = emptyList(),
 )
 
+enum class RouteStepKind {
+    Instruction,
+    PedestrianCrossing,
+}
+
 data class RouteStep(
     val instruction: String,
     val distanceMeters: Int,
     val maneuverPoint: GeoPoint? = null,
+    val kind: RouteStepKind = RouteStepKind.Instruction,
 )
 
 data class HeadingState(
@@ -69,7 +75,7 @@ enum class SpeechOutputMode(val storageValue: String) {
 
     companion object {
         fun fromStorageValue(value: String?): SpeechOutputMode {
-            return entries.firstOrNull { it.storageValue == value } ?: System
+            return entries.firstOrNull { it.storageValue == value } ?: ScreenReader
         }
     }
 }
@@ -82,6 +88,45 @@ enum class AnnouncementCadenceMode(val storageValue: String) {
     companion object {
         fun fromStorageValue(value: String?): AnnouncementCadenceMode {
             return entries.firstOrNull { it.storageValue == value } ?: Distance
+        }
+    }
+}
+
+enum class ShakeStrength(val storageValue: String) {
+    Light("light"),
+    Medium("medium"),
+    Strong("strong"),
+    ;
+
+    companion object {
+        fun fromStorageValue(value: String?): ShakeStrength {
+            return entries.firstOrNull { it.storageValue == value } ?: Medium
+        }
+    }
+}
+
+enum class SoundCueTheme(val storageValue: String) {
+    Standard("standard"),
+    Tetris("tetris"),
+    Cosmic("cosmic"),
+    ;
+
+    companion object {
+        fun fromStorageValue(value: String?): SoundCueTheme {
+            return entries.firstOrNull { it.storageValue == value } ?: Standard
+        }
+    }
+}
+
+enum class NearbyPoiCacheMode(val storageValue: String) {
+    Enabled("enabled"),
+    WifiOnly("wifi_only"),
+    Disabled("disabled"),
+    ;
+
+    companion object {
+        fun fromStorageValue(value: String?): NearbyPoiCacheMode {
+            return entries.firstOrNull { it.storageValue == value } ?: Enabled
         }
     }
 }
@@ -111,13 +156,22 @@ data class SettingsState(
     val language: String = "",
     val showTutorialOnStartup: Boolean = false,
     val vibrationEnabled: Boolean = true,
+    val shakeGestureEnabled: Boolean = true,
+    val shakeStrength: ShakeStrength = ShakeStrength.Medium,
     val soundCuesEnabled: Boolean = true,
+    val soundCueVolumePercent: Int = 85,
+    val soundCueTheme: SoundCueTheme = SoundCueTheme.Standard,
     val autoRecalculate: Boolean = true,
     val junctionAlerts: Boolean = true,
+    val pedestrianCrossingAlerts: Boolean = true,
     val turnByTurnAnnouncements: Boolean = true,
     val announcementCadenceMode: AnnouncementCadenceMode = AnnouncementCadenceMode.Distance,
+    val searchRadiusKm: Int = SharedProductRules.Search.defaultRadiusKm,
+    val searchResultLimit: Int = SharedProductRules.Search.resultLimit,
+    val nearbyPoiCacheMode: NearbyPoiCacheMode = NearbyPoiCacheMode.Enabled,
+    val nearbyPoiCacheRadiusKm: Int = SharedProductRules.Search.defaultRadiusKm,
     val updateChannel: UpdateChannel = UpdateChannel.Stable,
-    val speechOutputMode: SpeechOutputMode = SpeechOutputMode.System,
+    val speechOutputMode: SpeechOutputMode = SpeechOutputMode.ScreenReader,
     val selectedSystemTtsEnginePackage: String? = null,
     val speechRatePercent: Int = 100,
     val speechVolumePercent: Int = 100,
@@ -127,6 +181,13 @@ data class SettingsState(
     val defaultSystemTtsEngineLabel: String? = null,
     val activeSystemTtsEngineLabel: String? = null,
     val isSelectedSystemTtsEngineAvailable: Boolean = true,
+)
+
+data class NearbyPoiCacheState(
+    val isRefreshing: Boolean = false,
+    val cachedPlaceCount: Int = 0,
+    val lastUpdatedAtMs: Long? = null,
+    val lastCenter: GeoPoint? = null,
 )
 
 data class DiagnosticsState(
@@ -176,6 +237,7 @@ data class NaviLiveUiState(
     val settingsState: SettingsState = SettingsState(),
     val diagnosticsState: DiagnosticsState = DiagnosticsState(),
     val appUpdateState: AppUpdateState = AppUpdateState(),
+    val nearbyPoiCacheState: NearbyPoiCacheState = NearbyPoiCacheState(),
     val statusMessage: String = "",
     val isLoadingSearch: Boolean = false,
     val isLoadingRoute: Boolean = false,

@@ -58,6 +58,9 @@
 "current.action.refresh" = "Refresh address";
 "current.position.unknown" = "Unknown current address";
 "current.position.saved_name" = "Saved current position";
+"current.position.saved_status" = "Current position saved.";
+"current.position.already_saved" = "Current position is already saved.";
+"current.position.save_unavailable" = "Current position is not available yet.";
 "favorites.title" = "Favorites";
 "favorites.empty" = "You do not have any saved favorites yet.";
 "favorites.open_hint" = "Opens place details.";

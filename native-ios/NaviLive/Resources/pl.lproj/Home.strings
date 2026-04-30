@@ -58,6 +58,9 @@
 "current.action.refresh" = "Odśwież adres";
 "current.position.unknown" = "Nieznany bieżący adres";
 "current.position.saved_name" = "Zapisana bieżąca pozycja";
+"current.position.saved_status" = "Zapisano bieżącą pozycję.";
+"current.position.already_saved" = "Bieżąca pozycja jest już zapisana.";
+"current.position.save_unavailable" = "Bieżąca pozycja nie jest jeszcze dostępna.";
 "favorites.title" = "Ulubione";
 "favorites.empty" = "Nie masz jeszcze zapisanych ulubionych.";
 "favorites.open_hint" = "Otwiera szczegóły miejsca.";

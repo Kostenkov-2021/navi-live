@@ -1,7 +1,9 @@
+import CoreMotion
 import SwiftUI
 
 struct RootView: View {
   @StateObject private var model = AppModel()
+  @StateObject private var shakeGestureMonitor = ShakeGestureMonitor()
   @State private var didBootstrap = false
 
   var body: some View {
@@ -21,6 +23,28 @@ struct RootView: View {
       guard !didBootstrap else { return }
       didBootstrap = true
       await model.bootstrap()
+    }
+    .onAppear {
+      configureShakeGestureMonitor()
+    }
+    .onReceive(model.$settings) { _ in
+      configureShakeGestureMonitor()
+    }
+    .onReceive(model.$activeNavigationState) { _ in
+      configureShakeGestureMonitor()
+    }
+    .onDisappear {
+      shakeGestureMonitor.stop()
+    }
+  }
+
+  private func configureShakeGestureMonitor() {
+    let settings = model.settings
+    shakeGestureMonitor.configure(
+      isEnabled: settings.shakeGestureEnabled && !model.activeNavigationState.currentInstruction.isEmpty,
+      strength: settings.shakeStrength
+    ) {
+      model.onShakeGestureDetected()
     }
   }
 }
@@ -76,6 +100,67 @@ private struct BootstrappingView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color(.systemGroupedBackground))
     .accessibilityElement(children: .combine)
+  }
+}
+
+@MainActor
+private final class ShakeGestureMonitor: ObservableObject {
+  private let motionManager = CMMotionManager()
+  private var lastShakeAt = Date.distantPast
+  private var currentStrength: ShakeStrength = .medium
+  private var onShake: (() -> Void)?
+
+  func configure(isEnabled: Bool, strength: ShakeStrength, onShake: @escaping () -> Void) {
+    self.onShake = onShake
+    currentStrength = strength
+
+    guard isEnabled, motionManager.isAccelerometerAvailable else {
+      stop()
+      return
+    }
+
+    if !motionManager.isAccelerometerActive {
+      motionManager.accelerometerUpdateInterval = 0.05
+      motionManager.startAccelerometerUpdates(to: .main) { [weak self] data, _ in
+        guard let data else { return }
+        Task { @MainActor in
+          self?.handle(acceleration: data.acceleration)
+        }
+      }
+    }
+  }
+
+  func stop() {
+    motionManager.stopAccelerometerUpdates()
+  }
+
+  private func handle(acceleration: CMAcceleration) {
+    let force = sqrt(
+      acceleration.x * acceleration.x +
+      acceleration.y * acceleration.y +
+      acceleration.z * acceleration.z
+    )
+    guard force >= currentStrength.thresholdG else { return }
+
+    let now = Date()
+    guard now.timeIntervalSince(lastShakeAt) >= Self.debounceInterval else { return }
+    lastShakeAt = now
+    onShake?()
+  }
+
+  private static let debounceInterval: TimeInterval = 1.4
+}
+
+private extension ShakeStrength {
+  var thresholdG: Double {
+    switch self {
+    case .light:
+      return 2.2
+    case .medium:
+      return 2.8
+    case .strong:
+      return 3.4
+    }
   }
 }
 

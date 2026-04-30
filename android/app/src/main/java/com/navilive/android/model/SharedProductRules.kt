@@ -36,10 +36,15 @@ object SharedProductRules {
     object Search {
         const val includeGlobalFallbackIfFewerThan: Int = 3
         const val nearbyBonus: Int = 650
-        const val nearbyLimit: Int = 10
+        const val nearbyLimit: Int = 20
         const val globalLimit: Int = 16
-        const val resultLimit: Int = 8
-        const val nearbyRadiusKm: Double = 8.0
+        const val resultLimit: Int = 10
+        const val minimumResultLimit: Int = 3
+        const val maximumResultLimit: Int = 30
+        const val defaultRadiusKm: Int = 3
+        const val minimumRadiusKm: Int = 1
+        const val maximumRadiusKm: Int = 10
+        const val nearbyRadiusKm: Double = 2.0
         const val globalRadiusKm: Double = 25.0
         const val viewBoxMinimumCosine: Double = 0.2
         const val walkingEtaMetersPerMinute: Double = 75.0

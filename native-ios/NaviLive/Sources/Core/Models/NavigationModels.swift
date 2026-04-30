@@ -34,11 +34,48 @@ struct Place: Identifiable, Codable, Hashable, Sendable {
   }
 }
 
+enum RouteStepKind: String, Codable, Hashable, Sendable {
+  case instruction
+  case pedestrianCrossing
+}
+
 struct RouteStep: Identifiable, Codable, Hashable, Sendable {
   var id: UUID = UUID()
   var instruction: String
   var distanceMeters: Int
   var maneuverPoint: GeoPoint?
+  var kind: RouteStepKind = .instruction
+
+  init(
+    id: UUID = UUID(),
+    instruction: String,
+    distanceMeters: Int,
+    maneuverPoint: GeoPoint? = nil,
+    kind: RouteStepKind = .instruction
+  ) {
+    self.id = id
+    self.instruction = instruction
+    self.distanceMeters = distanceMeters
+    self.maneuverPoint = maneuverPoint
+    self.kind = kind
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case id
+    case instruction
+    case distanceMeters
+    case maneuverPoint
+    case kind
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+    instruction = try container.decode(String.self, forKey: .instruction)
+    distanceMeters = try container.decode(Int.self, forKey: .distanceMeters)
+    maneuverPoint = try container.decodeIfPresent(GeoPoint.self, forKey: .maneuverPoint)
+    kind = try container.decodeIfPresent(RouteStepKind.self, forKey: .kind) ?? .instruction
+  }
 }
 
 struct RouteSummary: Codable, Hashable, Sendable {
@@ -60,6 +97,7 @@ struct HeadingState: Codable, Hashable, Sendable {
 struct ActiveNavigationState: Codable, Hashable, Sendable {
   var currentInstruction: String = ""
   var nextInstruction: String = ""
+  var currentStepIndex: Int = 0
   var distanceToNextMeters: Int = 0
   var remainingDistanceMeters: Int = 0
   var progressLabel: String = ""
@@ -87,27 +125,72 @@ enum AnnouncementCadenceMode: String, CaseIterable, Codable, Sendable {
   case time
 }
 
+enum ShakeStrength: String, CaseIterable, Codable, Sendable {
+  case light
+  case medium
+  case strong
+}
+
+enum SoundCueTheme: String, CaseIterable, Codable, Sendable {
+  case standard
+  case tetris
+  case cosmic
+}
+
+enum NearbyPOICacheMode: String, CaseIterable, Codable, Sendable {
+  case enabled
+  case wifiOnly
+  case disabled
+}
+
+struct NearbyPOICacheState: Codable, Hashable, Sendable {
+  var isRefreshing: Bool = false
+  var cachedPlaceCount: Int = 0
+  var lastUpdatedAt: Date?
+  var lastCenter: GeoPoint?
+}
+
 struct AppSettings: Codable, Hashable, Sendable {
   var showTutorialOnLaunch: Bool = true
   var vibrationEnabled: Bool = true
+  var shakeGestureEnabled: Bool = true
+  var shakeStrength: ShakeStrength = .medium
   var soundCuesEnabled: Bool = true
+  var soundCueVolume: Double = 0.85
+  var soundCueTheme: SoundCueTheme = .standard
   var autoRecalculate: Bool = true
   var junctionAlerts: Bool = true
+  var pedestrianCrossingAlerts: Bool = true
   var turnByTurnAnnouncements: Bool = true
   var announcementCadenceMode: AnnouncementCadenceMode = .distance
-  var speechMode: GuidanceSpeechMode = .automatic
+  var searchRadiusKilometers: Int = SharedProductRules.Search.defaultRadiusKm
+  var searchResultLimit: Int = SharedProductRules.Search.resultLimit
+  var nearbyPOICacheMode: NearbyPOICacheMode = .enabled
+  var nearbyPOICacheRadiusKilometers: Int = SharedProductRules.Search.defaultRadiusKm
+  var speechMode: GuidanceSpeechMode = .voiceOver
+  var selectedSpeechVoiceIdentifier: String?
   var speechRate: Double = 1.0
   var speechVolume: Double = 1.0
 
   enum CodingKeys: String, CodingKey {
     case showTutorialOnLaunch
     case vibrationEnabled
+    case shakeGestureEnabled
+    case shakeStrength
     case soundCuesEnabled
+    case soundCueVolume
+    case soundCueTheme
     case autoRecalculate
     case junctionAlerts
+    case pedestrianCrossingAlerts
     case turnByTurnAnnouncements
     case announcementCadenceMode
+    case searchRadiusKilometers
+    case searchResultLimit
+    case nearbyPOICacheMode
+    case nearbyPOICacheRadiusKilometers
     case speechMode
+    case selectedSpeechVoiceIdentifier
     case speechRate
     case speechVolume
   }
@@ -118,12 +201,38 @@ struct AppSettings: Codable, Hashable, Sendable {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     showTutorialOnLaunch = try container.decodeIfPresent(Bool.self, forKey: .showTutorialOnLaunch) ?? true
     vibrationEnabled = try container.decodeIfPresent(Bool.self, forKey: .vibrationEnabled) ?? true
+    shakeGestureEnabled = try container.decodeIfPresent(Bool.self, forKey: .shakeGestureEnabled) ?? true
+    shakeStrength = try container.decodeIfPresent(ShakeStrength.self, forKey: .shakeStrength) ?? .medium
     soundCuesEnabled = try container.decodeIfPresent(Bool.self, forKey: .soundCuesEnabled) ?? true
+    soundCueVolume = min(max(try container.decodeIfPresent(Double.self, forKey: .soundCueVolume) ?? 0.85, 0.0), 1.0)
+    soundCueTheme = try container.decodeIfPresent(SoundCueTheme.self, forKey: .soundCueTheme) ?? .standard
     autoRecalculate = try container.decodeIfPresent(Bool.self, forKey: .autoRecalculate) ?? true
     junctionAlerts = try container.decodeIfPresent(Bool.self, forKey: .junctionAlerts) ?? true
+    pedestrianCrossingAlerts = try container.decodeIfPresent(Bool.self, forKey: .pedestrianCrossingAlerts) ?? true
     turnByTurnAnnouncements = try container.decodeIfPresent(Bool.self, forKey: .turnByTurnAnnouncements) ?? true
     announcementCadenceMode = try container.decodeIfPresent(AnnouncementCadenceMode.self, forKey: .announcementCadenceMode) ?? .distance
-    speechMode = try container.decodeIfPresent(GuidanceSpeechMode.self, forKey: .speechMode) ?? .automatic
+    let decodedSearchRadius = try container.decodeIfPresent(Int.self, forKey: .searchRadiusKilometers)
+      ?? SharedProductRules.Search.defaultRadiusKm
+    searchRadiusKilometers = min(
+      max(decodedSearchRadius, SharedProductRules.Search.minimumRadiusKm),
+      SharedProductRules.Search.maximumRadiusKm
+    )
+    let decodedSearchResultLimit = try container.decodeIfPresent(Int.self, forKey: .searchResultLimit)
+      ?? SharedProductRules.Search.resultLimit
+    searchResultLimit = min(
+      max(decodedSearchResultLimit, SharedProductRules.Search.minimumResultLimit),
+      SharedProductRules.Search.maximumResultLimit
+    )
+    nearbyPOICacheMode = try container.decodeIfPresent(NearbyPOICacheMode.self, forKey: .nearbyPOICacheMode) ?? .enabled
+    let decodedNearbyPOIRadius = try container.decodeIfPresent(Int.self, forKey: .nearbyPOICacheRadiusKilometers)
+      ?? SharedProductRules.Search.defaultRadiusKm
+    nearbyPOICacheRadiusKilometers = min(
+      max(decodedNearbyPOIRadius, SharedProductRules.Search.minimumRadiusKm),
+      5
+    )
+    let decodedSpeechMode = try container.decodeIfPresent(GuidanceSpeechMode.self, forKey: .speechMode) ?? .voiceOver
+    speechMode = decodedSpeechMode == .automatic ? .voiceOver : decodedSpeechMode
+    selectedSpeechVoiceIdentifier = try container.decodeIfPresent(String.self, forKey: .selectedSpeechVoiceIdentifier)
     speechRate = try container.decodeIfPresent(Double.self, forKey: .speechRate) ?? 1.0
     speechVolume = try container.decodeIfPresent(Double.self, forKey: .speechVolume) ?? 1.0
   }

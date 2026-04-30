@@ -97,6 +97,11 @@ object SharedProductRules {{
         const val nearbyLimit: Int = {search['nearbyLimit']}
         const val globalLimit: Int = {search['globalLimit']}
         const val resultLimit: Int = {search['resultLimit']}
+        const val minimumResultLimit: Int = {search['minimumResultLimit']}
+        const val maximumResultLimit: Int = {search['maximumResultLimit']}
+        const val defaultRadiusKm: Int = {search['defaultRadiusKm']}
+        const val minimumRadiusKm: Int = {search['minimumRadiusKm']}
+        const val maximumRadiusKm: Int = {search['maximumRadiusKm']}
         const val nearbyRadiusKm: Double = {search['nearbyRadiusKm']}
         const val globalRadiusKm: Double = {search['globalRadiusKm']}
         const val viewBoxMinimumCosine: Double = {search['viewBoxMinimumCosine']}
@@ -199,6 +204,11 @@ enum SharedProductRules {{
     static let nearbyLimit: Int = {search['nearbyLimit']}
     static let globalLimit: Int = {search['globalLimit']}
     static let resultLimit: Int = {search['resultLimit']}
+    static let minimumResultLimit: Int = {search['minimumResultLimit']}
+    static let maximumResultLimit: Int = {search['maximumResultLimit']}
+    static let defaultRadiusKm: Int = {search['defaultRadiusKm']}
+    static let minimumRadiusKm: Int = {search['minimumRadiusKm']}
+    static let maximumRadiusKm: Int = {search['maximumRadiusKm']}
     static let nearbyRadiusKm: Double = {search['nearbyRadiusKm']}
     static let globalRadiusKm: Double = {search['globalRadiusKm']}
     static let viewBoxMinimumCosine: Double = {search['viewBoxMinimumCosine']}

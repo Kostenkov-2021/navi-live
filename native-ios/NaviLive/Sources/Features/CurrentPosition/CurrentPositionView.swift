@@ -39,6 +39,16 @@ struct CurrentPositionView: View {
           Task { await model.loadCurrentAddress() }
         }
       }
+
+      if !model.currentPositionStatusMessage.isEmpty {
+        Section {
+          StatusCard(
+            title: L10n.text("home.section.status", table: .home),
+            message: model.currentPositionStatusMessage,
+            tone: model.currentPositionStatusIsWarning ? .warning : .success
+          )
+        }
+      }
     }
     .listStyle(.insetGrouped)
     .navigationTitle(L10n.text("current.title", table: .home))

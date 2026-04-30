@@ -19,7 +19,7 @@ targets:
       properties:
         CFBundleDisplayName: Navi Live
         CFBundleShortVersionString: "1.0.1"
-        CFBundleVersion: "18"
+        CFBundleVersion: "22"
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
         UIBackgroundModes:
@@ -34,11 +34,11 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         NSLocationWhenInUseUsageDescription: Navi Live uses your location to search nearby places and guide walking routes.
         NSLocationAlwaysAndWhenInUseUsageDescription: Navi Live can keep guiding your route when the screen is dimmed during navigation.
-        NSMotionUsageDescription: Navi Live uses device motion to help align the initial walking direction.
+        NSMotionUsageDescription: Navi Live uses device motion to help align the initial walking direction and detect the shake gesture for repeating instructions.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kazek.navilive
-        CURRENT_PROJECT_VERSION: 18
+        CURRENT_PROJECT_VERSION: 22
         MARKETING_VERSION: 1.0.1
         SWIFT_VERSION: 5.10
         TARGETED_DEVICE_FAMILY: "1,2"

@@ -5,8 +5,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import android.content.ContextWrapper
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -33,6 +38,7 @@ import androidx.navigation.navArgument
 import com.navilive.android.R
 import com.navilive.android.data.location.LocationForegroundService
 import com.navilive.android.model.AppUpdatePhase
+import com.navilive.android.model.ShakeStrength
 import com.navilive.android.ui.NaviLiveViewModel
 import com.navilive.android.ui.screens.ActiveNavigationScreen
 import com.navilive.android.ui.screens.ArrivalScreen
@@ -51,6 +57,9 @@ import com.navilive.android.ui.screens.SettingsScreen
 import com.navilive.android.ui.screens.StartScreen
 import com.navilive.android.ui.screens.TutorialScreen
 import java.io.File
+import kotlin.math.sqrt
+
+private const val ProjectRepositoryUrl = "https://github.com/kazek5p-git/navi-live"
 
 @Composable
 fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
@@ -91,6 +100,38 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
     LaunchedEffect(uiState.value.isPreferencesLoaded) {
         if (uiState.value.isPreferencesLoaded) {
             viewModel.performStartupUpdateCheckIfNeeded()
+        }
+    }
+
+    val shakeSettings = uiState.value.settingsState
+    val shakeHasInstruction = uiState.value.activeNavigationState.currentInstruction.isNotBlank()
+    DisposableEffect(context, shakeSettings.shakeGestureEnabled, shakeSettings.shakeStrength, shakeHasInstruction) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (!shakeSettings.shakeGestureEnabled || !shakeHasInstruction || sensorManager == null || accelerometer == null) {
+            onDispose { }
+        } else {
+            val listener = object : SensorEventListener {
+                private var lastShakeAtMs = 0L
+
+                override fun onSensorChanged(event: SensorEvent) {
+                    val x = event.values.getOrNull(0)?.div(SensorManager.GRAVITY_EARTH) ?: return
+                    val y = event.values.getOrNull(1)?.div(SensorManager.GRAVITY_EARTH) ?: return
+                    val z = event.values.getOrNull(2)?.div(SensorManager.GRAVITY_EARTH) ?: return
+                    val force = sqrt(x * x + y * y + z * z)
+                    val now = SystemClock.elapsedRealtime()
+                    if (force >= shakeSettings.shakeStrength.thresholdG && now - lastShakeAtMs >= ShakeDebounceMs) {
+                        lastShakeAtMs = now
+                        viewModel.onShakeGestureDetected()
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+            }
+            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+            onDispose {
+                sensorManager.unregisterListener(listener)
+            }
         }
     }
 
@@ -282,6 +323,7 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                 results = uiState.value.searchResults,
                 isLoading = uiState.value.isLoadingSearch,
                 onQueryChange = viewModel::updateSearchQuery,
+                onSubmitSearch = viewModel::submitSearchQuery,
                 onSelectPlace = { placeId ->
                     navController.navigate(Routes.placeDetails(placeId))
                 },
@@ -317,6 +359,11 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
             if (place == null) {
                 NotFoundScreen(onBack = { navController.popBackStack() })
             } else {
+                LaunchedEffect(place.id) {
+                    if (!viewModel.hasPreparedRoute(place.id)) {
+                        viewModel.startRoute(place.id)
+                    }
+                }
                 RouteSummaryScreen(
                     place = place,
                     summary = viewModel.routeSummaryFor(place.id),
@@ -324,8 +371,16 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                     isLoadingRoute = uiState.value.isLoadingRoute,
                     onSaveFavorite = { viewModel.toggleFavorite(place.id) },
                     onStartRoute = {
-                        viewModel.startRoute(place.id)
-                        navController.navigate(Routes.headingAlign(place.id))
+                        if (viewModel.beginPreparedRoute(place.id)) {
+                            navController.navigate(Routes.activeNavigation(place.id))
+                        } else {
+                            viewModel.startRoute(
+                                placeId = place.id,
+                                autoStartNavigation = true,
+                            ) {
+                                navController.navigate(Routes.activeNavigation(place.id))
+                            }
+                        }
                     },
                     onBack = { navController.popBackStack() },
                 )
@@ -454,14 +509,26 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                 state = uiState.value.settingsState,
                 updateState = uiState.value.appUpdateState,
                 diagnosticsState = uiState.value.diagnosticsState,
+                nearbyPoiCacheState = uiState.value.nearbyPoiCacheState,
                 onOpenHelpPrivacy = { navController.navigate(Routes.HelpPrivacy) },
                 onVibrationChange = viewModel::setVibration,
+                onShakeGestureEnabledChange = viewModel::setShakeGestureEnabled,
+                onShakeStrengthChange = viewModel::setShakeStrength,
                 onSoundCuesChange = viewModel::setSoundCues,
+                onSoundCueVolumeChange = viewModel::setSoundCueVolumePercent,
+                onSoundCueThemeChange = viewModel::setSoundCueTheme,
                 onPreviewSoundCue = viewModel::previewSoundCue,
                 onAutoRecalculateChange = viewModel::setAutoRecalculate,
                 onJunctionAlertChange = viewModel::setJunctionAlerts,
                 onTurnByTurnChange = viewModel::setTurnByTurnAnnouncements,
                 onAnnouncementCadenceModeChange = viewModel::setAnnouncementCadenceMode,
+                onSearchRadiusChange = viewModel::setSearchRadiusKm,
+                onSearchResultLimitChange = viewModel::setSearchResultLimit,
+                onNearbyPoiCacheModeChange = viewModel::setNearbyPoiCacheMode,
+                onNearbyPoiCacheRadiusChange = viewModel::setNearbyPoiCacheRadiusKm,
+                onRefreshNearbyPoiCache = viewModel::refreshNearbyPoiCacheNow,
+                onClearNearbyPoiCache = viewModel::clearNearbyPoiCache,
+                onPedestrianCrossingAlertsChange = viewModel::setPedestrianCrossingAlerts,
                 onUpdateChannelChange = viewModel::setUpdateChannel,
                 onSpeechOutputModeChange = viewModel::setSpeechOutputMode,
                 onSystemTtsEngineChange = viewModel::setSystemTtsEnginePackage,
@@ -474,6 +541,9 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                 onPrimaryUpdateAction = runPrimaryUpdateAction,
                 onOpenReleasePage = { releaseUrl ->
                     openExternalUrl(context, releaseUrl)
+                },
+                onOpenProjectRepository = {
+                    openExternalUrl(context, ProjectRepositoryUrl)
                 },
                 onExportDiagnostics = viewModel::exportDiagnostics,
                 onClearDiagnostics = viewModel::clearDiagnostics,
@@ -604,6 +674,15 @@ private fun openExternalUrl(context: Context, url: String) {
         context.startActivity(intent)
     }
 }
+
+private val ShakeStrength.thresholdG: Float
+    get() = when (this) {
+        ShakeStrength.Light -> 2.2f
+        ShakeStrength.Medium -> 2.8f
+        ShakeStrength.Strong -> 3.4f
+    }
+
+private const val ShakeDebounceMs = 1_400L
 
 private fun installDownloadedApk(context: Context, apkPath: String): Boolean {
     val apkFile = File(apkPath)

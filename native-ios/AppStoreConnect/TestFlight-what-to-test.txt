@@ -1,51 +1,75 @@
 POLSKI
 
-Sprawdz ekran wyszukiwania celu.
-Najwazniejsze: pole edycyjne ma byc jasno podpisane jako Wpisz adres / miejsce, a pod nim ma byc osobny przycisk Szukaj.
+Sprawdz wyszukiwanie celu i wyniki w poblizu.
+Najwazniejsze: Lidl, Biedronka, Zabka, sklep, paczkomat i stacja kolejowa maja najpierw pokazywac realnie bliskie miejsca. Wyniki maja byc sortowane praktycznie wedlug bliskosci i trafnosci, bez dalekich pozycji wypychajacych lokalne miejsca.
 
-Sprawdz wpisywanie i zatwierdzanie wyszukiwania.
-Najwazniejsze: wpisywanie tekstu, przycisk Szukaj i klawisz Szukaj/Enter z klawiatury maja normalnie uruchamiac wyszukiwanie bez gubienia fokusu czytnika ekranu.
+Sprawdz adresy w wynikach wyszukiwania.
+Najwazniejsze: przy kazdym wyniku powinna byc nazwa oraz adres z numerem ulicy lub lokalu, np. Zabka Wschodnia 55 albo Zabka Wschodnia 36 lok. U3. Przy kilku sklepach tej samej sieci na jednej ulicy uzytkownik ma wiedziec, ktory wynik wybiera.
 
-Sprawdz wyniki wyszukiwania.
-Najwazniejsze: adresy maja byc czytelne, a wybor wyniku ma prowadzic do szczegolow miejsca i podsumowania trasy.
+Sprawdz wyszukiwanie Zabki przy lokalizacji Wlokiennicza 4 w Lodzi.
+Najwazniejsze: aplikacja powinna korzystac z najblizszych wynikow, w tym oficjalnych danych lokalizatora Zabka, i pokazywac pobliskie sklepy z numerami adresow. Nie powinno byc samych adresow typu Wschodnia bez numeru.
 
-Sprawdz lokalne wyszukiwanie punktow w okolicy.
-Najwazniejsze: zapytania Lidl, Biedronka, Zabka, sklep i paczkomat maja pokazywac najpierw bliskie wyniki, a nie odlegle miejsca z innych dzielnic lub miast.
+Sprawdz ustawienia Wyszukiwanie lokalne.
+Najwazniejsze: domyslna liczba wynikow wyszukiwania to 10, a uzytkownik moze zmienic liczbe wynikow w zakresie 3-30. Sprawdz, czy zmiana zapisuje sie po zamknieciu aplikacji i czy VoiceOver poprawnie obsluguje regulator.
 
-Sprawdz wyszukiwanie stacji kolejowych.
-Najwazniejsze: zapytania typu PKP Falenica albo stacja kolejowa maja preferowac stacje kolejowe; przystanki autobusowe powinny byc jasno opisane jako przystanki autobusowe.
+Sprawdz ekran wyszukiwania z VoiceOverem.
+Najwazniejsze: pole Wpisz adres / miejsce, przycisk Szukaj i klawisz Szukaj/Enter maja uruchamiac wyszukiwanie bez gubienia fokusu. Wyniki maja byc czytelne podczas przechodzenia flickami.
 
-Sprawdz ekran glowny aplikacji.
-Najwazniejsze: Navi Live ma byc czytane jako pierwszy element, biezaca lokalizacja ma pokazywac przyblizona dokladnosc, a Ustawienia jako ostatnia glowna kontrolka ekranu.
+Sprawdz ekran glowny na iPhonie.
+Najwazniejsze: Ustawienia maja byc widoczne w prawym dolnym rogu bez przewijania, Navi Live ma byc czytane jako pierwszy element, a biezaca lokalizacja ma pokazywac przyblizona dokladnosc.
 
-Sprawdz iOS ekran glowny.
-Najwazniejsze: zamiast niepotrzebnego statusu gotowosci ma byc przycisk Wlacz/Zatrzymaj sledzenie na zywo.
+Sprawdz prowadzenie po trasie.
+Najwazniejsze: komunikaty glosowe maja pojawiac sie same podczas ruchu, odliczanie ma informowac przed manewrem, a przy manewrze ma byc komunikat typu teraz skrec w nazwe ulicy w lewo/prawo. Przejscia dla pieszych na trasie maja byc zapowiadane.
 
-Sprawdz Ustawienia, sekcje Mowa i Dzwieki.
-Najwazniejsze: suwaki mowy maja dzialac w dobra strone, Podglad mowy ma byc na koncu sekcji Mowa, a dzwieki nawigacji maja byc w osobnej kategorii Dzwieki.
+Sprawdz ustawienia Prowadzenie.
+Najwazniejsze: mozna wlaczyc/wylaczyc alerty przejsc dla pieszych, zmienic sposob odliczania komunikatow, sile potrzasniecia i zachowanie informacji haptycznej.
+
+Sprawdz ustawienia Mowa.
+Najwazniejsze: domyslnym zrodlem jest VoiceOver, druga opcja to Syntezator mowy, nie ma trybu Automatyczny. Lista glosow syntezatora ma otwierac osobny ekran z wyszukiwarka, a Podglad mowy ma byc ostatni.
+
+Sprawdz ustawienia Dzwieki.
+Najwazniejsze: dzwieki sa w osobnej kategorii, maja regulacje glosnosci, podglad, osobny dzwiek przejscia dla pieszych oraz schematy Standard, Tetris i Cosmic.
+
+Sprawdz szybkie akcje i rotory VoiceOver na ekranie aktywnej nawigacji.
+Najwazniejsze: rotor Wskazowki trasy, rotor Alerty oraz Czynnosci: powtorz, poprzednia/nastepna wskazowka, pauza/wznow, przelicz, pokaz podsumowanie i zatrzymaj.
+
+Sprawdz ulubione i ustawienia po aktualizacji.
+Najwazniejsze: zapisane ulubione, wybrany glos oraz ustawienia dzwiekow, mowy, wyszukiwania i prowadzenia powinny zostac po zwyklej aktualizacji.
 
 ENGLISH
 
-Please test the destination search screen.
-Focus on the edit field being clearly labeled Enter address / place, with a separate Search button below it.
+Test destination search and nearby results.
+Focus on Lidl, Biedronka, Zabka, shop, parcel locker and railway station queries returning truly nearby places first. Results should be sorted practically by proximity and relevance, without distant matches pushing out local places.
 
-Please test typing and submitting a search.
-Focus on text entry, the Search button, and the keyboard Search/Enter action starting search without losing screen reader focus.
+Test addresses in search results.
+Focus on every result showing a name and an address with a street number or unit, for example Zabka Wschodnia 55 or Zabka Wschodnia 36 lok. U3. When several stores from the same chain are on one street, the user should know which result they are choosing.
 
-Please test search results.
-Focus on addresses being readable and selecting a result opening place details and route summary.
+Test Zabka search near Wlokiennicza 4 in Lodz.
+Focus on the app using nearby results, including official Zabka locator data, and showing nearby stores with numbered addresses. It should not show bare street-only addresses such as Wschodnia without a number.
 
-Please test local nearby place search.
-Focus on Lidl, Biedronka, Zabka, shop and parcel locker queries showing nearby results first, not distant places from other districts or cities.
+Test Local Search settings.
+Focus on the default search result count being 10 and the user being able to change the count from 3 to 30. Verify that the setting persists after closing the app and that VoiceOver handles the adjustable control correctly.
 
-Please test railway station search.
-Focus on queries such as PKP Falenica or railway station preferring railway stations; bus stops should be clearly labeled as bus stops.
+Test the search screen with VoiceOver.
+Focus on the Enter address / place field, the Search button and the keyboard Search/Enter action starting search without losing focus. Results should be readable when moving through them with flick gestures.
 
-Please test the Home screen.
-Focus on Navi Live being read first, current location showing approximate accuracy, and Settings being the last main control on the screen.
+Test the iPhone Home screen.
+Focus on Settings staying visible in the bottom-right corner without scrolling, Navi Live being read first, and current location showing approximate accuracy.
 
-Please test the iOS Home screen.
-Focus on the ready status being replaced by the Start/Stop live tracking button.
+Test active route guidance.
+Focus on spoken prompts starting automatically while moving, countdown prompts before maneuvers, and final prompts such as now turn left/right onto the street name. Pedestrian crossings on the route should be announced.
 
-Please test Settings, Speech and Sounds.
-Focus on speech sliders moving in the correct direction, Speech preview being last in Speech, and navigation sounds staying in the separate Sounds category.
+Test Guidance settings.
+Focus on pedestrian crossing alerts, announcement cadence, shake gesture strength and haptic feedback behavior.
+
+Test Speech settings.
+Focus on VoiceOver as the default source, Speech synthesizer as the second source, no Automatic mode, and the synthesizer voice list opening as a separate searchable screen. Speech preview should be last.
+
+Test Sounds settings.
+Focus on sounds being in their own category with volume, preview, a separate pedestrian crossing cue, and Standard, Tetris and Cosmic schemes.
+
+Test VoiceOver actions and rotors on the active navigation screen.
+Focus on Route instructions and Alerts rotors, plus Actions for repeat, previous/next instruction, pause/resume, recalculate, show summary and stop.
+
+Test favorites and settings after updating.
+Focus on saved favorites, selected voice, sound, speech, search and guidance settings remaining after a normal app update.

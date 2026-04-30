@@ -4,6 +4,8 @@ struct LiveNavigationUpdate {
   let state: ActiveNavigationState
   let currentStepIndex: Int
   let upcomingInstruction: String?
+  let currentStepKind: RouteStepKind
+  let upcomingStepKind: RouteStepKind?
   let stepChanged: Bool
   let offRouteTriggered: Bool
   let shouldAutoRecalculate: Bool
@@ -95,6 +97,8 @@ final class LiveNavigationEngine {
         state: state,
         currentStepIndex: session.currentStepIndex,
         upcomingInstruction: session.steps[safe: session.currentStepIndex + 1]?.instruction,
+        currentStepKind: session.steps[safe: session.currentStepIndex]?.kind ?? .instruction,
+        upcomingStepKind: session.steps[safe: session.currentStepIndex + 1]?.kind,
         stepChanged: false,
         offRouteTriggered: false,
         shouldAutoRecalculate: false,
@@ -119,6 +123,8 @@ final class LiveNavigationEngine {
         state: state,
         currentStepIndex: session.currentStepIndex,
         upcomingInstruction: session.steps[safe: session.currentStepIndex + 1]?.instruction,
+        currentStepKind: session.steps[safe: session.currentStepIndex]?.kind ?? .instruction,
+        upcomingStepKind: session.steps[safe: session.currentStepIndex + 1]?.kind,
         stepChanged: false,
         offRouteTriggered: !previous.isOffRoute,
         shouldAutoRecalculate: autoRecalculate,
@@ -144,6 +150,8 @@ final class LiveNavigationEngine {
       state: state,
       currentStepIndex: nextStepIndex,
       upcomingInstruction: session.steps[safe: nextStepIndex + 1]?.instruction,
+      currentStepKind: session.steps[safe: nextStepIndex]?.kind ?? .instruction,
+      upcomingStepKind: session.steps[safe: nextStepIndex + 1]?.kind,
       stepChanged: stepChanged,
       offRouteTriggered: false,
       shouldAutoRecalculate: false,
@@ -219,6 +227,7 @@ final class LiveNavigationEngine {
     return ActiveNavigationState(
       currentInstruction: currentStep.instruction,
       nextInstruction: nextStep?.instruction ?? L10n.text("active.destination_ahead", table: .navigation),
+      currentStepIndex: safeIndex,
       distanceToNextMeters: distanceToNext,
       remainingDistanceMeters: max(remainingFromSteps, remainingFromDestination),
       progressLabel: L10n.text("active.progress", table: .navigation, safeIndex + 1, session.steps.count),

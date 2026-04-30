@@ -13,6 +13,7 @@
 "navigation.step.roundabout" = "Enter the roundabout";
 "navigation.step.continue" = "Continue";
 "navigation.step.continue.named" = "Continue on %1$@";
+"navigation.step.crossing" = "Pedestrian crossing. Cross to the other side of the street.";
 "navigation.modifier.left" = "left";
 "navigation.modifier.right" = "right";
 "navigation.modifier.slight left" = "slightly left";
@@ -29,7 +30,7 @@
 "route.label.eta" = "Estimated time";
 "route.label.mode" = "Mode";
 "route.mode.walking" = "Walking";
-"route.action.start_guidance" = "Start guidance";
+"route.action.start_guidance" = "Start navigation";
 "route.action.refresh" = "Refresh route";
 "route.action.prepare" = "Prepare route";
 "route.status.loading" = "Calculating route";
@@ -63,6 +64,8 @@
 "active.section.status" = "Navigation status";
 "active.section.instructions" = "Instructions";
 "active.section.progress" = "Progress";
+"active.section.alerts" = "Alerts";
+"active.section.route_plan" = "Route plan";
 "active.section.actions" = "Actions";
 "active.label.current_instruction" = "Current instruction";
 "active.label.next_instruction" = "Next instruction";
@@ -73,11 +76,18 @@
 "active.progress" = "Step %d of %d";
 "active.off_route_meta" = "%@ away from the route";
 "active.action.repeat" = "Repeat current instruction";
+"active.action.previous_instruction" = "Speak previous instruction";
+"active.action.next_instruction" = "Speak next instruction";
 "active.action.pause" = "Pause guidance";
 "active.action.resume" = "Resume guidance";
 "active.action.recalculate" = "Recalculate route";
+"active.action.show_route_summary" = "Show route summary";
 "active.action.stop" = "Stop navigation";
 "active.action.arrived" = "Mark as arrived";
+"active.rotor.instructions" = "Route instructions";
+"active.rotor.alerts" = "Alerts";
+"active.route_step.title" = "Step %1$d of %2$d";
+"active.route_step.current_format" = "%@, current";
 "active.status.started" = "Active guidance started.";
 "active.status.paused" = "Navigation paused.";
 "active.status.resumed" = "Navigation resumed.";
@@ -88,8 +98,12 @@
 "active.status.recalculated" = "Route recalculated.";
 "active.status.auto_recalculated" = "Route recalculated after route deviation.";
 "active.status.off_route" = "You are off the route.";
+"active.status.no_previous_instruction" = "This is the first instruction.";
+"active.status.no_next_instruction" = "This is the last instruction.";
 "active.spoken.off_route" = "You are off the route.";
 "active.spoken.now" = "Now %1$@";
+"active.spoken.previous_instruction" = "Previous instruction: %@";
+"active.spoken.next_instruction" = "Next instruction: %@";
 "active.spoken.upcoming.distance" = "In %1$d meters, %2$@";
 "active.spoken.upcoming.time" = "In %1$d seconds, %2$@";
 "active.spoken.recalculated" = "Route recalculated.";

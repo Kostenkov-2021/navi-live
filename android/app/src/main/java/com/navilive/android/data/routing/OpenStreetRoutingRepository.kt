@@ -4,13 +4,18 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.navilive.android.R
 import com.navilive.android.model.GeoPoint
+import com.navilive.android.model.NearbyPoiCacheState
 import com.navilive.android.model.Place
+import com.navilive.android.model.RouteStepKind
 import com.navilive.android.model.RouteStep
 import com.navilive.android.model.RouteSummary
 import com.navilive.android.model.SharedProductRules
 import com.navilive.android.ui.NavigationScenarioCore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -35,6 +40,12 @@ class OpenStreetRoutingRepository(
         val distanceMeters: Int,
         val importance: Double,
         val isNearbyCandidate: Boolean,
+        val kind: PlaceKind = PlaceKind.Other,
+    )
+
+    private data class NearbyAddressCandidate(
+        val address: String,
+        val point: GeoPoint,
     )
 
     private enum class PlaceKind {
@@ -55,9 +66,34 @@ class OpenStreetRoutingRepository(
         val wantsRailStation: Boolean,
     ) {
         val wantsAnyCategory: Boolean = wantsShop || wantsParcelLocker || wantsRailStation
+        val isCategoryOnly: Boolean = wantsAnyCategory && nameSearchTerms.isEmpty()
     }
 
+    private data class RouteCrossingCandidate(
+        val point: GeoPoint,
+        val distanceAlongRouteMeters: Double,
+    )
+
+    private data class RouteProjection(
+        val distanceAlongRouteMeters: Double,
+        val lateralDistanceMeters: Double,
+    )
+
+    private data class SegmentProjection(
+        val ratio: Double,
+        val lengthMeters: Double,
+        val lateralDistanceMeters: Double,
+    )
+
+    private data class RouteBoundingBox(
+        val south: Double,
+        val west: Double,
+        val north: Double,
+        val east: Double,
+    )
+
     private val appContext = context.applicationContext
+    private val poiCacheStore = NearbyPoiCacheStore(appContext)
 
     private val shopQueryTerms = setOf(
         "sklep",
@@ -93,71 +129,194 @@ class OpenStreetRoutingRepository(
     )
     private val categoryQueryTerms = shopQueryTerms + parcelLockerQueryTerms + railStationQueryTerms
 
-    suspend fun searchPlaces(query: String, currentPoint: GeoPoint?): List<Place> {
+    private companion object {
+        const val LOCAL_POI_TOTAL_TIMEOUT_MS = 3_500L
+        const val LOCAL_POI_REQUEST_TIMEOUT_MS = 1_800
+        const val POI_CACHE_REFRESH_REQUEST_TIMEOUT_MS = 5_000
+        const val ADDRESS_LOOKUP_TIMEOUT_MS = 5_000
+        const val CHAIN_LOCATOR_TIMEOUT_MS = 4_000
+        const val NEARBY_ADDRESS_LOOKUP_RADIUS_METERS = 80
+        const val NEARBY_ADDRESS_LOOKUP_LIMIT = 220
+        const val ROUTE_REQUEST_TIMEOUT_MS = 10_000
+        const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
+        const val MINIMUM_USEFUL_SEARCH_RESULTS = 3
+        const val OFFICIAL_CHAIN_SCORE = 3_000
+        const val POI_CACHE_REFRESH_LIMIT = 350
+        const val ZABKA_LOCATOR_URL = "https://www.zabka.pl/app/uploads/locator-store-data.json"
+    }
+
+    suspend fun searchPlaces(
+        query: String,
+        currentPoint: GeoPoint?,
+        searchRadiusKm: Int = SharedProductRules.Search.defaultRadiusKm,
+        resultLimit: Int = SharedProductRules.Search.resultLimit,
+    ): List<Place> {
         if (query.isBlank()) {
             return emptyList()
         }
         return withContext(Dispatchers.IO) {
+            val normalizedSearchRadiusKm = searchRadiusKm.coerceIn(
+                SharedProductRules.Search.minimumRadiusKm,
+                SharedProductRules.Search.maximumRadiusKm,
+            )
+            val normalizedResultLimit = resultLimit.coerceIn(
+                SharedProductRules.Search.minimumResultLimit,
+                SharedProductRules.Search.maximumResultLimit,
+            )
+            val searchRadiusMeters = normalizedSearchRadiusKm * 1_000
             val intent = searchIntent(query)
             val combined = linkedMapOf<String, SearchCandidate>()
+            if (currentPoint != null && isZabkaQuery(intent)) {
+                queryOfficialZabkaCandidates(
+                    query = query,
+                    currentPoint = currentPoint,
+                    searchRadiusMeters = searchRadiusMeters,
+                ).forEach { candidate ->
+                    combined[candidate.place.id] = candidate
+                }
+            }
             if (currentPoint != null) {
+                queryCachedPoiCandidates(
+                    query = query,
+                    currentPoint = currentPoint,
+                    searchRadiusMeters = searchRadiusMeters,
+                    intent = intent,
+                    resultLimit = normalizedResultLimit,
+                ).forEach { candidate ->
+                    combined[candidate.place.id] = candidate
+                }
+            }
+            if (currentPoint != null && combined.size < MINIMUM_USEFUL_SEARCH_RESULTS) {
                 runCatching {
                     queryLocalPoiCandidates(
                         query = query,
                         currentPoint = currentPoint,
+                        searchRadiusMeters = searchRadiusMeters,
                         intent = intent,
+                        resultLimit = normalizedResultLimit,
                     )
                 }.getOrDefault(emptyList()).forEach { candidate ->
                     combined[candidate.place.id] = candidate
                 }
             }
-            val nearby = querySearchCandidates(
-                query = query,
-                currentPoint = currentPoint,
-                nearbyOnly = true,
-                intent = intent,
-            )
-            nearby.forEach { candidate ->
-                val existing = combined[candidate.place.id]
-                if (existing == null || isBetterSearchCandidate(candidate, existing)) {
-                    combined[candidate.place.id] = candidate
+            val shouldUseTextSearchFallback = true
+            if ((combined.size < MINIMUM_USEFUL_SEARCH_RESULTS || currentPoint == null || !intent.isCategoryOnly) && shouldUseTextSearchFallback) {
+                nearbyTextSearchRadiiKm(
+                    normalizedSearchRadiusKm = normalizedSearchRadiusKm,
+                    currentPoint = currentPoint,
+                    intent = intent,
+                ).forEach { radiusKm ->
+                    val nearby = querySearchCandidates(
+                        query = query,
+                        currentPoint = currentPoint,
+                        nearbyOnly = true,
+                        searchRadiusKm = radiusKm,
+                        intent = intent,
+                        resultLimit = normalizedResultLimit,
+                    )
+                    nearby.forEach { candidate ->
+                        putSearchCandidate(combined, candidate)
+                    }
+                }
+                if (currentPoint != null &&
+                    combined.size < MINIMUM_USEFUL_SEARCH_RESULTS &&
+                    intent.wantsAnyCategory &&
+                    !intent.isCategoryOnly &&
+                    intent.nameSearchTerms.isNotEmpty()
+                ) {
+                    val simplifiedQuery = intent.nameSearchTerms.joinToString(" ")
+                    if (simplifiedQuery.isNotBlank() && !simplifiedQuery.equals(query, ignoreCase = true)) {
+                        runCatching {
+                            querySearchCandidates(
+                                query = simplifiedQuery,
+                                currentPoint = currentPoint,
+                                nearbyOnly = true,
+                                searchRadiusKm = SharedProductRules.Search.minimumRadiusKm,
+                                intent = intent,
+                                resultLimit = normalizedResultLimit,
+                            )
+                        }.getOrDefault(emptyList()).forEach { candidate ->
+                            putSearchCandidate(combined, candidate)
+                        }
+                    }
+                }
+                if (currentPoint != null && intent.isCategoryOnly) {
+                    val expansionQueries = when {
+                        intent.wantsShop -> shopCategoryExpansionQueries()
+                        intent.wantsParcelLocker -> parcelLockerCategoryExpansionQueries()
+                        else -> emptyList()
+                    }
+                    expansionQueries.forEach { expandedQuery ->
+                        runCatching {
+                            querySearchCandidates(
+                                query = expandedQuery,
+                                currentPoint = currentPoint,
+                                nearbyOnly = true,
+                                searchRadiusKm = normalizedSearchRadiusKm,
+                                intent = intent,
+                                resultLimit = normalizedResultLimit,
+                            )
+                        }.getOrDefault(emptyList()).forEach { candidate ->
+                            putSearchCandidate(combined, candidate)
+                        }
+                    }
                 }
             }
-            val includeGlobalFallback =
-                combined.size < SharedProductRules.Search.includeGlobalFallbackIfFewerThan
+            val includeGlobalFallback = (currentPoint == null || combined.isEmpty()) && shouldUseTextSearchFallback
             if (includeGlobalFallback) {
                 querySearchCandidates(
                     query = query,
                     currentPoint = currentPoint,
                     nearbyOnly = false,
+                    searchRadiusKm = normalizedSearchRadiusKm,
                     intent = intent,
+                    resultLimit = normalizedResultLimit,
                 ).forEach { candidate ->
-                    val existing = combined[candidate.place.id]
-                    if (existing == null || isBetterSearchCandidate(candidate, existing)) {
-                        combined[candidate.place.id] = candidate
-                    }
+                    putSearchCandidate(combined, candidate)
                 }
             }
-            combined.values
-                .sortedWith(
-                    compareByDescending<SearchCandidate> { it.score }
-                        .thenByDescending { it.isNearbyCandidate }
-                        .thenBy { if (it.distanceMeters > 0) it.distanceMeters else Int.MAX_VALUE }
-                        .thenByDescending { it.importance },
-                )
-                .map { it.place }
-                .take(SharedProductRules.Search.resultLimit)
+            val sortedCandidates = deduplicatedSearchCandidates(combined.values)
+                .sortedWith(::compareSearchCandidates)
+                .take(normalizedResultLimit)
+            enrichSearchResultAddresses(sortedCandidates)
         }
     }
 
-    suspend fun buildWalkingRoute(from: GeoPoint, to: GeoPoint): RouteSummary {
+    suspend fun nearbyPoiCacheState(): NearbyPoiCacheState = poiCacheStore.metadata()
+
+    suspend fun clearNearbyPoiCache(): NearbyPoiCacheState = poiCacheStore.clear()
+
+    suspend fun refreshNearbyPoiCache(
+        currentPoint: GeoPoint,
+        radiusKm: Int,
+    ): NearbyPoiCacheState = withContext(Dispatchers.IO) {
+        val normalizedRadiusKm = radiusKm.coerceIn(SharedProductRules.Search.minimumRadiusKm, 5)
+        val fetchedAtMs = System.currentTimeMillis()
+        val records = queryNearbyPoiCacheRecords(
+            currentPoint = currentPoint,
+            radiusMeters = normalizedRadiusKm * 1_000,
+            fetchedAtMs = fetchedAtMs,
+        )
+        poiCacheStore.saveMerged(
+            records = records,
+            center = currentPoint,
+            fetchedAtMs = fetchedAtMs,
+        )
+    }
+
+    suspend fun buildWalkingRoute(
+        from: GeoPoint,
+        to: GeoPoint,
+        includePedestrianCrossings: Boolean = true,
+    ): RouteSummary {
         return withContext(Dispatchers.IO) {
-            val url =
-                "https://router.project-osrm.org/route/v1/foot/" +
-                    "${from.longitude},${from.latitude};${to.longitude},${to.latitude}" +
-                    "?overview=full&steps=true&alternatives=false&geometries=geojson"
-            val response = requestText(url)
-            val root = JSONObject(response)
+            val coordinateString = "${from.longitude},${from.latitude};${to.longitude},${to.latitude}"
+            val root = routingEndpoints(coordinateString)
+                .firstNotNullOfOrNull { endpoint ->
+                    runCatching {
+                        JSONObject(requestText(endpoint, timeoutMs = ROUTE_REQUEST_TIMEOUT_MS))
+                    }.getOrNull()
+                } ?: throw IllegalStateException("Routing service returned no route response.")
             val routes = root.optJSONArray("routes")
             if (routes == null || routes.length() == 0) {
                 throw IllegalStateException("Routing service returned no routes.")
@@ -174,11 +333,19 @@ class OpenStreetRoutingRepository(
                 .optJSONArray("legs")
                 ?.optJSONObject(0)
                 ?.optJSONArray("steps")
-            val parsedSteps = parseSteps(steps)
             val pathPoints = parsePath(route.optJSONObject("geometry"))
+            val baseSteps = parseSteps(steps)
+            val parsedSteps = if (includePedestrianCrossings) {
+                addPedestrianCrossingSteps(
+                    steps = baseSteps,
+                    pathPoints = pathPoints,
+                )
+            } else {
+                baseSteps
+            }
 
-            val currentInstruction = stepInstruction(steps, 0)
-            val nextInstruction = stepInstruction(steps, 1)
+            val currentInstruction = parsedSteps.firstOrNull()?.instruction ?: stepInstruction(steps, 0)
+            val nextInstruction = parsedSteps.getOrNull(1)?.instruction ?: stepInstruction(steps, 1)
 
             RouteSummary(
                 distanceMeters = distance,
@@ -190,6 +357,14 @@ class OpenStreetRoutingRepository(
                 pathPoints = pathPoints,
             )
         }
+    }
+
+    private fun routingEndpoints(coordinateString: String): List<String> {
+        val query = "?overview=full&steps=true&alternatives=false&geometries=geojson"
+        return listOf(
+            "https://routing.openstreetmap.de/routed-foot/route/v1/foot/$coordinateString$query",
+            "https://router.project-osrm.org/route/v1/foot/$coordinateString$query",
+        )
     }
 
     suspend fun reverseGeocode(point: GeoPoint): String = withContext(Dispatchers.IO) {
@@ -252,6 +427,198 @@ class OpenStreetRoutingRepository(
             )
         }
         return points
+    }
+
+    private fun addPedestrianCrossingSteps(
+        steps: List<RouteStep>,
+        pathPoints: List<GeoPoint>,
+    ): List<RouteStep> {
+        if (steps.isEmpty() || pathPoints.size < 2) return steps
+        val crossings = runCatching { queryPedestrianCrossings(pathPoints) }.getOrDefault(emptyList())
+        if (crossings.isEmpty()) return steps
+
+        val routeLengthMeters = routeLengthMeters(pathPoints)
+        val stepDistances = stepDistancesAlongRoute(steps, pathPoints, routeLengthMeters)
+        val augmented = mutableListOf<RouteStep>()
+        var crossingIndex = 0
+        var lastAlongMeters = stepDistances.firstOrNull() ?: 0.0
+
+        augmented += steps.first()
+        for (stepIndex in 1 until steps.size) {
+            val stepAlongMeters = stepDistances[stepIndex]
+            while (
+                crossingIndex < crossings.size &&
+                crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters
+            ) {
+                val crossing = crossings[crossingIndex]
+                val distanceFromPrevious = (crossing.distanceAlongRouteMeters - lastAlongMeters)
+                    .roundToInt()
+                    .coerceAtLeast(1)
+                augmented += RouteStep(
+                    instruction = string(R.string.route_step_crossing),
+                    distanceMeters = distanceFromPrevious,
+                    maneuverPoint = crossing.point,
+                    kind = RouteStepKind.PedestrianCrossing,
+                )
+                lastAlongMeters = crossing.distanceAlongRouteMeters
+                crossingIndex += 1
+            }
+            augmented += steps[stepIndex]
+            lastAlongMeters = maxOf(lastAlongMeters, stepAlongMeters)
+        }
+        return augmented
+    }
+
+    private fun queryPedestrianCrossings(pathPoints: List<GeoPoint>): List<RouteCrossingCandidate> {
+        val endpoints = buildPedestrianCrossingEndpoints(pathPoints)
+        var response: String? = null
+        for (endpoint in endpoints) {
+            response = runCatching { requestText(endpoint, timeoutMs = CROSSING_REQUEST_TIMEOUT_MS) }.getOrNull()
+            if (response != null) break
+        }
+        response ?: return emptyList()
+
+        val routeLengthMeters = routeLengthMeters(pathPoints)
+        val elements = JSONObject(response).optJSONArray("elements") ?: return emptyList()
+        val candidates = mutableListOf<RouteCrossingCandidate>()
+        for (index in 0 until elements.length()) {
+            val item = elements.optJSONObject(index) ?: continue
+            val point = overpassPoint(item) ?: continue
+            val projection = projectOntoRoute(pathPoints, point) ?: continue
+            if (projection.lateralDistanceMeters > 18.0) continue
+            if (projection.distanceAlongRouteMeters < 20.0) continue
+            if (projection.distanceAlongRouteMeters > routeLengthMeters - 20.0) continue
+            candidates += RouteCrossingCandidate(
+                point = point,
+                distanceAlongRouteMeters = projection.distanceAlongRouteMeters,
+            )
+        }
+
+        val deduplicated = mutableListOf<RouteCrossingCandidate>()
+        for (candidate in candidates.sortedBy { it.distanceAlongRouteMeters }) {
+            val previous = deduplicated.lastOrNull()
+            if (previous == null || candidate.distanceAlongRouteMeters - previous.distanceAlongRouteMeters >= 25.0) {
+                deduplicated += candidate
+            }
+        }
+        return deduplicated
+    }
+
+    private fun buildPedestrianCrossingEndpoints(pathPoints: List<GeoPoint>): List<String> {
+        val box = routeBoundingBox(pathPoints, paddingMeters = 45.0)
+        val bbox = "(${formatCoordinate(box.south)},${formatCoordinate(box.west)}," +
+            "${formatCoordinate(box.north)},${formatCoordinate(box.east)})"
+        val query = "[out:json][timeout:${SharedProductRules.Search.overpassTimeoutSeconds}];" +
+            "(" +
+            "node[\"highway\"=\"crossing\"]$bbox;" +
+            "node[\"crossing\"]$bbox;" +
+            "way[\"highway\"=\"crossing\"]$bbox;" +
+            "way[\"footway\"=\"crossing\"]$bbox;" +
+            "way[\"crossing\"]$bbox;" +
+            ");out center 160;"
+        val encoded = URLEncoder.encode(query, Charsets.UTF_8.name())
+        return listOf(
+            "https://overpass-api.de/api/interpreter?data=$encoded",
+            "https://overpass.kumi.systems/api/interpreter?data=$encoded",
+        )
+    }
+
+    private fun stepDistancesAlongRoute(
+        steps: List<RouteStep>,
+        pathPoints: List<GeoPoint>,
+        routeLengthMeters: Double,
+    ): List<Double> {
+        val distances = mutableListOf<Double>()
+        var previous = 0.0
+        for ((index, step) in steps.withIndex()) {
+            val raw = step.maneuverPoint
+                ?.let { projectOntoRoute(pathPoints, it)?.distanceAlongRouteMeters }
+                ?: if (index == 0) 0.0 else routeLengthMeters
+            val normalized = raw.coerceIn(0.0, routeLengthMeters).coerceAtLeast(previous)
+            distances += normalized
+            previous = normalized
+        }
+        return distances
+    }
+
+    private fun routeBoundingBox(pathPoints: List<GeoPoint>, paddingMeters: Double): RouteBoundingBox {
+        val minLatitude = pathPoints.minOf { it.latitude }
+        val maxLatitude = pathPoints.maxOf { it.latitude }
+        val minLongitude = pathPoints.minOf { it.longitude }
+        val maxLongitude = pathPoints.maxOf { it.longitude }
+        val midLatitudeRadians = Math.toRadians((minLatitude + maxLatitude) / 2.0)
+        val latitudePadding = paddingMeters / 111_320.0
+        val longitudePadding = paddingMeters / (111_320.0 * cos(midLatitudeRadians).coerceAtLeast(0.2))
+        return RouteBoundingBox(
+            south = minLatitude - latitudePadding,
+            west = minLongitude - longitudePadding,
+            north = maxLatitude + latitudePadding,
+            east = maxLongitude + longitudePadding,
+        )
+    }
+
+    private fun projectOntoRoute(pathPoints: List<GeoPoint>, point: GeoPoint): RouteProjection? {
+        if (pathPoints.size < 2) return null
+        var bestProjection: RouteProjection? = null
+        var distanceBeforeSegment = 0.0
+        for (index in 0 until pathPoints.lastIndex) {
+            val segmentProjection = projectOntoSegment(
+                point = point,
+                start = pathPoints[index],
+                end = pathPoints[index + 1],
+            )
+            val projection = RouteProjection(
+                distanceAlongRouteMeters = distanceBeforeSegment +
+                    segmentProjection.lengthMeters * segmentProjection.ratio,
+                lateralDistanceMeters = segmentProjection.lateralDistanceMeters,
+            )
+            val best = bestProjection
+            if (best == null || projection.lateralDistanceMeters < best.lateralDistanceMeters) {
+                bestProjection = projection
+            }
+            distanceBeforeSegment += segmentProjection.lengthMeters
+        }
+        return bestProjection
+    }
+
+    private fun projectOntoSegment(point: GeoPoint, start: GeoPoint, end: GeoPoint): SegmentProjection {
+        val latitudeReference = Math.toRadians((point.latitude + start.latitude + end.latitude) / 3.0)
+        val earthRadius = 6_371_000.0
+
+        fun project(geoPoint: GeoPoint): Pair<Double, Double> {
+            val x = Math.toRadians(geoPoint.longitude) * earthRadius * cos(latitudeReference)
+            val y = Math.toRadians(geoPoint.latitude) * earthRadius
+            return x to y
+        }
+
+        val (pointX, pointY) = project(point)
+        val (startX, startY) = project(start)
+        val (endX, endY) = project(end)
+        val dx = endX - startX
+        val dy = endY - startY
+        val lengthSquared = dx * dx + dy * dy
+        if (lengthSquared <= 0.0) {
+            val distance = sqrt((pointX - startX).pow(2.0) + (pointY - startY).pow(2.0))
+            return SegmentProjection(ratio = 0.0, lengthMeters = 0.0, lateralDistanceMeters = distance)
+        }
+        val ratio = (((pointX - startX) * dx + (pointY - startY) * dy) / lengthSquared)
+            .coerceIn(0.0, 1.0)
+        val closestX = startX + dx * ratio
+        val closestY = startY + dy * ratio
+        val lateralDistance = sqrt((pointX - closestX).pow(2.0) + (pointY - closestY).pow(2.0))
+        return SegmentProjection(
+            ratio = ratio,
+            lengthMeters = sqrt(lengthSquared),
+            lateralDistanceMeters = lateralDistance,
+        )
+    }
+
+    private fun routeLengthMeters(pathPoints: List<GeoPoint>): Double {
+        var length = 0.0
+        for (index in 0 until pathPoints.lastIndex) {
+            length += haversineMeters(pathPoints[index], pathPoints[index + 1])
+        }
+        return length
     }
 
     private fun instructionForStep(step: JSONObject): String {
@@ -334,34 +701,257 @@ class OpenStreetRoutingRepository(
         return labelForKind(baseName, kind)
     }
 
-    private fun queryLocalPoiCandidates(
-        query: String,
-        currentPoint: GeoPoint,
-        intent: SearchIntent,
-    ): List<SearchCandidate> {
-        val endpoints = buildOverpassEndpoints(currentPoint, intent)
-        if (endpoints.isEmpty()) return emptyList()
-        var response: String? = null
-        for (endpoint in endpoints) {
-            response = runCatching { requestText(endpoint) }.getOrNull()
-            if (response != null) break
+    private fun putSearchCandidate(
+        combined: MutableMap<String, SearchCandidate>,
+        candidate: SearchCandidate,
+    ) {
+        val existing = combined[candidate.place.id]
+        if (existing == null || isBetterSearchCandidate(candidate, existing)) {
+            combined[candidate.place.id] = candidate
         }
-        response ?: return emptyList()
+    }
+
+    private fun nearbyTextSearchRadiiKm(
+        normalizedSearchRadiusKm: Int,
+        currentPoint: GeoPoint?,
+        intent: SearchIntent,
+    ): List<Int> {
+        if (currentPoint == null || intent.isCategoryOnly) return listOf(normalizedSearchRadiusKm)
+        return listOf(SharedProductRules.Search.minimumRadiusKm, normalizedSearchRadiusKm).distinct()
+    }
+
+    private fun deduplicatedSearchCandidates(candidates: Collection<SearchCandidate>): List<SearchCandidate> {
+        val unique = mutableListOf<SearchCandidate>()
+        candidates.sortedWith(::compareSearchCandidates).forEach { candidate ->
+            val duplicateIndex = unique.indexOfFirst { existing ->
+                areDuplicateSearchPlaces(candidate.place, existing.place)
+            }
+            if (duplicateIndex == -1) {
+                unique += candidate
+            } else if (isBetterSearchCandidate(candidate, unique[duplicateIndex])) {
+                unique[duplicateIndex] = candidate
+            }
+        }
+        return unique
+    }
+
+    private fun areDuplicateSearchPlaces(left: Place, right: Place): Boolean {
+        if (normalizeForSearch(left.name) != normalizeForSearch(right.name)) return false
+        val distanceBetweenPlaces = when {
+            left.point != null && right.point != null -> haversineMeters(left.point, right.point).roundToInt()
+            else -> kotlin.math.abs(left.walkDistanceMeters - right.walkDistanceMeters)
+        }
+        if (distanceBetweenPlaces > 35) return false
+        val leftAddress = normalizeForSearch(left.address)
+        val rightAddress = normalizeForSearch(right.address)
+        return leftAddress.isBlank() || rightAddress.isBlank() || leftAddress == rightAddress
+    }
+
+    private suspend fun enrichSearchResultAddresses(candidates: List<SearchCandidate>): List<Place> {
+        val lookupIds = candidates
+            .mapNotNull { candidate ->
+                if (needsSearchAddressEnrichment(candidate.place)) {
+                    osmLookupIdFromPlaceId(candidate.place.id)
+                } else {
+                    null
+                }
+            }
+            .distinct()
+        val lookedUpAddresses = if (lookupIds.isEmpty()) {
+            emptyMap()
+        } else {
+            lookupAddressesByOsmIds(lookupIds)
+        }
+
+        val candidatesAfterLookup = candidates.map { candidate ->
+            val lookupId = osmLookupIdFromPlaceId(candidate.place.id)
+            val address = lookupId?.let(lookedUpAddresses::get)
+            if (!address.isNullOrBlank() && !isUnhelpfulSearchAddress(address, candidate.place.name)) {
+                candidate.copy(place = candidate.place.copy(address = address))
+            } else {
+                candidate
+            }
+        }
+
+        val needsNearbyAddress = candidatesAfterLookup.filter(::needsNearbyAddressEnrichment)
+        if (needsNearbyAddress.isEmpty()) {
+            return candidatesAfterLookup.map { it.place }
+        }
+
+        val nearbyAddresses = lookupNearbyAddressCandidates(needsNearbyAddress.map { it.place })
+        if (nearbyAddresses.isEmpty()) {
+            return candidatesAfterLookup.map { it.place }
+        }
+
+        return candidatesAfterLookup.map { candidate ->
+            val nearbyAddress = nearestNearbyAddress(candidate.place, nearbyAddresses)
+            if (nearbyAddress != null) {
+                candidate.place.copy(address = nearbyAddress.address)
+            } else {
+                candidate.place
+            }
+        }
+    }
+
+    private fun needsSearchAddressEnrichment(place: Place): Boolean {
+        return isUnhelpfulSearchAddress(place.address, place.name) || !hasPreciseStreetNumber(place.address)
+    }
+
+    private fun needsNearbyAddressEnrichment(candidate: SearchCandidate): Boolean {
+        return candidate.kind == PlaceKind.Shop &&
+            candidate.place.point != null &&
+            needsSearchAddressEnrichment(candidate.place)
+    }
+
+    private suspend fun lookupNearbyAddressCandidates(places: List<Place>): List<NearbyAddressCandidate> {
+        val query = buildNearbyAddressLookupQuery(places.mapNotNull { it.point }) ?: return emptyList()
+        val encodedQuery = URLEncoder.encode(query, Charsets.UTF_8.name())
+        val endpoints = listOf(
+            "https://overpass-api.de/api/interpreter?data=$encodedQuery",
+            "https://overpass.kumi.systems/api/interpreter?data=$encodedQuery",
+        )
+        for (endpoint in endpoints) {
+            val response = requestTextOrNull(endpoint, timeoutMs = ADDRESS_LOOKUP_TIMEOUT_MS) ?: continue
+            val parsed = parseNearbyAddressCandidates(response)
+            if (parsed.isNotEmpty()) return parsed
+        }
+        return emptyList()
+    }
+
+    private fun buildNearbyAddressLookupQuery(points: List<GeoPoint>): String? {
+        val uniquePoints = points.distinct()
+        if (uniquePoints.isEmpty()) return null
+        return buildString {
+            append("[out:json][timeout:")
+            append(SharedProductRules.Search.overpassTimeoutSeconds)
+            append("];")
+            append("(")
+            uniquePoints.forEach { point ->
+                val lat = formatCoordinate(point.latitude)
+                val lon = formatCoordinate(point.longitude)
+                append("node(around:")
+                append(NEARBY_ADDRESS_LOOKUP_RADIUS_METERS)
+                append(",$lat,$lon)[\"addr:housenumber\"];")
+                append("way(around:")
+                append(NEARBY_ADDRESS_LOOKUP_RADIUS_METERS)
+                append(",$lat,$lon)[\"addr:housenumber\"];")
+                append("relation(around:")
+                append(NEARBY_ADDRESS_LOOKUP_RADIUS_METERS)
+                append(",$lat,$lon)[\"addr:housenumber\"];")
+            }
+            append(");out center ")
+            append(NEARBY_ADDRESS_LOOKUP_LIMIT)
+            append(";")
+        }
+    }
+
+    private fun parseNearbyAddressCandidates(response: String): List<NearbyAddressCandidate> {
         val elements = JSONObject(response).optJSONArray("elements") ?: return emptyList()
-        val candidates = mutableListOf<SearchCandidate>()
+        val candidates = mutableListOf<NearbyAddressCandidate>()
         for (index in 0 until elements.length()) {
             val item = elements.optJSONObject(index) ?: continue
             val tags = item.optJSONObject("tags")?.toStringMap().orEmpty()
             val point = overpassPoint(item) ?: continue
+            val address = overpassAddress(tags, fallback = "")
+            if (address.isBlank() || !hasPreciseStreetNumber(address)) continue
+            candidates += NearbyAddressCandidate(address = address, point = point)
+        }
+        return candidates
+    }
+
+    private fun nearestNearbyAddress(place: Place, addresses: List<NearbyAddressCandidate>): NearbyAddressCandidate? {
+        val point = place.point ?: return null
+        val nearest = addresses.minByOrNull { candidate ->
+            haversineMeters(point, candidate.point)
+        } ?: return null
+        val distance = haversineMeters(point, nearest.point)
+        return nearest.takeIf { distance <= NEARBY_ADDRESS_LOOKUP_RADIUS_METERS }
+    }
+
+    private suspend fun lookupAddressesByOsmIds(lookupIds: List<String>): Map<String, String> {
+        val encodedIds = URLEncoder.encode(lookupIds.joinToString(","), Charsets.UTF_8.name())
+        val endpoint = "https://nominatim.openstreetmap.org/lookup" +
+            "?format=jsonv2&addressdetails=1&namedetails=1&osm_ids=$encodedIds"
+        val response = requestTextOrNull(endpoint, timeoutMs = ADDRESS_LOOKUP_TIMEOUT_MS) ?: return emptyMap()
+        val array = JSONArray(response)
+        val addresses = linkedMapOf<String, String>()
+        for (index in 0 until array.length()) {
+            val item = array.optJSONObject(index) ?: continue
+            val lookupId = osmLookupIdFromNominatim(item) ?: continue
+            val displayName = item.optString("display_name")
+            val address = formatAddress(item.optJSONObject("address"), displayName)
+            if (address.isNotBlank()) {
+                addresses[lookupId] = address
+            }
+        }
+        return addresses
+    }
+
+    private fun osmLookupIdFromPlaceId(placeId: String): String? {
+        if (!placeId.startsWith("overpass_")) return null
+        val parts = placeId.removePrefix("overpass_").split('_')
+        if (parts.size != 2) return null
+        val prefix = when (parts[0]) {
+            "node" -> "N"
+            "way" -> "W"
+            "relation" -> "R"
+            else -> return null
+        }
+        val numericId = parts[1].toLongOrNull() ?: return null
+        return "$prefix$numericId"
+    }
+
+    private fun osmLookupIdFromNominatim(item: JSONObject): String? {
+        if (!item.has("osm_id")) return null
+        val prefix = when (item.optString("osm_type").lowercase(Locale.US)) {
+            "node" -> "N"
+            "way" -> "W"
+            "relation" -> "R"
+            else -> return null
+        }
+        return "$prefix${item.optLong("osm_id")}"
+    }
+
+    private fun isUnhelpfulSearchAddress(address: String, placeName: String): Boolean {
+        val normalizedAddress = normalizeForSearch(address)
+        if (normalizedAddress.isBlank()) return true
+        val normalizedName = normalizeForSearch(placeName)
+        val normalizedNameTail = normalizeForSearch(placeName.substringAfter(':').trim())
+        return normalizedAddress == normalizedName ||
+            normalizedAddress == normalizedNameTail
+    }
+
+    private fun hasPreciseStreetNumber(address: String): Boolean {
+        val streetLine = address.substringBefore(',').trim()
+        if (streetLine.isBlank()) return false
+        return streetLine.split(Regex("\\s+|/"))
+            .map { it.trim('.', ',', ';', ':', '(', ')') }
+            .any(SharedProductRules.Address.houseNumberPattern::matches)
+    }
+
+    private suspend fun queryOfficialZabkaCandidates(
+        query: String,
+        currentPoint: GeoPoint,
+        searchRadiusMeters: Int,
+    ): List<SearchCandidate> {
+        val response = requestTextOrNull(ZABKA_LOCATOR_URL, timeoutMs = CHAIN_LOCATOR_TIMEOUT_MS) ?: return emptyList()
+        val stores = JSONArray(response)
+        val candidates = mutableListOf<SearchCandidate>()
+        for (index in 0 until stores.length()) {
+            val store = stores.optJSONObject(index) ?: continue
+            val point = GeoPoint(
+                latitude = store.optDouble("lat", Double.NaN),
+                longitude = store.optDouble("lon", Double.NaN),
+            )
+            if (point.latitude.isNaN() || point.longitude.isNaN()) continue
             val distance = haversineMeters(currentPoint, point).roundToInt()
-            if (distance > SharedProductRules.Search.localPoiRadiusMeters) continue
-            val kind = overpassKind(tags)
-            if (!shouldKeepLocalPoi(tags, kind, intent)) continue
-            val name = overpassName(tags, kind)
-            val address = overpassAddress(tags, name)
+            if (distance > searchRadiusMeters) continue
+            val street = store.optString("street")
+            val town = store.optString("town")
+            val address = officialChainAddress(street, town).ifBlank { street.ifBlank { town } }
             val place = Place(
-                id = "overpass_${item.optString("type")}_${item.optLong("id")}",
-                name = labelForKind(name, kind),
+                id = "zabka_official_${store.optString("storeId").ifBlank { index.toString() }}",
+                name = "\u017Babka",
                 address = address,
                 walkDistanceMeters = distance,
                 walkEtaMinutes = if (distance > 0) {
@@ -370,44 +960,515 @@ class OpenStreetRoutingRepository(
                     0
                 },
                 point = point,
-                phone = tags["phone"] ?: tags["contact:phone"],
-                website = tags["website"] ?: tags["contact:website"],
+                website = store.optString("storeUrl").takeIf { it.isNotBlank() },
             )
             candidates += SearchCandidate(
                 place = place,
-                score = searchScore(place, query, currentPoint) +
-                    SharedProductRules.Search.localPoiScore +
-                    categoryAffinityScore(intent, kind),
+                score = searchScore(place, query, currentPoint) + OFFICIAL_CHAIN_SCORE,
                 distanceMeters = distance,
-                importance = 0.0,
+                importance = 1.0,
                 isNearbyCandidate = true,
+                kind = PlaceKind.Shop,
             )
         }
-        return candidates
+        return candidates.sortedWith(
+            compareBy<SearchCandidate> { sortableDistance(it.distanceMeters) }
+                .thenBy { it.place.address },
+        )
     }
 
-    private fun buildOverpassEndpoints(currentPoint: GeoPoint, intent: SearchIntent): List<String> {
-        val selectors = mutableListOf<String>()
-        val radius = SharedProductRules.Search.localPoiRadiusMeters
+    private fun officialChainAddress(street: String, town: String): String {
+        val cleanedStreet = titleCaseAddressPart(
+            street.trim().replace(Regex("^ul\\.\\s*", RegexOption.IGNORE_CASE), ""),
+        )
+        val cleanedTown = titleCaseAddressPart(town.trim())
+        return listOf(cleanedStreet, cleanedTown)
+            .filter { it.isNotBlank() }
+            .joinToString(", ")
+    }
+
+    private fun titleCaseAddressPart(value: String): String {
+        if (value.isBlank()) return value
+        val polish = Locale.forLanguageTag("pl-PL")
+        return value.split(Regex("\\s+"))
+            .joinToString(" ") { token ->
+                val lowerToken = token.lowercase(polish)
+                when {
+                    lowerToken in setOf("lok.", "nr", "nr.", "r.", "ul.", "al.", "pl.") -> lowerToken
+                    token.none { it.isLetter() } -> token
+                    else -> lowerToken.replaceFirstChar { first ->
+                        if (first.isLowerCase()) first.titlecase(polish) else first.toString()
+                    }
+                }
+            }
+    }
+
+    private suspend fun queryLocalPoiCandidates(
+        query: String,
+        currentPoint: GeoPoint,
+        searchRadiusMeters: Int,
+        intent: SearchIntent,
+        resultLimit: Int,
+    ): List<SearchCandidate> {
+        val endpoints = buildOverpassEndpoints(currentPoint, intent, searchRadiusMeters)
+        if (endpoints.isEmpty()) return emptyList()
+        val candidates = linkedMapOf<String, SearchCandidate>()
+        val startedAtMs = System.currentTimeMillis()
+        for (endpoint in endpoints) {
+            if (System.currentTimeMillis() - startedAtMs >= LOCAL_POI_TOTAL_TIMEOUT_MS) break
+            val response = requestTextOrNull(endpoint, timeoutMs = LOCAL_POI_REQUEST_TIMEOUT_MS) ?: continue
+        val elements = JSONObject(response).optJSONArray("elements") ?: continue
+            for (index in 0 until elements.length()) {
+                val item = elements.optJSONObject(index) ?: continue
+                val tags = item.optJSONObject("tags")?.toStringMap().orEmpty()
+                val point = overpassPoint(item) ?: continue
+                val distance = haversineMeters(currentPoint, point).roundToInt()
+                if (distance > searchRadiusMeters) continue
+                val kind = overpassKind(tags)
+                if (!shouldKeepLocalPoi(tags, kind, intent)) continue
+                val name = overpassName(tags, kind)
+                val address = overpassAddress(tags, name)
+                val place = Place(
+                    id = "overpass_${item.optString("type")}_${item.optLong("id")}",
+                    name = labelForKind(name, kind),
+                    address = address,
+                    walkDistanceMeters = distance,
+                    walkEtaMinutes = if (distance > 0) {
+                        NavigationScenarioCore.distanceBasedEtaMinutes(distance)
+                    } else {
+                        0
+                    },
+                    point = point,
+                    phone = tags["phone"] ?: tags["contact:phone"],
+                    website = tags["website"] ?: tags["contact:website"],
+                )
+                val candidate = SearchCandidate(
+                    place = place,
+                    score = searchScore(place, query, currentPoint) +
+                        SharedProductRules.Search.localPoiScore +
+                        categoryAffinityScore(intent, kind),
+                    distanceMeters = distance,
+                    importance = 0.0,
+                    isNearbyCandidate = true,
+                    kind = kind,
+                )
+                val existing = candidates[place.id]
+                if (existing == null || isBetterSearchCandidate(candidate, existing)) {
+                    candidates[place.id] = candidate
+                }
+            }
+            if (candidates.size >= resultLimit) break
+        }
+        return candidates.values
+            .sortedWith(
+                compareByDescending<SearchCandidate> { it.score }
+                    .thenBy { if (it.distanceMeters > 0) it.distanceMeters else Int.MAX_VALUE }
+                    .thenByDescending { it.importance },
+            )
+            .toList()
+    }
+
+    private suspend fun queryCachedPoiCandidates(
+        query: String,
+        currentPoint: GeoPoint,
+        searchRadiusMeters: Int,
+        intent: SearchIntent,
+        resultLimit: Int,
+    ): List<SearchCandidate> {
+        return poiCacheStore.loadRecords()
+            .mapNotNull { record ->
+                val distance = haversineMeters(currentPoint, record.point).roundToInt()
+                if (distance > searchRadiusMeters) return@mapNotNull null
+                val kind = kindFromCacheKind(record.kind)
+                if (!cachedPoiMatches(record, kind, intent)) return@mapNotNull null
+                val place = Place(
+                    id = record.id,
+                    name = labelForKind(record.name, kind),
+                    address = record.address,
+                    walkDistanceMeters = distance,
+                    walkEtaMinutes = if (distance > 0) {
+                        NavigationScenarioCore.distanceBasedEtaMinutes(distance)
+                    } else {
+                        0
+                    },
+                    point = record.point,
+                    phone = record.phone,
+                    website = record.website,
+                )
+                SearchCandidate(
+                    place = place,
+                    score = searchScore(place, query, currentPoint) +
+                        SharedProductRules.Search.localPoiScore +
+                        categoryAffinityScore(intent, kind),
+                    distanceMeters = distance,
+                    importance = 0.0,
+                    isNearbyCandidate = true,
+                    kind = kind,
+                )
+            }
+            .sortedWith(
+                compareByDescending<SearchCandidate> { it.score }
+                    .thenBy { if (it.distanceMeters > 0) it.distanceMeters else Int.MAX_VALUE }
+                    .thenByDescending { it.importance },
+            )
+            .take(resultLimit)
+    }
+
+    private suspend fun queryNearbyPoiCacheRecords(
+        currentPoint: GeoPoint,
+        radiusMeters: Int,
+        fetchedAtMs: Long,
+    ): List<NearbyPoiCacheRecord> {
+        val records = linkedMapOf<String, NearbyPoiCacheRecord>()
+        for (endpoint in buildPoiCacheRefreshEndpoints(currentPoint, radiusMeters)) {
+            val response = requestTextOrNull(endpoint, timeoutMs = POI_CACHE_REFRESH_REQUEST_TIMEOUT_MS) ?: continue
+            val elements = JSONObject(response).optJSONArray("elements") ?: continue
+            for (index in 0 until elements.length()) {
+                val item = elements.optJSONObject(index) ?: continue
+                val record = nearbyPoiCacheRecord(item, fetchedAtMs) ?: continue
+                records[record.id] = record
+            }
+        }
+        return records.values.toList()
+    }
+
+    private fun buildPoiCacheRefreshEndpoints(currentPoint: GeoPoint, radiusMeters: Int): List<String> {
+        val lat = formatCoordinate(currentPoint.latitude)
+        val lon = formatCoordinate(currentPoint.longitude)
+        val nodeSelectors = poiCacheRefreshFilters().map { filter ->
+            "node(around:$radiusMeters,$lat,$lon)$filter;"
+        }
+        val areaSelectors = poiCacheRefreshFilters().flatMap { filter ->
+            listOf(
+                "way(around:$radiusMeters,$lat,$lon)$filter;",
+                "relation(around:$radiusMeters,$lat,$lon)$filter;",
+            )
+        }
+        return listOf(nodeSelectors, areaSelectors).flatMap { selectors ->
+            val encodedQuery = URLEncoder.encode(poiCacheRefreshQuery(selectors), Charsets.UTF_8.name())
+            listOf(
+                "https://overpass-api.de/api/interpreter?data=$encodedQuery",
+                "https://overpass.kumi.systems/api/interpreter?data=$encodedQuery",
+            )
+        }
+    }
+
+    private fun poiCacheRefreshFilters(): List<String> {
+        return listOf(
+            "[\"shop\"]",
+            "[\"amenity\"~\"^(parcel_locker|pharmacy|bank|atm|fuel|post_office|cafe|restaurant|fast_food|toilets)$\"]",
+            "[\"railway\"~\"^(station|halt|tram_stop)$\"]",
+            "[\"public_transport\"=\"station\"]",
+        )
+    }
+
+    private fun poiCacheRefreshQuery(selectors: List<String>): String {
+        return buildString {
+            append("[out:json][timeout:")
+            append(SharedProductRules.Search.overpassTimeoutSeconds)
+            append("];")
+            append("(")
+            selectors.forEach(::append)
+            append(");out center ")
+            append(POI_CACHE_REFRESH_LIMIT)
+            append(";")
+        }
+    }
+
+    private fun nearbyPoiCacheRecord(item: JSONObject, fetchedAtMs: Long): NearbyPoiCacheRecord? {
+        val tags = item.optJSONObject("tags")?.toStringMap().orEmpty()
+        val point = overpassPoint(item) ?: return null
+        val kind = overpassKind(tags)
+        if (kind == PlaceKind.Other) return null
+        val name = overpassName(tags, kind).trim()
+        if (name.isBlank()) return null
+        val address = overpassAddress(tags, name)
+        val searchableText = normalizeForSearch(
+            (
+                searchableNameParts(tags) +
+                    listOf(
+                        name,
+                        address,
+                        tags["shop"].orEmpty(),
+                        tags["amenity"].orEmpty(),
+                        tags["railway"].orEmpty(),
+                        tags["public_transport"].orEmpty(),
+                    )
+                ).joinToString(" "),
+        )
+        return NearbyPoiCacheRecord(
+            id = "overpass_${item.optString("type")}_${item.optLong("id")}",
+            name = name,
+            address = address,
+            latitude = point.latitude,
+            longitude = point.longitude,
+            phone = tags["phone"] ?: tags["contact:phone"],
+            website = tags["website"] ?: tags["contact:website"],
+            kind = cacheKind(kind),
+            searchableText = searchableText,
+            fetchedAtMs = fetchedAtMs,
+        )
+    }
+
+    private fun cachedPoiMatches(
+        record: NearbyPoiCacheRecord,
+        kind: PlaceKind,
+        intent: SearchIntent,
+    ): Boolean {
+        if (intent.isCategoryOnly) {
+            return when {
+                intent.wantsShop -> kind == PlaceKind.Shop
+                intent.wantsParcelLocker -> kind == PlaceKind.ParcelLocker
+                intent.wantsRailStation -> kind == PlaceKind.RailStation
+                else -> false
+            }
+        }
+        val terms = intent.nameSearchTerms.ifEmpty { intent.tokens }
+        if (terms.isEmpty()) return true
+        return terms.all { term -> record.searchableText.contains(term) }
+    }
+
+    private fun cacheKind(kind: PlaceKind): String {
+        return when (kind) {
+            PlaceKind.Shop -> "shop"
+            PlaceKind.ParcelLocker -> "parcel_locker"
+            PlaceKind.RailStation -> "rail_station"
+            PlaceKind.BusStop -> "bus_stop"
+            PlaceKind.TramStop -> "tram_stop"
+            PlaceKind.Other -> "other"
+        }
+    }
+
+    private fun kindFromCacheKind(kind: String): PlaceKind {
+        return when (kind) {
+            "shop" -> PlaceKind.Shop
+            "parcel_locker" -> PlaceKind.ParcelLocker
+            "rail_station" -> PlaceKind.RailStation
+            "bus_stop" -> PlaceKind.BusStop
+            "tram_stop" -> PlaceKind.TramStop
+            else -> PlaceKind.Other
+        }
+    }
+
+    private suspend fun requestTextOrNull(rawUrl: String, timeoutMs: Int): String? = coroutineScope {
+        val request = async(Dispatchers.IO) {
+            runCatching { requestText(rawUrl, timeoutMs = timeoutMs) }.getOrNull()
+        }
+        withTimeoutOrNull(timeoutMs.toLong()) { request.await() } ?: run {
+            request.cancel()
+            null
+        }
+    }
+
+    private fun buildOverpassEndpoints(
+        currentPoint: GeoPoint,
+        intent: SearchIntent,
+        searchRadiusMeters: Int,
+    ): List<String> {
+        val selectorGroups = mutableListOf<List<String>>()
         val lat = formatCoordinate(currentPoint.latitude)
         val lon = formatCoordinate(currentPoint.longitude)
         val nameRegex = overpassNameRegex(intent)
-        if (nameRegex != null) {
-            selectors += overpassSelectors(radius, lat, lon, "[\"name\"~\"$nameRegex\",i]")
-        }
-        if (intent.wantsShop) {
-            selectors += overpassSelectors(radius, lat, lon, "[\"shop\"]")
-        }
-        if (intent.wantsParcelLocker) {
-            selectors += overpassSelectors(radius, lat, lon, "[\"amenity\"=\"parcel_locker\"]")
-        }
-        if (intent.wantsRailStation) {
-            selectors += overpassSelectors(radius, lat, lon, "[\"railway\"~\"^(station|halt)$\"]")
-            selectors += overpassSelectors(radius, lat, lon, "[\"public_transport\"=\"station\"]")
-        }
-        if (selectors.isEmpty()) return emptyList()
 
-        val query = buildString {
+        overpassSearchRadii(searchRadiusMeters).forEach { radius ->
+            val priorityNodeSelectors = mutableListOf<String>()
+            val priorityAreaSelectors = mutableListOf<String>()
+            val secondaryNodeSelectors = mutableListOf<String>()
+            val secondaryAreaSelectors = mutableListOf<String>()
+            if (nameRegex != null) {
+                priorityNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"shop\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name"),
+                    includeAreas = false,
+                )
+                priorityAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"shop\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"shop\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"shop\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"amenity\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"amenity\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"tourism\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"tourism\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"leisure\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"leisure\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"railway\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"railway\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+                secondaryNodeSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"public_transport\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = false,
+                )
+                secondaryAreaSelectors += overpassNameSelectors(
+                    radius = radius,
+                    lat = lat,
+                    lon = lon,
+                    baseFilter = "[\"public_transport\"]",
+                    nameRegex = nameRegex,
+                    keys = listOf("name", "brand", "operator", "official_name", "alt_name"),
+                    includeAreas = true,
+                )
+            }
+            if (intent.wantsShop && intent.isCategoryOnly) {
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"shop\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"shop\"]")
+            }
+            if (intent.wantsParcelLocker) {
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"amenity\"=\"parcel_locker\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"amenity\"=\"parcel_locker\"]")
+            }
+            if (intent.wantsRailStation) {
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"railway\"~\"^(station|halt)$\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"public_transport\"=\"station\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"railway\"~\"^(station|halt)$\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"public_transport\"=\"station\"]")
+            }
+
+            if (priorityNodeSelectors.isNotEmpty()) {
+                selectorGroups += priorityNodeSelectors.distinct()
+            }
+            if (priorityAreaSelectors.isNotEmpty()) {
+                selectorGroups += priorityAreaSelectors.distinct()
+            }
+            if (secondaryNodeSelectors.isNotEmpty()) {
+                selectorGroups += secondaryNodeSelectors.distinct()
+            }
+            if (secondaryAreaSelectors.isNotEmpty()) {
+                selectorGroups += secondaryAreaSelectors.distinct()
+            }
+        }
+        return selectorGroups.distinctBy { it.joinToString(separator = "") }.flatMap { selectors ->
+            val encodedQuery = URLEncoder.encode(overpassQuery(selectors), Charsets.UTF_8.name())
+            listOf(
+                "https://overpass-api.de/api/interpreter?data=$encodedQuery",
+                "https://overpass.kumi.systems/api/interpreter?data=$encodedQuery",
+            )
+        }
+    }
+
+    private fun overpassSearchRadii(maxRadiusMeters: Int): List<Int> {
+        val maxRadius = maxRadiusMeters.coerceAtLeast(1)
+        return listOf(500, 1_000, maxRadius)
+            .map { it.coerceAtMost(maxRadius) }
+            .filter { it > 0 }
+            .distinct()
+    }
+
+    private fun overpassNameSelectors(
+        radius: Int,
+        lat: String,
+        lon: String,
+        baseFilter: String,
+        nameRegex: String,
+        keys: List<String>,
+        includeAreas: Boolean,
+    ): List<String> {
+        return keys.flatMap { key ->
+                val filter = "$baseFilter[\"$key\"~\"$nameRegex\",i]"
+                if (includeAreas) {
+                    overpassAreaSelectors(radius, lat, lon, filter)
+                } else {
+                    overpassNodeSelectors(radius, lat, lon, filter)
+                }
+            }
+    }
+
+    private fun overpassQuery(selectors: List<String>): String {
+        return buildString {
             append("[out:json][timeout:")
             append(SharedProductRules.Search.overpassTimeoutSeconds)
             append("];")
@@ -417,23 +1478,25 @@ class OpenStreetRoutingRepository(
             append(SharedProductRules.Search.localPoiLimit)
             append(";")
         }
-        val encodedQuery = URLEncoder.encode(query, Charsets.UTF_8.name())
-        return listOf(
-            "https://overpass.kumi.systems/api/interpreter?data=$encodedQuery",
-            "https://overpass-api.de/api/interpreter?data=$encodedQuery",
-        )
     }
 
-    private fun overpassSelectors(radius: Int, lat: String, lon: String, filter: String): List<String> {
+    private fun overpassNodeSelectors(radius: Int, lat: String, lon: String, filter: String): List<String> {
         val around = "(around:$radius,$lat,$lon)"
         return listOf(
             "node$around$filter;",
+        )
+    }
+
+    private fun overpassAreaSelectors(radius: Int, lat: String, lon: String, filter: String): List<String> {
+        val around = "(around:$radius,$lat,$lon)"
+        return listOf(
             "way$around$filter;",
             "relation$around$filter;",
         )
     }
 
     private fun overpassNameRegex(intent: SearchIntent): String? {
+        if (intent.isCategoryOnly) return null
         val terms = intent.nameSearchTerms.ifEmpty { intent.tokens }
             .filter { it.length >= 2 }
             .take(4)
@@ -465,7 +1528,9 @@ class OpenStreetRoutingRepository(
     }
 
     private fun overpassName(tags: Map<String, String>, kind: PlaceKind): String {
-        val name = tags["name"]?.trim().orEmpty()
+        val name = searchableNameParts(tags)
+            .firstOrNull { it.isNotBlank() }
+            .orEmpty()
         if (name.isNotBlank()) return name
         return when (kind) {
             PlaceKind.Shop -> string(R.string.search_type_unnamed_shop)
@@ -480,11 +1545,16 @@ class OpenStreetRoutingRepository(
     private fun overpassAddress(tags: Map<String, String>, fallback: String): String {
         val street = tags["addr:street"].orEmpty()
         val houseNumber = tags["addr:housenumber"].orEmpty()
+        val unit = tags["addr:unit"] ?: tags["addr:door"] ?: tags["addr:flats"]
         val locality = tags["addr:city"] ?: tags["addr:town"] ?: tags["addr:village"] ?: tags["addr:suburb"]
+        val houseNumberWithUnit = when {
+            houseNumber.isNotBlank() && !unit.isNullOrBlank() -> "$houseNumber/${unit.trim()}"
+            else -> houseNumber
+        }
         val streetPart = when {
-            street.isNotBlank() && houseNumber.isNotBlank() -> "$street $houseNumber"
+            street.isNotBlank() && houseNumberWithUnit.isNotBlank() -> "$street $houseNumberWithUnit"
             street.isNotBlank() -> street
-            houseNumber.isNotBlank() -> houseNumber
+            houseNumberWithUnit.isNotBlank() -> houseNumberWithUnit
             else -> ""
         }
         return listOf(streetPart, locality.orEmpty())
@@ -499,8 +1569,18 @@ class OpenStreetRoutingRepository(
         if (intent.wantsRailStation && (kind == PlaceKind.RailStation || kind == PlaceKind.BusStop || kind == PlaceKind.TramStop)) {
             return true
         }
-        val normalizedName = normalizeForSearch(tags["name"].orEmpty())
+        val normalizedName = normalizeForSearch(searchableNameParts(tags).joinToString(" "))
         return intent.nameSearchTerms.all { normalizedName.contains(it) }
+    }
+
+    private fun searchableNameParts(tags: Map<String, String>): List<String> {
+        return listOf(
+            tags["name"],
+            tags["brand"],
+            tags["operator"],
+            tags["official_name"],
+            tags["alt_name"],
+        ).map { it?.trim().orEmpty() }
     }
 
     private fun overpassKind(tags: Map<String, String>): PlaceKind {
@@ -523,22 +1603,21 @@ class OpenStreetRoutingRepository(
         query: String,
         currentPoint: GeoPoint?,
         nearbyOnly: Boolean,
+        searchRadiusKm: Int,
         intent: SearchIntent,
+        resultLimit: Int,
     ): List<SearchCandidate> {
         val endpoint = buildSearchEndpoint(
             query = query,
             currentPoint = currentPoint,
             nearbyOnly = nearbyOnly,
+            searchRadiusKm = searchRadiusKm,
+            resultLimit = resultLimit,
         )
         val response = requestText(endpoint)
         val array = JSONArray(response)
         val candidates = mutableListOf<SearchCandidate>()
-        val radiusKm = if (nearbyOnly) {
-            SharedProductRules.Search.nearbyRadiusKm
-        } else {
-            SharedProductRules.Search.globalRadiusKm
-        }
-        val maxDistanceMeters = currentPoint?.let { (radiusKm * 1000).roundToInt() }
+        val maxDistanceMeters = currentPoint?.let { searchRadiusKm * 1_000 }
         for (index in 0 until array.length()) {
             val item = array.getJSONObject(index)
             val latitude = item.optString("lat").toDoubleOrNull() ?: continue
@@ -577,6 +1656,7 @@ class OpenStreetRoutingRepository(
                 distanceMeters = distance,
                 importance = item.optDouble("importance", 0.0),
                 isNearbyCandidate = nearbyOnly,
+                kind = kind,
             )
         }
         return candidates
@@ -586,24 +1666,20 @@ class OpenStreetRoutingRepository(
         query: String,
         currentPoint: GeoPoint?,
         nearbyOnly: Boolean,
+        searchRadiusKm: Int,
+        resultLimit: Int,
     ): String {
         val encoded = URLEncoder.encode(query, Charsets.UTF_8.name())
         val base = StringBuilder("https://nominatim.openstreetmap.org/search")
         base.append("?format=jsonv2")
-        base.append("&limit=").append(
-            if (nearbyOnly) {
-                SharedProductRules.Search.nearbyLimit
-            } else {
-                SharedProductRules.Search.globalLimit
-            },
-        )
+        val requestLimit = maxOf(
+            if (nearbyOnly) SharedProductRules.Search.nearbyLimit else SharedProductRules.Search.globalLimit,
+            resultLimit,
+        ).coerceAtMost(SharedProductRules.Search.maximumResultLimit)
+        base.append("&limit=").append(requestLimit)
         base.append("&addressdetails=1&namedetails=1&dedupe=1")
         if (currentPoint != null) {
-            val radiusKm = if (nearbyOnly) {
-                SharedProductRules.Search.nearbyRadiusKm
-            } else {
-                SharedProductRules.Search.globalRadiusKm
-            }
+            val radiusKm = searchRadiusKm.toDouble()
             val (left, top, right, bottom) = searchViewBox(currentPoint, radiusKm)
             base.append("&viewbox=")
                 .append(formatCoordinate(left))
@@ -613,9 +1689,7 @@ class OpenStreetRoutingRepository(
                 .append(formatCoordinate(right))
                 .append(',')
                 .append(formatCoordinate(bottom))
-            if (nearbyOnly) {
-                base.append("&bounded=1")
-            }
+            base.append("&bounded=1")
         }
         base.append("&q=").append(encoded)
         return base.toString()
@@ -674,6 +1748,20 @@ class OpenStreetRoutingRepository(
             wantsParcelLocker = wantsParcelLocker,
             wantsRailStation = wantsRailStation,
         )
+    }
+
+    private fun isZabkaQuery(intent: SearchIntent): Boolean {
+        return intent.tokens.any { token ->
+            token == "zabka" || token == "zabki" || token == "zabke"
+        }
+    }
+
+    private fun shopCategoryExpansionQueries(): List<String> {
+        return listOf("zabka", "biedronka", "lidl", "supermarket", "market")
+    }
+
+    private fun parcelLockerCategoryExpansionQueries(): List<String> {
+        return listOf("inpost", "orlen paczka", "dpd pickup")
     }
 
     private fun nominatimKind(item: JSONObject): PlaceKind {
@@ -786,6 +1874,23 @@ class OpenStreetRoutingRepository(
         }
     }
 
+    private fun compareSearchCandidates(left: SearchCandidate, right: SearchCandidate): Int {
+        val leftDistance = sortableDistance(left.distanceMeters)
+        val rightDistance = sortableDistance(right.distanceMeters)
+        val scoreDifference = left.score - right.score
+        if (kotlin.math.abs(scoreDifference) <= SharedProductRules.Search.nearbyBonus && leftDistance != rightDistance) {
+            return leftDistance.compareTo(rightDistance)
+        }
+        if (scoreDifference != 0) return -scoreDifference
+        if (left.isNearbyCandidate != right.isNearbyCandidate) return if (left.isNearbyCandidate) -1 else 1
+        if (leftDistance != rightDistance) return leftDistance.compareTo(rightDistance)
+        return -left.importance.compareTo(right.importance)
+    }
+
+    private fun sortableDistance(distanceMeters: Int): Int {
+        return if (distanceMeters > 0) distanceMeters else Int.MAX_VALUE
+    }
+
     private fun normalizeForSearch(text: String): String {
         val normalized = Normalizer.normalize(text.lowercase(Locale.getDefault()), Normalizer.Form.NFD)
         return normalized
@@ -796,11 +1901,11 @@ class OpenStreetRoutingRepository(
 
     private fun string(@StringRes resId: Int, vararg args: Any): String = appContext.getString(resId, *args)
 
-    private fun requestText(rawUrl: String): String {
+    private fun requestText(rawUrl: String, timeoutMs: Int = 12_000): String {
         val connection = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
-            connectTimeout = 12_000
-            readTimeout = 12_000
+            connectTimeout = timeoutMs
+            readTimeout = timeoutMs
             setRequestProperty("Accept", "application/json")
             setRequestProperty("User-Agent", "navi-live/0.1 (accessibility-navigation-prototype)")
             setRequestProperty("Accept-Language", Locale.getDefault().toLanguageTag())

@@ -33,10 +33,15 @@ enum SharedProductRules {
   enum Search {
     static let includeGlobalFallbackIfFewerThan: Int = 3
     static let nearbyBonus: Int = 650
-    static let nearbyLimit: Int = 10
+    static let nearbyLimit: Int = 20
     static let globalLimit: Int = 16
-    static let resultLimit: Int = 8
-    static let nearbyRadiusKm: Double = 8.0
+    static let resultLimit: Int = 10
+    static let minimumResultLimit: Int = 3
+    static let maximumResultLimit: Int = 30
+    static let defaultRadiusKm: Int = 3
+    static let minimumRadiusKm: Int = 1
+    static let maximumRadiusKm: Int = 10
+    static let nearbyRadiusKm: Double = 2.0
     static let globalRadiusKm: Double = 25.0
     static let viewBoxMinimumCosine: Double = 0.2
     static let walkingEtaMetersPerMinute: Double = 75.0

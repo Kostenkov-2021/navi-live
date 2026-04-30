@@ -58,6 +58,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -115,9 +117,14 @@ import com.navilive.android.model.AppUpdatePhase
 import com.navilive.android.model.AppUpdateState
 import com.navilive.android.model.DiagnosticsState
 import com.navilive.android.model.HeadingState
+import com.navilive.android.model.NearbyPoiCacheMode
+import com.navilive.android.model.NearbyPoiCacheState
 import com.navilive.android.model.Place
 import com.navilive.android.model.RouteSummary
 import com.navilive.android.model.SettingsState
+import com.navilive.android.model.ShakeStrength
+import com.navilive.android.model.SharedProductRules
+import com.navilive.android.model.SoundCueTheme
 import com.navilive.android.model.SpeechOutputMode
 import com.navilive.android.model.UpdateChannel
 import com.google.android.material.textfield.TextInputEditText
@@ -135,6 +142,7 @@ private enum class BannerTone {
 private enum class SettingsDestination {
     Root,
     Guidance,
+    LocalSearch,
     Sounds,
     Speech,
     App,
@@ -446,11 +454,6 @@ fun HelpPrivacyScreen(
             modifier = modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            StatusCard(
-                title = stringResource(R.string.settings_help_privacy_title),
-                message = stringResource(R.string.settings_help_privacy_status_message),
-                tone = BannerTone.Info,
-            )
             TutorialSettingsCard(
                 showOnStartup = showTutorialOnStartup,
                 onShowOnStartupChange = onShowTutorialOnStartupChange,
@@ -532,13 +535,14 @@ fun SearchScreen(
     results: List<Place>,
     isLoading: Boolean,
     onQueryChange: (String) -> Unit,
+    onSubmitSearch: () -> Unit,
     onSelectPlace: (String) -> Unit,
     onBack: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val searchFieldLabel = stringResource(R.string.search_field_label)
     val submitSearch = {
-        onQueryChange(query.trim())
+        onSubmitSearch()
         focusManager.clearFocus()
     }
 
@@ -719,9 +723,14 @@ fun RouteSummaryScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SectionHeading(stringResource(R.string.route_summary_guidance_preview))
-                    summary.steps.take(3).forEachIndexed { index, step ->
+                    summary.steps.take(8).forEachIndexed { index, step ->
                         Text(
-                            text = stringResource(R.string.format_step_preview, index + 1, step.instruction),
+                            text = stringResource(
+                                R.string.format_step_preview_with_distance,
+                                index + 1,
+                                step.instruction,
+                                stringResource(R.string.format_distance_meters, step.distanceMeters),
+                            ),
                             color = if (index == 0) {
                                 MaterialTheme.colorScheme.onSurface
                             } else {
@@ -1215,14 +1224,26 @@ fun SettingsScreen(
     state: SettingsState,
     updateState: AppUpdateState,
     diagnosticsState: DiagnosticsState,
+    nearbyPoiCacheState: NearbyPoiCacheState,
     onOpenHelpPrivacy: () -> Unit,
     onVibrationChange: (Boolean) -> Unit,
+    onShakeGestureEnabledChange: (Boolean) -> Unit,
+    onShakeStrengthChange: (ShakeStrength) -> Unit,
     onSoundCuesChange: (Boolean) -> Unit,
+    onSoundCueVolumeChange: (Int) -> Unit,
+    onSoundCueThemeChange: (SoundCueTheme) -> Unit,
     onPreviewSoundCue: (NavigationSoundCue) -> Unit,
     onAutoRecalculateChange: (Boolean) -> Unit,
     onJunctionAlertChange: (Boolean) -> Unit,
     onTurnByTurnChange: (Boolean) -> Unit,
     onAnnouncementCadenceModeChange: (AnnouncementCadenceMode) -> Unit,
+    onSearchRadiusChange: (Int) -> Unit,
+    onSearchResultLimitChange: (Int) -> Unit,
+    onNearbyPoiCacheModeChange: (NearbyPoiCacheMode) -> Unit,
+    onNearbyPoiCacheRadiusChange: (Int) -> Unit,
+    onRefreshNearbyPoiCache: () -> Unit,
+    onClearNearbyPoiCache: () -> Unit,
+    onPedestrianCrossingAlertsChange: (Boolean) -> Unit,
     onUpdateChannelChange: (UpdateChannel) -> Unit,
     onSpeechOutputModeChange: (SpeechOutputMode) -> Unit,
     onSystemTtsEngineChange: (String?) -> Unit,
@@ -1232,6 +1253,7 @@ fun SettingsScreen(
     onPreviewSpeech: () -> Unit,
     onPrimaryUpdateAction: () -> Unit,
     onOpenReleasePage: (String) -> Unit,
+    onOpenProjectRepository: () -> Unit,
     onExportDiagnostics: () -> Unit,
     onClearDiagnostics: () -> Unit,
     onShareDiagnostics: (() -> Unit)?,
@@ -1245,6 +1267,7 @@ fun SettingsScreen(
     val title = when (destination) {
         SettingsDestination.Root -> stringResource(R.string.settings_title)
         SettingsDestination.Guidance -> stringResource(R.string.settings_group_guidance_title)
+        SettingsDestination.LocalSearch -> stringResource(R.string.settings_group_local_search_title)
         SettingsDestination.Sounds -> stringResource(R.string.settings_group_sounds_title)
         SettingsDestination.Speech -> stringResource(R.string.settings_group_speech_title)
         SettingsDestination.App -> stringResource(R.string.settings_group_app_title)
@@ -1270,37 +1293,36 @@ fun SettingsScreen(
                 SettingsDestination.Root -> {
                     SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_guidance_title),
-                        summary = stringResource(R.string.settings_group_guidance_summary),
                         icon = Icons.AutoMirrored.Filled.AssistantDirection,
                         onClick = { destination = SettingsDestination.Guidance },
                     )
                     SettingsNavigationCard(
+                        title = stringResource(R.string.settings_group_local_search_title),
+                        icon = Icons.Filled.Search,
+                        onClick = { destination = SettingsDestination.LocalSearch },
+                    )
+                    SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_sounds_title),
-                        summary = stringResource(R.string.settings_group_sounds_summary),
                         icon = Icons.Filled.SurroundSound,
                         onClick = { destination = SettingsDestination.Sounds },
                     )
                     SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_speech_title),
-                        summary = stringResource(R.string.settings_group_speech_summary),
                         icon = Icons.AutoMirrored.Filled.VolumeUp,
                         onClick = { destination = SettingsDestination.Speech },
                     )
                     SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_app_title),
-                        summary = stringResource(R.string.settings_group_app_summary),
                         icon = Icons.Filled.Settings,
                         onClick = { destination = SettingsDestination.App },
                     )
                     SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_diagnostics_title),
-                        summary = stringResource(R.string.settings_group_diagnostics_summary),
                         icon = Icons.Filled.Share,
                         onClick = { destination = SettingsDestination.Diagnostics },
                     )
                     SettingsNavigationCard(
                         title = stringResource(R.string.settings_group_help_title),
-                        summary = stringResource(R.string.settings_group_help_summary),
                         icon = Icons.Filled.Info,
                         onClick = onOpenHelpPrivacy,
                     )
@@ -1308,7 +1330,6 @@ fun SettingsScreen(
                 SettingsDestination.Guidance -> {
                     SettingsToggleCard(
                         title = stringResource(R.string.settings_voice_title),
-                        description = stringResource(R.string.settings_voice_message),
                         checked = state.turnByTurnAnnouncements,
                         onCheckedChange = onTurnByTurnChange,
                     )
@@ -1318,30 +1339,80 @@ fun SettingsScreen(
                         onModeChange = onAnnouncementCadenceModeChange,
                     )
                     SettingsToggleCard(
-                        title = stringResource(R.string.settings_vibration_title),
-                        description = stringResource(R.string.settings_vibration_message),
-                        checked = state.vibrationEnabled,
-                        onCheckedChange = onVibrationChange,
-                    )
-                    SettingsToggleCard(
                         title = stringResource(R.string.settings_auto_recalculate_title),
-                        description = stringResource(R.string.settings_auto_recalculate_message),
                         checked = state.autoRecalculate,
                         onCheckedChange = onAutoRecalculateChange,
                     )
                     SettingsToggleCard(
                         title = stringResource(R.string.settings_junction_alerts_title),
-                        description = stringResource(R.string.settings_junction_alerts_message),
                         checked = state.junctionAlerts,
                         onCheckedChange = onJunctionAlertChange,
+                    )
+                    SettingsToggleCard(
+                        title = stringResource(R.string.settings_pedestrian_crossing_alerts_title),
+                        checked = state.pedestrianCrossingAlerts,
+                        onCheckedChange = onPedestrianCrossingAlertsChange,
+                    )
+                    SettingsToggleCard(
+                        title = stringResource(R.string.settings_vibration_title),
+                        checked = state.vibrationEnabled,
+                        onCheckedChange = onVibrationChange,
+                    )
+                    SettingsToggleCard(
+                        title = stringResource(R.string.settings_shake_gesture_title),
+                        checked = state.shakeGestureEnabled,
+                        onCheckedChange = onShakeGestureEnabledChange,
+                    )
+                    ShakeStrengthCard(
+                        selectedStrength = state.shakeStrength,
+                        enabled = state.shakeGestureEnabled,
+                        onStrengthChange = onShakeStrengthChange,
+                    )
+                }
+                SettingsDestination.LocalSearch -> {
+                    SearchRadiusCard(
+                        radiusKm = state.searchRadiusKm,
+                        onCommit = onSearchRadiusChange,
+                    )
+                    SearchResultLimitCard(
+                        resultLimit = state.searchResultLimit,
+                        onCommit = onSearchResultLimitChange,
+                    )
+                    NearbyPoiCacheModeCard(
+                        selectedMode = state.nearbyPoiCacheMode,
+                        onModeChange = onNearbyPoiCacheModeChange,
+                    )
+                    NearbyPoiCacheRadiusCard(
+                        radiusKm = state.nearbyPoiCacheRadiusKm,
+                        enabled = state.nearbyPoiCacheMode != NearbyPoiCacheMode.Disabled,
+                        onCommit = onNearbyPoiCacheRadiusChange,
+                    )
+                    NearbyPoiCacheStatusCard(
+                        cacheState = nearbyPoiCacheState,
+                        enabled = state.nearbyPoiCacheMode != NearbyPoiCacheMode.Disabled,
+                        onRefresh = onRefreshNearbyPoiCache,
+                        onClear = onClearNearbyPoiCache,
                     )
                 }
                 SettingsDestination.Sounds -> {
                     SettingsToggleCard(
                         title = stringResource(R.string.settings_sound_cues_title),
-                        description = stringResource(R.string.settings_sound_cues_message),
                         checked = state.soundCuesEnabled,
                         onCheckedChange = onSoundCuesChange,
+                    )
+                    SoundCueThemeMenuCard(
+                        selectedTheme = state.soundCueTheme,
+                        enabled = state.soundCuesEnabled,
+                        onThemeChange = onSoundCueThemeChange,
+                    )
+                    VoiceSliderCard(
+                        title = stringResource(R.string.settings_sound_cue_volume_title),
+                        value = state.soundCueVolumePercent,
+                        valueRange = 0f..100f,
+                        steps = 19,
+                        enabled = state.soundCuesEnabled,
+                        disabledMessage = stringResource(R.string.settings_sound_cue_volume_disabled_message),
+                        onCommit = onSoundCueVolumeChange,
                     )
                     SoundCueTutorialCard(onPreviewSoundCue = onPreviewSoundCue)
                 }
@@ -1354,7 +1425,6 @@ fun SettingsScreen(
                     )
                     VoiceSliderCard(
                         title = stringResource(R.string.settings_speech_rate_title),
-                        description = stringResource(R.string.settings_speech_rate_message),
                         value = state.speechRatePercent,
                         valueRange = 50f..200f,
                         steps = 29,
@@ -1364,7 +1434,6 @@ fun SettingsScreen(
                     )
                     VoiceSliderCard(
                         title = stringResource(R.string.settings_speech_volume_title),
-                        description = stringResource(R.string.settings_speech_volume_message),
                         value = state.speechVolumePercent,
                         valueRange = 0f..100f,
                         steps = 19,
@@ -1406,6 +1475,7 @@ fun SettingsScreen(
                     AppInfoCard(
                         versionLabel = updateState.currentVersionLabel,
                         buildLabel = updateState.currentBuildLabel,
+                        onOpenProjectRepository = onOpenProjectRepository,
                     )
                 }
                 SettingsDestination.Diagnostics -> {
@@ -1424,7 +1494,6 @@ fun SettingsScreen(
 @Composable
 private fun SettingsNavigationCard(
     title: String,
-    summary: String,
     icon: ImageVector,
     onClick: () -> Unit,
 ) {
@@ -1460,11 +1529,6 @@ private fun SettingsNavigationCard(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -1488,11 +1552,6 @@ private fun LanguageSettingsCard(language: String) {
                 stringResource(R.string.settings_language_detected_label),
                 value = language,
             )
-            Text(
-                text = stringResource(R.string.settings_language_detected_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -1501,6 +1560,7 @@ private fun LanguageSettingsCard(language: String) {
 private fun AppInfoCard(
     versionLabel: String,
     buildLabel: String,
+    onOpenProjectRepository: () -> Unit,
 ) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -1516,6 +1576,14 @@ private fun AppInfoCard(
                 label = stringResource(R.string.settings_updates_current_build),
                 value = buildLabel,
             )
+            OutlinedButton(
+                onClick = onOpenProjectRepository,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.settings_app_repository))
+            }
         }
     }
 }
@@ -1581,14 +1649,8 @@ private fun AnnouncementCadenceCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.settings_announcement_cadence_title))
-            Text(
-                text = stringResource(R.string.settings_announcement_cadence_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             SelectableOptionRow(
                 title = stringResource(R.string.settings_announcement_cadence_distance_title),
-                description = stringResource(R.string.settings_announcement_cadence_distance_message),
                 selected = selectedMode == AnnouncementCadenceMode.Distance,
                 onSelect = {
                     if (enabled) {
@@ -1598,7 +1660,6 @@ private fun AnnouncementCadenceCard(
             )
             SelectableOptionRow(
                 title = stringResource(R.string.settings_announcement_cadence_time_title),
-                description = stringResource(R.string.settings_announcement_cadence_time_message),
                 selected = selectedMode == AnnouncementCadenceMode.Time,
                 onSelect = {
                     if (enabled) {
@@ -1618,6 +1679,419 @@ private fun AnnouncementCadenceCard(
 }
 
 @Composable
+private fun ShakeStrengthCard(
+    selectedStrength: ShakeStrength,
+    enabled: Boolean,
+    onStrengthChange: (ShakeStrength) -> Unit,
+) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CardTitle(stringResource(R.string.settings_shake_strength_title))
+            SelectableOptionRow(
+                title = stringResource(R.string.settings_shake_strength_light_title),
+                selected = selectedStrength == ShakeStrength.Light,
+                onSelect = {
+                    if (enabled) onStrengthChange(ShakeStrength.Light)
+                },
+            )
+            SelectableOptionRow(
+                title = stringResource(R.string.settings_shake_strength_medium_title),
+                selected = selectedStrength == ShakeStrength.Medium,
+                onSelect = {
+                    if (enabled) onStrengthChange(ShakeStrength.Medium)
+                },
+            )
+            SelectableOptionRow(
+                title = stringResource(R.string.settings_shake_strength_strong_title),
+                selected = selectedStrength == ShakeStrength.Strong,
+                onSelect = {
+                    if (enabled) onStrengthChange(ShakeStrength.Strong)
+                },
+            )
+            if (!enabled) {
+                Text(
+                    text = stringResource(R.string.settings_shake_strength_disabled_message),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchRadiusCard(
+    radiusKm: Int,
+    onCommit: (Int) -> Unit,
+) {
+    val minRadius = SharedProductRules.Search.minimumRadiusKm
+    val maxRadius = SharedProductRules.Search.maximumRadiusKm
+    var sliderValue by remember(radiusKm) {
+        mutableFloatStateOf(radiusKm.coerceIn(minRadius, maxRadius).toFloat())
+    }
+
+    fun commitValue(incoming: Float) {
+        val normalized = incoming.roundToInt().coerceIn(minRadius, maxRadius)
+        sliderValue = normalized.toFloat()
+        if (normalized != radiusKm) {
+            onCommit(normalized)
+        }
+    }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            val title = stringResource(R.string.settings_search_radius_title)
+            val radiusLabel = stringResource(R.string.format_search_radius_value, sliderValue.roundToInt())
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = radiusLabel,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Slider(
+                value = sliderValue,
+                onValueChange = { incoming -> commitValue(incoming) },
+                valueRange = minRadius.toFloat()..maxRadius.toFloat(),
+                steps = (maxRadius - minRadius - 1).coerceAtLeast(0),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = title + String(charArrayOf(':', ' ')) + radiusLabel
+                        stateDescription = radiusLabel
+                    },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchResultLimitCard(
+    resultLimit: Int,
+    onCommit: (Int) -> Unit,
+) {
+    val minLimit = SharedProductRules.Search.minimumResultLimit
+    val maxLimit = SharedProductRules.Search.maximumResultLimit
+    var sliderValue by remember(resultLimit) {
+        mutableFloatStateOf(resultLimit.coerceIn(minLimit, maxLimit).toFloat())
+    }
+
+    fun commitValue(incoming: Float) {
+        val normalized = incoming.roundToInt().coerceIn(minLimit, maxLimit)
+        sliderValue = normalized.toFloat()
+        if (normalized != resultLimit) {
+            onCommit(normalized)
+        }
+    }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            val title = stringResource(R.string.settings_search_result_limit_title)
+            val limitLabel = stringResource(R.string.format_search_result_limit_value, sliderValue.roundToInt())
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = limitLabel,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Slider(
+                value = sliderValue,
+                onValueChange = { incoming -> commitValue(incoming) },
+                valueRange = minLimit.toFloat()..maxLimit.toFloat(),
+                steps = (maxLimit - minLimit - 1).coerceAtLeast(0),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = title + String(charArrayOf(':', ' ')) + limitLabel
+                        stateDescription = limitLabel
+                    },
+            )
+        }
+    }
+}
+
+@Composable
+private fun NearbyPoiCacheModeCard(
+    selectedMode: NearbyPoiCacheMode,
+    onModeChange: (NearbyPoiCacheMode) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val title = stringResource(R.string.settings_nearby_poi_cache_mode_title)
+    val selectedLabel = nearbyPoiCacheModeLabel(selectedMode)
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = true }
+                    .padding(16.dp)
+                    .semantics {
+                        contentDescription = title + String(charArrayOf(':', ' ')) + selectedLabel
+                        role = Role.Button
+                    },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = selectedLabel,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                NearbyPoiCacheMode.entries.forEach { mode ->
+                    DropdownMenuItem(
+                        text = { Text(nearbyPoiCacheModeLabel(mode)) },
+                        leadingIcon = {
+                            RadioButton(
+                                selected = mode == selectedMode,
+                                onClick = null,
+                            )
+                        },
+                        onClick = {
+                            expanded = false
+                            onModeChange(mode)
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NearbyPoiCacheRadiusCard(
+    radiusKm: Int,
+    enabled: Boolean,
+    onCommit: (Int) -> Unit,
+) {
+    val minRadius = SharedProductRules.Search.minimumRadiusKm
+    val maxRadius = 5
+    var sliderValue by remember(radiusKm) {
+        mutableFloatStateOf(radiusKm.coerceIn(minRadius, maxRadius).toFloat())
+    }
+
+    fun commitValue(incoming: Float) {
+        val normalized = incoming.roundToInt().coerceIn(minRadius, maxRadius)
+        sliderValue = normalized.toFloat()
+        if (normalized != radiusKm) {
+            onCommit(normalized)
+        }
+    }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            val title = stringResource(R.string.settings_nearby_poi_cache_radius_title)
+            val radiusLabel = stringResource(R.string.format_search_radius_value, sliderValue.roundToInt())
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = radiusLabel,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Slider(
+                value = sliderValue,
+                onValueChange = { incoming -> commitValue(incoming) },
+                valueRange = minRadius.toFloat()..maxRadius.toFloat(),
+                steps = (maxRadius - minRadius - 1).coerceAtLeast(0),
+                enabled = enabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = title + String(charArrayOf(':', ' ')) + radiusLabel
+                        stateDescription = radiusLabel
+                    },
+            )
+        }
+    }
+}
+
+@Composable
+private fun NearbyPoiCacheStatusCard(
+    cacheState: NearbyPoiCacheState,
+    enabled: Boolean,
+    onRefresh: () -> Unit,
+    onClear: () -> Unit,
+) {
+    val status = when {
+        cacheState.isRefreshing -> stringResource(R.string.nearby_poi_cache_status_refreshing)
+        cacheState.cachedPlaceCount > 0 -> stringResource(
+            R.string.format_nearby_poi_cache_status_saved,
+            cacheState.cachedPlaceCount,
+        )
+        else -> stringResource(R.string.nearby_poi_cache_status_empty)
+    }
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = status,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FilledTonalButton(
+                    onClick = onRefresh,
+                    enabled = enabled && !cacheState.isRefreshing,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.settings_nearby_poi_cache_refresh_now))
+                }
+                OutlinedButton(
+                    onClick = onClear,
+                    enabled = cacheState.cachedPlaceCount > 0 && !cacheState.isRefreshing,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.settings_nearby_poi_cache_clear))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SoundCueThemeMenuCard(
+    selectedTheme: SoundCueTheme,
+    enabled: Boolean,
+    onThemeChange: (SoundCueTheme) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val title = stringResource(R.string.settings_sound_theme_title)
+    val selectedLabel = soundCueThemeLabel(selectedTheme)
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = enabled) { expanded = true }
+                    .padding(16.dp)
+                    .semantics {
+                        role = Role.Button
+                        stateDescription = selectedLabel
+                    },
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.SurroundSound,
+                    contentDescription = null,
+                    tint = if (enabled) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(title, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = selectedLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                SoundCueTheme.entries.forEach { theme ->
+                    val label = soundCueThemeLabel(theme)
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        leadingIcon = {
+                            if (theme == selectedTheme) {
+                                Icon(Icons.Filled.CheckCircle, contentDescription = null)
+                            }
+                        },
+                        onClick = {
+                            onThemeChange(theme)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun nearbyPoiCacheModeLabel(mode: NearbyPoiCacheMode): String {
+    return when (mode) {
+        NearbyPoiCacheMode.Enabled -> stringResource(R.string.settings_nearby_poi_cache_mode_enabled)
+        NearbyPoiCacheMode.WifiOnly -> stringResource(R.string.settings_nearby_poi_cache_mode_wifi_only)
+        NearbyPoiCacheMode.Disabled -> stringResource(R.string.settings_nearby_poi_cache_mode_disabled)
+    }
+}
+
+@Composable
+private fun soundCueThemeLabel(theme: SoundCueTheme): String {
+    return when (theme) {
+        SoundCueTheme.Standard -> stringResource(R.string.settings_sound_theme_standard)
+        SoundCueTheme.Tetris -> stringResource(R.string.settings_sound_theme_tetris)
+        SoundCueTheme.Cosmic -> stringResource(R.string.settings_sound_theme_cosmic)
+    }
+}
+
+@Composable
 private fun SoundCueTutorialCard(
     onPreviewSoundCue: (NavigationSoundCue) -> Unit,
 ) {
@@ -1626,12 +2100,6 @@ private fun SoundCueTutorialCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            CardTitle(stringResource(R.string.settings_sound_cues_tutorial_title))
-            Text(
-                text = stringResource(R.string.settings_sound_cues_tutorial_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_countdown_title),
                 description = stringResource(R.string.settings_sound_cue_countdown_message),
@@ -1642,6 +2110,12 @@ private fun SoundCueTutorialCard(
                 title = stringResource(R.string.settings_sound_cue_turn_now_title),
                 description = stringResource(R.string.settings_sound_cue_turn_now_message),
                 cue = NavigationSoundCue.TurnNow,
+                onPreviewSoundCue = onPreviewSoundCue,
+            )
+            SoundCuePreviewRow(
+                title = stringResource(R.string.settings_sound_cue_pedestrian_crossing_title),
+                description = stringResource(R.string.settings_sound_cue_pedestrian_crossing_message),
+                cue = NavigationSoundCue.PedestrianCrossing,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
@@ -1774,11 +2248,6 @@ private fun TutorialStartupCard(
                     onCheckedChange = onShowOnStartupChange,
                 )
             }
-            Text(
-                text = stringResource(R.string.tutorial_show_on_start_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -1799,11 +2268,6 @@ private fun TutorialSettingsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.tutorial_navigation_title))
-            Text(
-                text = stringResource(R.string.settings_help_privacy_tutorial_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             FilledTonalButton(
                 onClick = onOpenTutorial,
                 modifier = Modifier.fillMaxWidth(),
@@ -1827,11 +2291,6 @@ private fun TutorialSettingsCard(
                     onCheckedChange = onShowOnStartupChange,
                 )
             }
-            Text(
-                text = stringResource(R.string.tutorial_show_on_start_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -2246,35 +2705,34 @@ private fun VoiceOutputSettingsCard(
         }
     }
 
+    val screenReaderTitle = state.activeScreenReaderName?.takeIf { it.isNotBlank() }?.let { name ->
+        stringResource(R.string.format_settings_speech_source_screen_reader_title_with_name, name)
+    } ?: stringResource(R.string.settings_speech_source_screen_reader_title)
+
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.settings_speech_source_title))
-            Text(
-                text = stringResource(R.string.settings_speech_source_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             SpeechSourceOptionRow(
-                title = stringResource(R.string.settings_speech_source_system_title),
-                description = stringResource(R.string.settings_speech_source_system_message),
-                selected = state.speechOutputMode == SpeechOutputMode.System,
-                onSelect = { onSpeechOutputModeChange(SpeechOutputMode.System) },
-            )
-            SpeechSourceOptionRow(
-                title = stringResource(R.string.settings_speech_source_screen_reader_title),
-                description = stringResource(R.string.settings_speech_source_screen_reader_message),
+                title = screenReaderTitle,
                 selected = state.speechOutputMode == SpeechOutputMode.ScreenReader,
                 onSelect = { onSpeechOutputModeChange(SpeechOutputMode.ScreenReader) },
             )
-            LabelValue(stringResource(R.string.settings_speech_source_active_label), sourceMessage)
-            SystemTtsEnginePicker(
-                state = state,
-                onSystemTtsEngineChange = onSystemTtsEngineChange,
-                onOpenSystemTtsSettings = onOpenSystemTtsSettings,
+            SpeechSourceOptionRow(
+                title = stringResource(R.string.settings_speech_source_system_title),
+                selected = state.speechOutputMode == SpeechOutputMode.System,
+                onSelect = { onSpeechOutputModeChange(SpeechOutputMode.System) },
             )
+            LabelValue(stringResource(R.string.settings_speech_source_active_label), sourceMessage)
+            if (state.speechOutputMode == SpeechOutputMode.System) {
+                SystemTtsEnginePicker(
+                    state = state,
+                    onSystemTtsEngineChange = onSystemTtsEngineChange,
+                    onOpenSystemTtsSettings = onOpenSystemTtsSettings,
+                )
+            }
         }
     }
 }
@@ -2282,7 +2740,6 @@ private fun VoiceOutputSettingsCard(
 @Composable
 private fun SpeechSourceOptionRow(
     title: String,
-    description: String,
     selected: Boolean,
     onSelect: () -> Unit,
 ) {
@@ -2300,11 +2757,6 @@ private fun SpeechSourceOptionRow(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(title, fontWeight = FontWeight.SemiBold)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -2325,14 +2777,8 @@ private fun SystemTtsEnginePicker(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.settings_system_tts_title))
-            Text(
-                text = stringResource(R.string.settings_system_tts_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             SelectableOptionRow(
                 title = defaultEngineTitle,
-                description = stringResource(R.string.settings_system_tts_default_message),
                 selected = state.selectedSystemTtsEnginePackage == null,
                 onSelect = { onSystemTtsEngineChange(null) },
             )
@@ -2346,7 +2792,6 @@ private fun SystemTtsEnginePicker(
                 state.availableSystemTtsEngines.forEach { engine ->
                     SelectableOptionRow(
                         title = engine.displayName,
-                        description = engine.packageName ?: "",
                         selected = state.selectedSystemTtsEnginePackage == engine.packageName,
                         onSelect = { onSystemTtsEngineChange(engine.packageName) },
                     )
@@ -2380,7 +2825,6 @@ private fun SystemTtsEnginePicker(
 @Composable
 private fun SelectableOptionRow(
     title: String,
-    description: String,
     selected: Boolean,
     onSelect: () -> Unit,
 ) {
@@ -2398,13 +2842,6 @@ private fun SelectableOptionRow(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(title, fontWeight = FontWeight.SemiBold)
-            if (description.isNotBlank()) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
     }
 }
@@ -2412,7 +2849,6 @@ private fun SelectableOptionRow(
 @Composable
 private fun VoiceSliderCard(
     title: String,
-    description: String,
     value: Int,
     valueRange: ClosedFloatingPointRange<Float>,
     steps: Int,
@@ -2459,12 +2895,6 @@ private fun VoiceSliderCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                text = description,
-                modifier = Modifier.clearAndSetSemantics { },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             Slider(
                 value = sliderValue,
                 onValueChange = { incoming ->
@@ -2502,7 +2932,6 @@ private fun normalizeSliderValue(
 @Composable
 private fun SettingsToggleCard(
     title: String,
-    description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
@@ -2519,7 +2948,6 @@ private fun SettingsToggleCard(
                 Text(title, fontWeight = FontWeight.SemiBold)
                 Switch(checked = checked, onCheckedChange = onCheckedChange)
             }
-            Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -2641,20 +3069,13 @@ private fun UpdateChannelCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.settings_updates_channel_title))
-            Text(
-                text = stringResource(R.string.settings_updates_channel_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             SelectableOptionRow(
                 title = stringResource(R.string.settings_updates_channel_stable_title),
-                description = stringResource(R.string.settings_updates_channel_stable_message),
                 selected = selectedChannel == UpdateChannel.Stable,
                 onSelect = { onUpdateChannelChange(UpdateChannel.Stable) },
             )
             SelectableOptionRow(
                 title = stringResource(R.string.settings_updates_channel_beta_title),
-                description = stringResource(R.string.settings_updates_channel_beta_message),
                 selected = selectedChannel == UpdateChannel.Beta,
                 onSelect = { onUpdateChannelChange(UpdateChannel.Beta) },
             )

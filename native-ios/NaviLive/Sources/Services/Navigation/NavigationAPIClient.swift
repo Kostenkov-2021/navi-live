@@ -28,6 +28,8 @@ struct SearchResultDTO: Decodable {
   let importance: Double?
   let category: String?
   let type: String?
+  let osmType: String?
+  let osmID: Int64?
 
   enum CodingKeys: String, CodingKey {
     case placeID = "place_id"
@@ -40,6 +42,8 @@ struct SearchResultDTO: Decodable {
     case importance
     case category
     case type
+    case osmType = "osm_type"
+    case osmID = "osm_id"
   }
 }
 
@@ -66,9 +70,50 @@ struct OverpassElementDTO: Decodable {
   let tags: [String: String]?
 }
 
+private struct ZabkaStoreDTO: Decodable {
+  let storeID: String
+  let street: String
+  let town: String
+  let lat: Double
+  let lon: Double
+  let storeURL: String?
+
+  enum CodingKeys: String, CodingKey {
+    case storeID = "storeId"
+    case street
+    case town
+    case lat
+    case lon
+    case storeURL = "storeUrl"
+  }
+}
+
 struct OverpassCenterDTO: Decodable {
   let lat: Double
   let lon: Double
+}
+
+private struct RouteCrossingCandidate {
+  let point: GeoPoint
+  let distanceAlongRouteMeters: Double
+}
+
+private struct RouteProjection {
+  let distanceAlongRouteMeters: Double
+  let lateralDistanceMeters: Double
+}
+
+private struct SegmentProjection {
+  let ratio: Double
+  let lengthMeters: Double
+  let lateralDistanceMeters: Double
+}
+
+private struct RouteBoundingBox {
+  let south: Double
+  let west: Double
+  let north: Double
+  let east: Double
 }
 
 struct OSRMResponse: Decodable {
@@ -105,11 +150,17 @@ struct OSRMManeuver: Decodable {
 
 actor NavigationAPIClient {
   private struct SearchCandidate {
-    let place: Place
+    var place: Place
     let score: Int
     let distanceMeters: Int
     let importance: Double
     let isNearbyCandidate: Bool
+    let kind: PlaceKind
+  }
+
+  private struct NearbyAddressCandidate {
+    let address: String
+    let point: GeoPoint
   }
 
   private enum PlaceKind {
@@ -128,9 +179,30 @@ actor NavigationAPIClient {
     let wantsShop: Bool
     let wantsParcelLocker: Bool
     let wantsRailStation: Bool
+
+    var wantsAnyCategory: Bool {
+      wantsShop || wantsParcelLocker || wantsRailStation
+    }
+
+    var isCategoryOnly: Bool {
+      wantsAnyCategory && nameSearchTerms.isEmpty
+    }
   }
 
   private let session: URLSession
+  private let poiCacheStore: NearbyPOICacheStore
+  private let localPOITotalTimeout: TimeInterval = 3.5
+  private let localPOIRequestTimeout: TimeInterval = 1.8
+  private let poiCacheRefreshRequestTimeout: TimeInterval = 5
+  private let addressLookupTimeout: TimeInterval = 5
+  private let nearbyAddressLookupRadiusMeters = 80
+  private let nearbyAddressLookupLimit = 220
+  private let routeRequestTimeout: TimeInterval = 10
+  private let crossingRequestTimeout: TimeInterval = 2
+  private let minimumUsefulSearchResults = 3
+  private let officialChainScore = 3_000
+  private let poiCacheRefreshLimit = 350
+  private let zabkaLocatorURL = URL(string: "https://www.zabka.pl/app/uploads/locator-store-data.json")!
 
   private let shopQueryTerms: Set<String> = [
     "sklep", "sklepy", "sklepu", "market", "supermarket", "spozywczy", "spożywczy", "grocery", "store"
@@ -142,58 +214,171 @@ actor NavigationAPIClient {
     "pkp", "kolej", "kolejowa", "kolejowy", "stacja", "dworzec", "pociag", "pociąg", "train", "railway", "station"
   ]
 
-  init(session: URLSession = .shared) {
+  init(session: URLSession = .shared, poiCacheStore: NearbyPOICacheStore = NearbyPOICacheStore()) {
     self.session = session
+    self.poiCacheStore = poiCacheStore
   }
 
-  func searchPlaces(query: String, near location: GeoPoint?) async throws -> [Place] {
+  func searchPlaces(
+    query: String,
+    near location: GeoPoint?,
+    searchRadiusKilometers: Int = SharedProductRules.Search.defaultRadiusKm,
+    resultLimit: Int = SharedProductRules.Search.resultLimit
+  ) async throws -> [Place] {
+    let normalizedSearchRadiusKilometers = min(
+      max(searchRadiusKilometers, SharedProductRules.Search.minimumRadiusKm),
+      SharedProductRules.Search.maximumRadiusKm
+    )
+    let normalizedResultLimit = min(
+      max(resultLimit, SharedProductRules.Search.minimumResultLimit),
+      SharedProductRules.Search.maximumResultLimit
+    )
+    let searchRadiusMeters = normalizedSearchRadiusKilometers * 1_000
     let intent = searchIntent(for: query)
     var combinedByID: [String: SearchCandidate] = [:]
 
+    if let location, isZabkaQuery(intent) {
+      let officialCandidates = await officialZabkaCandidates(
+        query: query,
+        near: location,
+        searchRadiusMeters: searchRadiusMeters
+      )
+      officialCandidates.forEach { candidate in
+        combinedByID[candidate.place.id] = candidate
+      }
+    }
+
+    if let location {
+      let cachedCandidates = await cachedPOICandidates(
+        query: query,
+        near: location,
+        searchRadiusMeters: searchRadiusMeters,
+        intent: intent,
+        resultLimit: normalizedResultLimit
+      )
+      cachedCandidates.forEach { candidate in
+        combinedByID[candidate.place.id] = candidate
+      }
+    }
+
     if let location,
-       let localCandidates = try? await fetchLocalPOICandidates(query: query, near: location, intent: intent) {
+       combinedByID.count < minimumUsefulSearchResults,
+       let localCandidates = try? await fetchLocalPOICandidates(
+        query: query,
+        near: location,
+        searchRadiusMeters: searchRadiusMeters,
+        intent: intent,
+        resultLimit: normalizedResultLimit
+       ) {
       localCandidates.forEach { candidate in
         combinedByID[candidate.place.id] = candidate
       }
     }
 
-    let nearbyCandidates = try await fetchSearchCandidates(query: query, near: location, nearbyOnly: true, intent: intent)
-    nearbyCandidates.forEach { candidate in
-      if let existing = combinedByID[candidate.place.id] {
-        if isBetterSearchCandidate(candidate, than: existing) {
-          combinedByID[candidate.place.id] = candidate
+    let shouldUseTextSearchFallback = true
+    if (combinedByID.count < minimumUsefulSearchResults || location == nil || !intent.isCategoryOnly) && shouldUseTextSearchFallback {
+      for radiusKilometers in nearbyTextSearchRadiiKilometers(
+        normalizedSearchRadiusKilometers: normalizedSearchRadiusKilometers,
+        location: location,
+        intent: intent
+      ) {
+        let nearbyCandidates = try await fetchSearchCandidates(
+          query: query,
+          near: location,
+          nearbyOnly: true,
+          searchRadiusKilometers: radiusKilometers,
+          intent: intent,
+          resultLimit: normalizedResultLimit
+        )
+        nearbyCandidates.forEach { candidate in
+          putSearchCandidate(&combinedByID, candidate)
         }
-      } else {
-        combinedByID[candidate.place.id] = candidate
       }
-    }
-
-    if combinedByID.count < SharedProductRules.Search.includeGlobalFallbackIfFewerThan {
-      let globalCandidates = try await fetchSearchCandidates(query: query, near: location, nearbyOnly: false, intent: intent)
-      for candidate in globalCandidates {
-        if let existing = combinedByID[candidate.place.id] {
-          if isBetterSearchCandidate(candidate, than: existing) {
-            combinedByID[candidate.place.id] = candidate
+      if location != nil,
+         combinedByID.count < minimumUsefulSearchResults,
+         intent.wantsAnyCategory,
+         !intent.isCategoryOnly,
+         !intent.nameSearchTerms.isEmpty {
+        let simplifiedQuery = intent.nameSearchTerms.joined(separator: " ")
+        if !simplifiedQuery.isEmpty && simplifiedQuery.caseInsensitiveCompare(query) != .orderedSame,
+           let simplifiedCandidates = try? await fetchSearchCandidates(
+            query: simplifiedQuery,
+            near: location,
+            nearbyOnly: true,
+            searchRadiusKilometers: SharedProductRules.Search.minimumRadiusKm,
+            intent: intent,
+            resultLimit: normalizedResultLimit
+           ) {
+          simplifiedCandidates.forEach { candidate in
+            putSearchCandidate(&combinedByID, candidate)
           }
+        }
+      }
+      if location != nil && intent.isCategoryOnly {
+        let expansionQueries: [String]
+        if intent.wantsShop {
+          expansionQueries = shopCategoryExpansionQueries()
+        } else if intent.wantsParcelLocker {
+          expansionQueries = parcelLockerCategoryExpansionQueries()
         } else {
-          combinedByID[candidate.place.id] = candidate
+          expansionQueries = []
+        }
+        for expandedQuery in expansionQueries {
+          guard let expandedCandidates = try? await fetchSearchCandidates(
+            query: expandedQuery,
+            near: location,
+            nearbyOnly: true,
+            searchRadiusKilometers: normalizedSearchRadiusKilometers,
+            intent: intent,
+            resultLimit: normalizedResultLimit
+          ) else {
+            continue
+          }
+          expandedCandidates.forEach { candidate in
+            putSearchCandidate(&combinedByID, candidate)
+          }
         }
       }
     }
 
-    return combinedByID.values
-      .sorted {
-        if $0.score != $1.score { return $0.score > $1.score }
-        if $0.isNearbyCandidate != $1.isNearbyCandidate { return $0.isNearbyCandidate && !$1.isNearbyCandidate }
-        if $0.distanceMeters != $1.distanceMeters {
-          let leftDistance = $0.distanceMeters > 0 ? $0.distanceMeters : Int.max
-          let rightDistance = $1.distanceMeters > 0 ? $1.distanceMeters : Int.max
-          return leftDistance < rightDistance
-        }
-        return $0.importance > $1.importance
+    if (location == nil || combinedByID.isEmpty) && shouldUseTextSearchFallback {
+      let globalCandidates = try await fetchSearchCandidates(
+        query: query,
+        near: location,
+        nearbyOnly: false,
+        searchRadiusKilometers: normalizedSearchRadiusKilometers,
+        intent: intent,
+        resultLimit: normalizedResultLimit
+      )
+      for candidate in globalCandidates {
+        putSearchCandidate(&combinedByID, candidate)
       }
-      .prefix(SharedProductRules.Search.resultLimit)
-      .map(\.place)
+    }
+
+    let sortedCandidates = deduplicatedSearchCandidates(Array(combinedByID.values))
+      .sorted(by: compareSearchCandidates(_:_:))
+      .prefix(normalizedResultLimit)
+      .map { $0 }
+    return await enrichedSearchResultAddresses(sortedCandidates)
+  }
+
+  func nearbyPOICacheState() async -> NearbyPOICacheState {
+    await poiCacheStore.metadata()
+  }
+
+  func clearNearbyPOICache() async -> NearbyPOICacheState {
+    await poiCacheStore.clear()
+  }
+
+  func refreshNearbyPOICache(near location: GeoPoint, radiusKilometers: Int) async throws -> NearbyPOICacheState {
+    let radiusMeters = min(max(radiusKilometers, SharedProductRules.Search.minimumRadiusKm), 5) * 1_000
+    let fetchedAt = Date()
+    let records = try await fetchNearbyPOICacheRecords(
+      near: location,
+      radiusMeters: radiusMeters,
+      fetchedAt: fetchedAt
+    )
+    return await poiCacheStore.saveMerged(records: records, center: location, fetchedAt: fetchedAt)
   }
 
   func reverseGeocode(point: GeoPoint) async throws -> String {
@@ -222,29 +407,21 @@ actor NavigationAPIClient {
     return formattedAddress(from: decoded.address, fallback: decoded.displayName)
   }
 
-  func buildWalkingRoute(from start: GeoPoint, to destination: Place) async throws -> RouteSummary {
+  func buildWalkingRoute(
+    from start: GeoPoint,
+    to destination: Place,
+    includePedestrianCrossings: Bool = true
+  ) async throws -> RouteSummary {
     guard let destinationPoint = destination.point else {
       throw NavigationAPIError.noRoute
     }
     let coordinateString = "\(start.longitude),\(start.latitude);\(destinationPoint.longitude),\(destinationPoint.latitude)"
-    guard let url = URL(string: "https://router.project-osrm.org/route/v1/foot/\(coordinateString)?overview=full&geometries=geojson&steps=true") else {
-      throw NavigationAPIError.invalidURL
-    }
-
-    var request = URLRequest(url: url)
-    request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-
-    let (data, response) = try await session.data(for: request)
-    guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
-      throw NavigationAPIError.badResponse
-    }
-
-    let decoded = try JSONDecoder().decode(OSRMResponse.self, from: data)
+    let decoded = try await fetchRouteResponse(coordinateString: coordinateString)
     guard let route = decoded.routes.first else {
       throw NavigationAPIError.noRoute
     }
 
-    let steps = route.legs.flatMap(\.steps).map { step in
+    let baseSteps = route.legs.flatMap(\.steps).map { step in
       RouteStep(
         instruction: humanInstruction(for: step),
         distanceMeters: Int(step.distance.rounded()),
@@ -259,6 +436,10 @@ actor NavigationAPIClient {
       return GeoPoint(latitude: coordinate[1], longitude: coordinate[0])
     }
 
+    let steps = includePedestrianCrossings
+      ? await routeStepsAddingPedestrianCrossings(steps: baseSteps, pathPoints: points)
+      : baseSteps
+
     return RouteSummary(
       distanceMeters: Int(route.distance.rounded()),
       etaMinutes: NavigationScenarioCore.routeEtaMinutes(
@@ -271,6 +452,34 @@ actor NavigationAPIClient {
       steps: steps,
       pathPoints: points
     )
+  }
+
+  private func fetchRouteResponse(coordinateString: String) async throws -> OSRMResponse {
+    var lastError: Error?
+    for url in routeURLs(coordinateString: coordinateString) {
+      do {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = routeRequestTimeout
+        request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
+          throw NavigationAPIError.badResponse
+        }
+        return try JSONDecoder().decode(OSRMResponse.self, from: data)
+      } catch {
+        lastError = error
+      }
+    }
+    throw lastError ?? NavigationAPIError.noRoute
+  }
+
+  private func routeURLs(coordinateString: String) -> [URL] {
+    let query = "?overview=full&geometries=geojson&steps=true&alternatives=false"
+    return [
+      "https://routing.openstreetmap.de/routed-foot/route/v1/foot/\(coordinateString)\(query)",
+      "https://router.project-osrm.org/route/v1/foot/\(coordinateString)\(query)"
+    ].compactMap(URL.init(string:))
   }
 
   private func humanInstruction(for step: OSRMStep) -> String {
@@ -325,32 +534,55 @@ actor NavigationAPIClient {
     }
   }
 
-  private func modifierText(for modifier: String?) -> String {
-    let normalized = modifier.map(SharedProductRules.Instructions.normalizeModifier(_:)) ?? ""
-    guard SharedProductRules.Instructions.supportedModifiers.contains(normalized) else {
-      return modifier ?? ""
+  private func routeStepsAddingPedestrianCrossings(
+    steps: [RouteStep],
+    pathPoints: [GeoPoint]
+  ) async -> [RouteStep] {
+    guard !steps.isEmpty, pathPoints.count >= 2 else { return steps }
+    let crossings = (try? await fetchPedestrianCrossings(pathPoints: pathPoints)) ?? []
+    guard !crossings.isEmpty else { return steps }
+
+    let routeLength = routeLengthMeters(pathPoints: pathPoints)
+    let stepDistances = stepDistancesAlongRoute(
+      steps: steps,
+      pathPoints: pathPoints,
+      routeLengthMeters: routeLength
+    )
+    var augmented: [RouteStep] = [steps[0]]
+    var crossingIndex = 0
+    var lastAlongMeters = stepDistances.first ?? 0
+
+    for stepIndex in 1..<steps.count {
+      let stepAlongMeters = stepDistances[stepIndex]
+      while crossingIndex < crossings.count,
+            crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters {
+        let crossing = crossings[crossingIndex]
+        let distanceFromPrevious = max(Int((crossing.distanceAlongRouteMeters - lastAlongMeters).rounded()), 1)
+        augmented.append(
+          RouteStep(
+            instruction: L10n.text("navigation.step.crossing", table: .navigation),
+            distanceMeters: distanceFromPrevious,
+            maneuverPoint: crossing.point,
+            kind: .pedestrianCrossing
+          )
+        )
+        lastAlongMeters = crossing.distanceAlongRouteMeters
+        crossingIndex += 1
+      }
+      augmented.append(steps[stepIndex])
+      lastAlongMeters = max(lastAlongMeters, stepAlongMeters)
     }
-    let key = "navigation.modifier.\(normalized)"
-    let localized = L10n.text(key, table: .navigation)
-    return localized == key ? normalized : localized
+    return augmented
   }
 
-  private func fetchLocalPOICandidates(
-    query: String,
-    near location: GeoPoint,
-    intent: SearchIntent
-  ) async throws -> [SearchCandidate] {
-    let urls = buildOverpassURLs(near: location, intent: intent)
-    guard !urls.isEmpty else {
-      return []
-    }
-
+  private func fetchPedestrianCrossings(pathPoints: [GeoPoint]) async throws -> [RouteCrossingCandidate] {
+    let urls = buildPedestrianCrossingURLs(pathPoints: pathPoints)
     var decodedResponse: OverpassResponseDTO?
     var lastError: Error?
     for url in urls {
       do {
         var request = URLRequest(url: url)
-        request.timeoutInterval = TimeInterval(SharedProductRules.Search.overpassTimeoutSeconds)
+        request.timeoutInterval = crossingRequestTimeout
         request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
         request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
 
@@ -367,23 +599,375 @@ actor NavigationAPIClient {
     guard let decoded = decodedResponse else {
       throw lastError ?? NavigationAPIError.badResponse
     }
-    return decoded.elements.compactMap { item -> SearchCandidate? in
-      guard let point = overpassPoint(for: item) else { return nil }
+
+    let routeLength = routeLengthMeters(pathPoints: pathPoints)
+    let candidates = decoded.elements.compactMap { item -> RouteCrossingCandidate? in
+      guard let point = overpassPoint(for: item),
+            let projection = projectOntoRoute(pathPoints: pathPoints, point: point) else {
+        return nil
+      }
+      guard projection.lateralDistanceMeters <= 18 else { return nil }
+      guard projection.distanceAlongRouteMeters >= 20 else { return nil }
+      guard projection.distanceAlongRouteMeters <= routeLength - 20 else { return nil }
+      return RouteCrossingCandidate(
+        point: point,
+        distanceAlongRouteMeters: projection.distanceAlongRouteMeters
+      )
+    }
+
+    var deduplicated: [RouteCrossingCandidate] = []
+    for candidate in candidates.sorted(by: { $0.distanceAlongRouteMeters < $1.distanceAlongRouteMeters }) {
+      if let previous = deduplicated.last,
+         candidate.distanceAlongRouteMeters - previous.distanceAlongRouteMeters < 25 {
+        continue
+      }
+      deduplicated.append(candidate)
+    }
+    return deduplicated
+  }
+
+  private func buildPedestrianCrossingURLs(pathPoints: [GeoPoint]) -> [URL] {
+    let box = routeBoundingBox(pathPoints: pathPoints, paddingMeters: 45)
+    let bbox = "(\(formatCoordinate(box.south)),\(formatCoordinate(box.west))," +
+      "\(formatCoordinate(box.north)),\(formatCoordinate(box.east)))"
+    let query = "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];" +
+      "(" +
+      "node[\"highway\"=\"crossing\"]\(bbox);" +
+      "node[\"crossing\"]\(bbox);" +
+      "way[\"highway\"=\"crossing\"]\(bbox);" +
+      "way[\"footway\"=\"crossing\"]\(bbox);" +
+      "way[\"crossing\"]\(bbox);" +
+      ");out center 160;"
+    return [
+      "https://overpass-api.de/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter"
+    ].compactMap { rawURL in
+      guard var components = URLComponents(string: rawURL) else { return nil }
+      components.queryItems = [.init(name: "data", value: query)]
+      return components.url
+    }
+  }
+
+  private func stepDistancesAlongRoute(
+    steps: [RouteStep],
+    pathPoints: [GeoPoint],
+    routeLengthMeters: Double
+  ) -> [Double] {
+    var distances: [Double] = []
+    var previous = 0.0
+    for (index, step) in steps.enumerated() {
+      let raw = step.maneuverPoint
+        .flatMap { projectOntoRoute(pathPoints: pathPoints, point: $0)?.distanceAlongRouteMeters } ??
+        (index == 0 ? 0 : routeLengthMeters)
+      let normalized = min(max(raw, previous), routeLengthMeters)
+      distances.append(normalized)
+      previous = normalized
+    }
+    return distances
+  }
+
+  private func routeBoundingBox(pathPoints: [GeoPoint], paddingMeters: Double) -> RouteBoundingBox {
+    let minLatitude = pathPoints.map(\.latitude).min() ?? 0
+    let maxLatitude = pathPoints.map(\.latitude).max() ?? 0
+    let minLongitude = pathPoints.map(\.longitude).min() ?? 0
+    let maxLongitude = pathPoints.map(\.longitude).max() ?? 0
+    let midLatitudeRadians = ((minLatitude + maxLatitude) / 2.0) * .pi / 180.0
+    let latitudePadding = paddingMeters / 111_320.0
+    let longitudePadding = paddingMeters / (111_320.0 * max(cos(midLatitudeRadians), 0.2))
+    return RouteBoundingBox(
+      south: minLatitude - latitudePadding,
+      west: minLongitude - longitudePadding,
+      north: maxLatitude + latitudePadding,
+      east: maxLongitude + longitudePadding
+    )
+  }
+
+  private func formatCoordinate(_ value: Double) -> String {
+    String(format: "%.6f", value)
+  }
+
+  private func projectOntoRoute(pathPoints: [GeoPoint], point: GeoPoint) -> RouteProjection? {
+    guard pathPoints.count >= 2 else { return nil }
+    var bestProjection: RouteProjection?
+    var distanceBeforeSegment = 0.0
+
+    for index in 0..<(pathPoints.count - 1) {
+      let segmentProjection = projectOntoSegment(
+        point: point,
+        start: pathPoints[index],
+        end: pathPoints[index + 1]
+      )
+      let projection = RouteProjection(
+        distanceAlongRouteMeters: distanceBeforeSegment + segmentProjection.lengthMeters * segmentProjection.ratio,
+        lateralDistanceMeters: segmentProjection.lateralDistanceMeters
+      )
+      if bestProjection == nil || projection.lateralDistanceMeters < bestProjection!.lateralDistanceMeters {
+        bestProjection = projection
+      }
+      distanceBeforeSegment += segmentProjection.lengthMeters
+    }
+    return bestProjection
+  }
+
+  private func projectOntoSegment(point: GeoPoint, start: GeoPoint, end: GeoPoint) -> SegmentProjection {
+    let latitudeReference = ((point.latitude + start.latitude + end.latitude) / 3.0) * .pi / 180.0
+    let earthRadius = 6_371_000.0
+
+    func project(_ geoPoint: GeoPoint) -> (x: Double, y: Double) {
+      let x = geoPoint.longitude * .pi / 180.0 * earthRadius * cos(latitudeReference)
+      let y = geoPoint.latitude * .pi / 180.0 * earthRadius
+      return (x, y)
+    }
+
+    let pointProjection = project(point)
+    let startProjection = project(start)
+    let endProjection = project(end)
+    let dx = endProjection.x - startProjection.x
+    let dy = endProjection.y - startProjection.y
+    let lengthSquared = dx * dx + dy * dy
+
+    guard lengthSquared > 0 else {
+      let distance = sqrt(
+        pow(pointProjection.x - startProjection.x, 2) +
+          pow(pointProjection.y - startProjection.y, 2)
+      )
+      return SegmentProjection(ratio: 0, lengthMeters: 0, lateralDistanceMeters: distance)
+    }
+
+    let ratio = min(
+      max(
+        ((pointProjection.x - startProjection.x) * dx + (pointProjection.y - startProjection.y) * dy) / lengthSquared,
+        0
+      ),
+      1
+    )
+    let closestX = startProjection.x + dx * ratio
+    let closestY = startProjection.y + dy * ratio
+    let lateralDistance = sqrt(
+      pow(pointProjection.x - closestX, 2) + pow(pointProjection.y - closestY, 2)
+    )
+    return SegmentProjection(
+      ratio: ratio,
+      lengthMeters: sqrt(lengthSquared),
+      lateralDistanceMeters: lateralDistance
+    )
+  }
+
+  private func routeLengthMeters(pathPoints: [GeoPoint]) -> Double {
+    guard pathPoints.count >= 2 else { return 0 }
+    var length = 0.0
+    for index in 0..<(pathPoints.count - 1) {
+      length += pathPoints[index].distance(to: pathPoints[index + 1])
+    }
+    return length
+  }
+
+  private func modifierText(for modifier: String?) -> String {
+    let normalized = modifier.map(SharedProductRules.Instructions.normalizeModifier(_:)) ?? ""
+    guard SharedProductRules.Instructions.supportedModifiers.contains(normalized) else {
+      return modifier ?? ""
+    }
+    let key = "navigation.modifier.\(normalized)"
+    let localized = L10n.text(key, table: .navigation)
+    return localized == key ? normalized : localized
+  }
+
+  private func officialZabkaCandidates(
+    query: String,
+    near location: GeoPoint,
+    searchRadiusMeters: Int
+  ) async -> [SearchCandidate] {
+    var request = URLRequest(url: zabkaLocatorURL)
+    request.timeoutInterval = 4
+    request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+    guard let (data, response) = try? await session.data(for: request),
+          let http = response as? HTTPURLResponse,
+          200..<300 ~= http.statusCode,
+          let stores = try? JSONDecoder().decode([ZabkaStoreDTO].self, from: data)
+    else {
+      return []
+    }
+
+    return stores.compactMap { store -> SearchCandidate? in
+      let point = GeoPoint(latitude: store.lat, longitude: store.lon)
       let distance = Int(location.distance(to: point).rounded())
-      guard distance <= SharedProductRules.Search.localPoiRadiusMeters else { return nil }
-      let tags = item.tags ?? [:]
-      let kind = overpassKind(tags: tags)
-      guard shouldKeepLocalPOI(tags: tags, kind: kind, intent: intent) else { return nil }
-      let name = overpassName(tags: tags, kind: kind)
+      guard distance <= searchRadiusMeters else { return nil }
       let place = Place(
-        id: "overpass-\(item.type)-\(item.id)",
-        name: labelForKind(name, kind: kind),
-        address: overpassAddress(tags: tags, fallback: name),
+        id: "zabka-official-\(store.storeID)",
+        name: "\u{017B}abka",
+        address: officialChainAddress(street: store.street, town: store.town),
         walkDistanceMeters: distance,
         walkEtaMinutes: distance > 0 ? NavigationScenarioCore.distanceBasedEtaMinutes(distanceMeters: distance) : 0,
         point: point,
-        phone: tags["phone"] ?? tags["contact:phone"],
-        website: tags["website"] ?? tags["contact:website"]
+        phone: nil,
+        website: store.storeURL
+      )
+      return SearchCandidate(
+        place: place,
+        score: searchScore(for: place, query: query, currentLocation: location) + officialChainScore,
+        distanceMeters: distance,
+        importance: 1,
+        isNearbyCandidate: true,
+        kind: .shop
+      )
+    }
+    .sorted {
+      if $0.distanceMeters != $1.distanceMeters { return $0.distanceMeters < $1.distanceMeters }
+      return $0.place.address < $1.place.address
+    }
+  }
+
+  private func officialChainAddress(street: String, town: String) -> String {
+    let cleanedStreet = titleCaseAddressPart(
+      street.replacingOccurrences(
+        of: "^ul\\.\\s*",
+        with: "",
+        options: [.regularExpression, .caseInsensitive]
+      )
+    )
+    let cleanedTown = titleCaseAddressPart(town)
+    return [cleanedStreet, cleanedTown]
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+      .joined(separator: ", ")
+  }
+
+  private func titleCaseAddressPart(_ value: String) -> String {
+    value.split(whereSeparator: { $0.isWhitespace }).map { rawToken in
+      let token = String(rawToken)
+      let lowered = token.lowercased(with: Locale(identifier: "pl_PL"))
+      if ["lok.", "nr", "nr.", "r.", "ul.", "al.", "pl."].contains(lowered) { return lowered }
+      if token.rangeOfCharacter(from: .letters) == nil { return token }
+      return lowered.prefix(1).uppercased(with: Locale(identifier: "pl_PL")) + String(lowered.dropFirst())
+    }
+    .joined(separator: " ")
+  }
+
+  private func fetchLocalPOICandidates(
+    query: String,
+    near location: GeoPoint,
+    searchRadiusMeters: Int,
+    intent: SearchIntent,
+    resultLimit: Int
+  ) async throws -> [SearchCandidate] {
+    let urls = buildOverpassURLs(near: location, searchRadiusMeters: searchRadiusMeters, intent: intent)
+    guard !urls.isEmpty else {
+      return []
+    }
+
+    var candidatesByID: [String: SearchCandidate] = [:]
+    var lastError: Error?
+    let startedAt = Date()
+    for url in urls {
+      if Date().timeIntervalSince(startedAt) >= localPOITotalTimeout {
+        break
+      }
+      do {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = localPOIRequestTimeout
+        request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
+          throw NavigationAPIError.badResponse
+        }
+        let decodedResponse = try JSONDecoder().decode(OverpassResponseDTO.self, from: data)
+        for item in decodedResponse.elements {
+          guard let candidate = localPOICandidate(
+            item: item,
+            query: query,
+            location: location,
+            searchRadiusMeters: searchRadiusMeters,
+            intent: intent
+          ) else {
+            continue
+          }
+          if let existing = candidatesByID[candidate.place.id] {
+            if isBetterSearchCandidate(candidate, than: existing) {
+              candidatesByID[candidate.place.id] = candidate
+            }
+          } else {
+            candidatesByID[candidate.place.id] = candidate
+          }
+        }
+        if candidatesByID.count >= resultLimit {
+          break
+        }
+      } catch {
+        lastError = error
+      }
+    }
+    if candidatesByID.isEmpty, let lastError {
+      throw lastError
+    }
+    return Array(candidatesByID.values).sorted {
+      if $0.score != $1.score { return $0.score > $1.score }
+      let leftDistance = $0.distanceMeters > 0 ? $0.distanceMeters : Int.max
+      let rightDistance = $1.distanceMeters > 0 ? $1.distanceMeters : Int.max
+      if leftDistance != rightDistance { return leftDistance < rightDistance }
+      return $0.importance > $1.importance
+    }
+  }
+
+  private func localPOICandidate(
+    item: OverpassElementDTO,
+    query: String,
+    location: GeoPoint,
+    searchRadiusMeters: Int,
+    intent: SearchIntent
+  ) -> SearchCandidate? {
+    guard let point = overpassPoint(for: item) else { return nil }
+    let distance = Int(location.distance(to: point).rounded())
+    guard distance <= searchRadiusMeters else { return nil }
+    let tags = item.tags ?? [:]
+    let kind = overpassKind(tags: tags)
+    guard shouldKeepLocalPOI(tags: tags, kind: kind, intent: intent) else { return nil }
+    let name = overpassName(tags: tags, kind: kind)
+    let place = Place(
+      id: "overpass-\(item.type)-\(item.id)",
+      name: labelForKind(name, kind: kind),
+      address: overpassAddress(tags: tags, fallback: name),
+      walkDistanceMeters: distance,
+      walkEtaMinutes: distance > 0 ? NavigationScenarioCore.distanceBasedEtaMinutes(distanceMeters: distance) : 0,
+      point: point,
+      phone: tags["phone"] ?? tags["contact:phone"],
+      website: tags["website"] ?? tags["contact:website"]
+    )
+    return SearchCandidate(
+      place: place,
+      score: searchScore(for: place, query: query, currentLocation: location) +
+        SharedProductRules.Search.localPoiScore +
+        categoryAffinityScore(intent: intent, kind: kind),
+      distanceMeters: distance,
+      importance: 0,
+      isNearbyCandidate: true,
+      kind: kind
+    )
+  }
+
+  private func cachedPOICandidates(
+    query: String,
+    near location: GeoPoint,
+    searchRadiusMeters: Int,
+    intent: SearchIntent,
+    resultLimit: Int
+  ) async -> [SearchCandidate] {
+    let records = await poiCacheStore.loadRecords()
+    return records.compactMap { record -> SearchCandidate? in
+      let distance = Int(location.distance(to: record.point).rounded())
+      guard distance <= searchRadiusMeters else { return nil }
+      let kind = kindFromCacheKind(record.kind)
+      guard cachedPOIMatches(record: record, kind: kind, intent: intent) else { return nil }
+      let place = Place(
+        id: record.id,
+        name: labelForKind(record.name, kind: kind),
+        address: record.address,
+        walkDistanceMeters: distance,
+        walkEtaMinutes: distance > 0 ? NavigationScenarioCore.distanceBasedEtaMinutes(distanceMeters: distance) : 0,
+        point: record.point,
+        phone: record.phone,
+        website: record.website
       )
       return SearchCandidate(
         place: place,
@@ -392,55 +976,398 @@ actor NavigationAPIClient {
           categoryAffinityScore(intent: intent, kind: kind),
         distanceMeters: distance,
         importance: 0,
-        isNearbyCandidate: true
+        isNearbyCandidate: true,
+        kind: kind
       )
     }
+    .sorted {
+      if $0.score != $1.score { return $0.score > $1.score }
+      let leftDistance = $0.distanceMeters > 0 ? $0.distanceMeters : Int.max
+      let rightDistance = $1.distanceMeters > 0 ? $1.distanceMeters : Int.max
+      if leftDistance != rightDistance { return leftDistance < rightDistance }
+      return $0.importance > $1.importance
+    }
+    .prefix(resultLimit)
+    .map { $0 }
   }
 
-  private func buildOverpassURLs(near location: GeoPoint, intent: SearchIntent) -> [URL] {
-    var selectors: [String] = []
-    let radius = SharedProductRules.Search.localPoiRadiusMeters
+  private func fetchNearbyPOICacheRecords(
+    near location: GeoPoint,
+    radiusMeters: Int,
+    fetchedAt: Date
+  ) async throws -> [NearbyPOICacheRecord] {
+    var recordsByID: [String: NearbyPOICacheRecord] = [:]
+    var lastError: Error?
+    for url in buildPOICacheRefreshURLs(near: location, radiusMeters: radiusMeters) {
+      do {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = poiCacheRefreshRequestTimeout
+        request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
+          throw NavigationAPIError.badResponse
+        }
+        let decoded = try JSONDecoder().decode(OverpassResponseDTO.self, from: data)
+        for item in decoded.elements {
+          guard let record = nearbyPOICacheRecord(item: item, fetchedAt: fetchedAt) else { continue }
+          recordsByID[record.id] = record
+        }
+      } catch {
+        lastError = error
+      }
+    }
+    if recordsByID.isEmpty, let lastError {
+      throw lastError
+    }
+    return Array(recordsByID.values)
+  }
+
+  private func buildPOICacheRefreshURLs(near location: GeoPoint, radiusMeters: Int) -> [URL] {
     let lat = String(format: "%.6f", location.latitude)
     let lon = String(format: "%.6f", location.longitude)
-
-    if let nameRegex = overpassNameRegex(intent: intent) {
-      selectors.append(contentsOf: overpassSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"name\"~\"\(nameRegex)\",i]"))
+    let nodeSelectors = poiCacheRefreshFilters().map { filter in
+      "node(around:\(radiusMeters),\(lat),\(lon))\(filter);"
     }
-    if intent.wantsShop {
-      selectors.append(contentsOf: overpassSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"shop\"]"))
+    let areaSelectors = poiCacheRefreshFilters().flatMap { filter in
+      [
+        "way(around:\(radiusMeters),\(lat),\(lon))\(filter);",
+        "relation(around:\(radiusMeters),\(lat),\(lon))\(filter);"
+      ]
     }
-    if intent.wantsParcelLocker {
-      selectors.append(contentsOf: overpassSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"amenity\"=\"parcel_locker\"]"))
-    }
-    if intent.wantsRailStation {
-      selectors.append(contentsOf: overpassSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"railway\"~\"^(station|halt)$\"]"))
-      selectors.append(contentsOf: overpassSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"public_transport\"=\"station\"]"))
-    }
-    guard !selectors.isEmpty else { return [] }
-
-    let overpassQuery = "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];(" +
-      selectors.joined() +
-      ");out center \(SharedProductRules.Search.localPoiLimit);"
-    return [
-      "https://overpass.kumi.systems/api/interpreter",
-      "https://overpass-api.de/api/interpreter"
-    ].compactMap { rawURL in
-      guard var components = URLComponents(string: rawURL) else { return nil }
-      components.queryItems = [.init(name: "data", value: overpassQuery)]
-      return components.url
+    return [nodeSelectors, areaSelectors].flatMap { selectors -> [URL] in
+      let query = buildPOICacheRefreshQuery(selectors: selectors)
+      return [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter"
+      ].compactMap { rawURL in
+        guard var components = URLComponents(string: rawURL) else { return nil }
+        components.queryItems = [.init(name: "data", value: query)]
+        return components.url
+      }
     }
   }
 
-  private func overpassSelectors(radius: Int, lat: String, lon: String, filter: String) -> [String] {
+  private func poiCacheRefreshFilters() -> [String] {
+    [
+      "[\"shop\"]",
+      "[\"amenity\"~\"^(parcel_locker|pharmacy|bank|atm|fuel|post_office|cafe|restaurant|fast_food|toilets)$\"]",
+      "[\"railway\"~\"^(station|halt|tram_stop)$\"]",
+      "[\"public_transport\"=\"station\"]"
+    ]
+  }
+
+  private func buildPOICacheRefreshQuery(selectors: [String]) -> String {
+    "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];(" +
+      selectors.joined() +
+      ");out center \(poiCacheRefreshLimit);"
+  }
+
+  private func nearbyPOICacheRecord(item: OverpassElementDTO, fetchedAt: Date) -> NearbyPOICacheRecord? {
+    guard let point = overpassPoint(for: item) else { return nil }
+    let tags = item.tags ?? [:]
+    let kind = overpassKind(tags: tags)
+    guard kind != .other else { return nil }
+    let name = overpassName(tags: tags, kind: kind).trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !name.isEmpty else { return nil }
+    let address = overpassAddress(tags: tags, fallback: name)
+    let searchableText = normalizeForSearch(
+      (searchableNameParts(tags: tags) + [
+        name,
+        address,
+        tags["shop"] ?? "",
+        tags["amenity"] ?? "",
+        tags["railway"] ?? "",
+        tags["public_transport"] ?? ""
+      ]).joined(separator: " ")
+    )
+    return NearbyPOICacheRecord(
+      id: "overpass-\(item.type)-\(item.id)",
+      name: name,
+      address: address,
+      point: point,
+      phone: tags["phone"] ?? tags["contact:phone"],
+      website: tags["website"] ?? tags["contact:website"],
+      kind: cacheKind(kind),
+      searchableText: searchableText,
+      fetchedAt: fetchedAt
+    )
+  }
+
+  private func cachedPOIMatches(record: NearbyPOICacheRecord, kind: PlaceKind, intent: SearchIntent) -> Bool {
+    if intent.isCategoryOnly {
+      if intent.wantsShop { return kind == .shop }
+      if intent.wantsParcelLocker { return kind == .parcelLocker }
+      if intent.wantsRailStation { return kind == .railStation }
+      return false
+    }
+    let terms = intent.nameSearchTerms.isEmpty ? intent.tokens : intent.nameSearchTerms
+    guard !terms.isEmpty else { return true }
+    return terms.allSatisfy { record.searchableText.contains($0) }
+  }
+
+  private func cacheKind(_ kind: PlaceKind) -> String {
+    switch kind {
+    case .shop: return "shop"
+    case .parcelLocker: return "parcel_locker"
+    case .railStation: return "rail_station"
+    case .busStop: return "bus_stop"
+    case .tramStop: return "tram_stop"
+    case .other: return "other"
+    }
+  }
+
+  private func kindFromCacheKind(_ kind: String) -> PlaceKind {
+    switch kind {
+    case "shop": return .shop
+    case "parcel_locker": return .parcelLocker
+    case "rail_station": return .railStation
+    case "bus_stop": return .busStop
+    case "tram_stop": return .tramStop
+    default: return .other
+    }
+  }
+
+  private func buildOverpassURLs(
+    near location: GeoPoint,
+    searchRadiusMeters: Int,
+    intent: SearchIntent
+  ) -> [URL] {
+    var selectorGroups: [[String]] = []
+    let lat = String(format: "%.6f", location.latitude)
+    let lon = String(format: "%.6f", location.longitude)
+    let nameRegex = overpassNameRegex(intent: intent)
+
+    for radius in overpassSearchRadii(maxRadiusMeters: searchRadiusMeters) {
+      var priorityNodeSelectors: [String] = []
+      var priorityAreaSelectors: [String] = []
+      var secondaryNodeSelectors: [String] = []
+      var secondaryAreaSelectors: [String] = []
+      if let nameRegex {
+        priorityNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"shop\"]",
+          nameRegex: nameRegex,
+          keys: ["name"],
+          includeAreas: false
+        ))
+        priorityAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"shop\"]",
+          nameRegex: nameRegex,
+          keys: ["name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"shop\"]",
+          nameRegex: nameRegex,
+          keys: ["brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"shop\"]",
+          nameRegex: nameRegex,
+          keys: ["brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"amenity\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"amenity\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"tourism\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"tourism\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"leisure\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"leisure\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"railway\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"railway\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+        secondaryNodeSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"public_transport\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: false
+        ))
+        secondaryAreaSelectors.append(contentsOf: overpassNameSelectors(
+          radius: radius,
+          lat: lat,
+          lon: lon,
+          baseFilter: "[\"public_transport\"]",
+          nameRegex: nameRegex,
+          keys: ["name", "brand", "operator", "official_name", "alt_name"],
+          includeAreas: true
+        ))
+      }
+      if intent.wantsShop && intent.isCategoryOnly {
+        priorityNodeSelectors.append(contentsOf: overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"shop\"]"))
+        priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"shop\"]"))
+      }
+      if intent.wantsParcelLocker {
+        priorityNodeSelectors.append(contentsOf: overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"amenity\"=\"parcel_locker\"]"))
+        priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"amenity\"=\"parcel_locker\"]"))
+      }
+      if intent.wantsRailStation {
+        priorityNodeSelectors.append(contentsOf: overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"railway\"~\"^(station|halt)$\"]"))
+        priorityNodeSelectors.append(contentsOf: overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"public_transport\"=\"station\"]"))
+        priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"railway\"~\"^(station|halt)$\"]"))
+        priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"public_transport\"=\"station\"]"))
+      }
+
+      if !priorityNodeSelectors.isEmpty {
+        selectorGroups.append(Array(Set(priorityNodeSelectors)).sorted())
+      }
+      if !priorityAreaSelectors.isEmpty {
+        selectorGroups.append(Array(Set(priorityAreaSelectors)).sorted())
+      }
+      if !secondaryNodeSelectors.isEmpty {
+        selectorGroups.append(Array(Set(secondaryNodeSelectors)).sorted())
+      }
+      if !secondaryAreaSelectors.isEmpty {
+        selectorGroups.append(Array(Set(secondaryAreaSelectors)).sorted())
+      }
+    }
+    guard !selectorGroups.isEmpty else { return [] }
+
+    return selectorGroups.flatMap { selectors -> [URL] in
+      let overpassQuery = buildOverpassQuery(selectors: selectors)
+      let endpoints = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter"
+      ]
+      return endpoints.compactMap { rawURL in
+        guard var components = URLComponents(string: rawURL) else { return nil }
+        components.queryItems = [.init(name: "data", value: overpassQuery)]
+        return components.url
+      }
+    }
+  }
+
+  private func overpassSearchRadii(maxRadiusMeters: Int) -> [Int] {
+    let maxRadius = max(maxRadiusMeters, 1)
+    var radii: [Int] = []
+    for radius in [500, 1_000, maxRadius] {
+      let clamped = min(radius, maxRadius)
+      if clamped > 0 && !radii.contains(clamped) {
+        radii.append(clamped)
+      }
+    }
+    return radii
+  }
+
+  private func overpassNodeSelectors(radius: Int, lat: String, lon: String, filter: String) -> [String] {
     let around = "(around:\(radius),\(lat),\(lon))"
     return [
-      "node\(around)\(filter);",
+      "node\(around)\(filter);"
+    ]
+  }
+
+  private func overpassAreaSelectors(radius: Int, lat: String, lon: String, filter: String) -> [String] {
+    let around = "(around:\(radius),\(lat),\(lon))"
+    return [
       "way\(around)\(filter);",
       "relation\(around)\(filter);"
     ]
   }
 
+  private func overpassNameSelectors(
+    radius: Int,
+    lat: String,
+    lon: String,
+    baseFilter: String,
+    nameRegex: String,
+    keys: [String],
+    includeAreas: Bool
+  ) -> [String] {
+    keys.flatMap { key in
+      let filter = "\(baseFilter)[\"\(key)\"~\"\(nameRegex)\",i]"
+      if includeAreas {
+        return overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: filter)
+      }
+      return overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: filter)
+    }
+  }
+
+  private func buildOverpassQuery(selectors: [String]) -> String {
+    "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];(" +
+      selectors.joined() +
+      ");out center \(SharedProductRules.Search.localPoiLimit);"
+  }
+
   private func overpassNameRegex(intent: SearchIntent) -> String? {
+    if intent.isCategoryOnly { return nil }
     let terms = (intent.nameSearchTerms.isEmpty ? intent.tokens : intent.nameSearchTerms)
       .filter { $0.count >= 2 }
       .prefix(4)
@@ -468,7 +1395,7 @@ actor NavigationAPIClient {
   }
 
   private func overpassName(tags: [String: String], kind: PlaceKind) -> String {
-    if let name = tags["name"]?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+    if let name = searchableNameParts(tags: tags).first(where: { !$0.isEmpty }) {
       return name
     }
     switch kind {
@@ -490,14 +1417,16 @@ actor NavigationAPIClient {
   private func overpassAddress(tags: [String: String], fallback: String) -> String {
     let street = tags["addr:street"] ?? ""
     let houseNumber = tags["addr:housenumber"] ?? ""
+    let unit = tags["addr:unit"] ?? tags["addr:door"] ?? tags["addr:flats"] ?? ""
     let locality = tags["addr:city"] ?? tags["addr:town"] ?? tags["addr:village"] ?? tags["addr:suburb"] ?? ""
+    let houseNumberWithUnit = !houseNumber.isEmpty && !unit.isEmpty ? "\(houseNumber)/\(unit)" : houseNumber
     let streetPart: String
-    if !street.isEmpty && !houseNumber.isEmpty {
-      streetPart = "\(street) \(houseNumber)"
+    if !street.isEmpty && !houseNumberWithUnit.isEmpty {
+      streetPart = "\(street) \(houseNumberWithUnit)"
     } else if !street.isEmpty {
       streetPart = street
     } else {
-      streetPart = houseNumber
+      streetPart = houseNumberWithUnit
     }
     let parts = [streetPart, locality].filter { !$0.isEmpty }
     return parts.isEmpty ? fallback : parts.joined(separator: ", ")
@@ -507,8 +1436,14 @@ actor NavigationAPIClient {
     if intent.wantsShop && kind == .shop { return true }
     if intent.wantsParcelLocker && kind == .parcelLocker { return true }
     if intent.wantsRailStation && (kind == .railStation || kind == .busStop || kind == .tramStop) { return true }
-    let normalizedName = normalizeForSearch(tags["name"] ?? "")
+    let normalizedName = normalizeForSearch(searchableNameParts(tags: tags).joined(separator: " "))
     return !intent.nameSearchTerms.isEmpty && intent.nameSearchTerms.allSatisfy { normalizedName.contains($0) }
+  }
+
+  private func searchableNameParts(tags: [String: String]) -> [String] {
+    ["name", "brand", "operator", "official_name", "alt_name"].map { key in
+      tags[key]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
   }
 
   private func overpassKind(tags: [String: String]) -> PlaceKind {
@@ -529,9 +1464,17 @@ actor NavigationAPIClient {
     query: String,
     near location: GeoPoint?,
     nearbyOnly: Bool,
-    intent: SearchIntent
+    searchRadiusKilometers: Int,
+    intent: SearchIntent,
+    resultLimit: Int
   ) async throws -> [SearchCandidate] {
-    guard let url = buildSearchURL(query: query, near: location, nearbyOnly: nearbyOnly) else {
+    guard let url = buildSearchURL(
+      query: query,
+      near: location,
+      nearbyOnly: nearbyOnly,
+      searchRadiusKilometers: searchRadiusKilometers,
+      resultLimit: resultLimit
+    ) else {
       throw NavigationAPIError.invalidURL
     }
 
@@ -545,11 +1488,8 @@ actor NavigationAPIClient {
     }
 
     let decoded = try JSONDecoder().decode([SearchResultDTO].self, from: data)
-    let radiusKilometers = nearbyOnly
-      ? SharedProductRules.Search.nearbyRadiusKm
-      : SharedProductRules.Search.globalRadiusKm
     let maxDistanceMeters = location.map { _ in
-      Int((radiusKilometers * 1000).rounded())
+      searchRadiusKilometers * 1_000
     }
     return decoded.compactMap { item -> SearchCandidate? in
       let point = GeoPoint(latitude: Double(item.lat) ?? 0, longitude: Double(item.lon) ?? 0)
@@ -574,35 +1514,39 @@ actor NavigationAPIClient {
           (nearbyOnly ? SharedProductRules.Search.nearbyBonus : 0),
         distanceMeters: distance,
         importance: item.importance ?? 0,
-        isNearbyCandidate: nearbyOnly
+        isNearbyCandidate: nearbyOnly,
+        kind: kind
       )
     }
   }
 
-  private func buildSearchURL(query: String, near location: GeoPoint?, nearbyOnly: Bool) -> URL? {
+  private func buildSearchURL(
+    query: String,
+    near location: GeoPoint?,
+    nearbyOnly: Bool,
+    searchRadiusKilometers: Int,
+    resultLimit: Int
+  ) -> URL? {
     guard var components = URLComponents(string: "https://nominatim.openstreetmap.org/search") else {
       return nil
     }
+    let requestLimit = min(
+      max(nearbyOnly ? SharedProductRules.Search.nearbyLimit : SharedProductRules.Search.globalLimit, resultLimit),
+      SharedProductRules.Search.maximumResultLimit
+    )
     var items: [URLQueryItem] = [
       .init(name: "format", value: "jsonv2"),
-      .init(
-        name: "limit",
-        value: String(nearbyOnly ? SharedProductRules.Search.nearbyLimit : SharedProductRules.Search.globalLimit)
-      ),
+      .init(name: "limit", value: String(requestLimit)),
       .init(name: "addressdetails", value: "1"),
       .init(name: "namedetails", value: "1"),
       .init(name: "dedupe", value: "1"),
       .init(name: "q", value: query)
     ]
     if let location {
-      let radiusKilometers = nearbyOnly
-        ? SharedProductRules.Search.nearbyRadiusKm
-        : SharedProductRules.Search.globalRadiusKm
+      let radiusKilometers = Double(searchRadiusKilometers)
       let viewBox = searchViewBox(around: location, radiusKilometers: radiusKilometers)
       items.append(.init(name: "viewbox", value: viewBox))
-      if nearbyOnly {
-        items.append(.init(name: "bounded", value: "1"))
-      }
+      items.append(.init(name: "bounded", value: "1"))
     }
     components.queryItems = items
     return components.url
@@ -625,6 +1569,242 @@ actor NavigationAPIClient {
     return labelForKind(firstComponent?.isEmpty == false ? firstComponent! : fallback, kind: kind)
   }
 
+  private func putSearchCandidate(_ combined: inout [String: SearchCandidate], _ candidate: SearchCandidate) {
+    if let existing = combined[candidate.place.id] {
+      if isBetterSearchCandidate(candidate, than: existing) {
+        combined[candidate.place.id] = candidate
+      }
+    } else {
+      combined[candidate.place.id] = candidate
+    }
+  }
+
+  private func nearbyTextSearchRadiiKilometers(
+    normalizedSearchRadiusKilometers: Int,
+    location: GeoPoint?,
+    intent: SearchIntent
+  ) -> [Int] {
+    if location == nil || intent.isCategoryOnly {
+      return [normalizedSearchRadiusKilometers]
+    }
+    return Array(Set([SharedProductRules.Search.minimumRadiusKm, normalizedSearchRadiusKilometers])).sorted()
+  }
+
+  private func deduplicatedSearchCandidates(_ candidates: [SearchCandidate]) -> [SearchCandidate] {
+    var unique: [SearchCandidate] = []
+    for candidate in candidates.sorted(by: compareSearchCandidates(_:_:)) {
+      if let duplicateIndex = unique.firstIndex(where: { areDuplicateSearchPlaces(candidate.place, $0.place) }) {
+        if isBetterSearchCandidate(candidate, than: unique[duplicateIndex]) {
+          unique[duplicateIndex] = candidate
+        }
+      } else {
+        unique.append(candidate)
+      }
+    }
+    return unique
+  }
+
+  private func areDuplicateSearchPlaces(_ left: Place, _ right: Place) -> Bool {
+    guard normalizeForSearch(left.name) == normalizeForSearch(right.name) else { return false }
+    let distanceBetweenPlaces: Int
+    if let leftPoint = left.point, let rightPoint = right.point {
+      distanceBetweenPlaces = Int(leftPoint.distance(to: rightPoint).rounded())
+    } else {
+      distanceBetweenPlaces = abs(left.walkDistanceMeters - right.walkDistanceMeters)
+    }
+    guard distanceBetweenPlaces <= 35 else { return false }
+    let leftAddress = normalizeForSearch(left.address)
+    let rightAddress = normalizeForSearch(right.address)
+    return leftAddress.isEmpty || rightAddress.isEmpty || leftAddress == rightAddress
+  }
+
+  private func enrichedSearchResultAddresses(_ candidates: [SearchCandidate]) async -> [Place] {
+    let lookupIDs = Array(Set(candidates.compactMap { candidate -> String? in
+      guard needsSearchAddressEnrichment(candidate.place) else { return nil }
+      return osmLookupID(fromPlaceID: candidate.place.id)
+    }))
+    let lookedUpAddresses = lookupIDs.isEmpty ? [:] : ((try? await lookupAddressesByOSMIDs(lookupIDs)) ?? [:])
+
+    let candidatesAfterLookup = candidates.map { candidate -> SearchCandidate in
+      guard let lookupID = osmLookupID(fromPlaceID: candidate.place.id),
+            let address = lookedUpAddresses[lookupID],
+            !isUnhelpfulSearchAddress(address, placeName: candidate.place.name)
+      else {
+        return candidate
+      }
+      var enriched = candidate
+      enriched.place.address = address
+      return enriched
+    }
+
+    let placesNeedingNearbyAddress = candidatesAfterLookup.filter(needsNearbyAddressEnrichment(_:)).map(\.place)
+    guard !placesNeedingNearbyAddress.isEmpty else {
+      return candidatesAfterLookup.map(\.place)
+    }
+    let nearbyAddresses = await lookupNearbyAddressCandidates(for: placesNeedingNearbyAddress)
+    guard !nearbyAddresses.isEmpty else {
+      return candidatesAfterLookup.map(\.place)
+    }
+
+    return candidatesAfterLookup.map { candidate in
+      guard let nearbyAddress = nearestNearbyAddress(for: candidate.place, in: nearbyAddresses) else {
+        return candidate.place
+      }
+      var enriched = candidate.place
+      enriched.address = nearbyAddress.address
+      return enriched
+    }
+  }
+
+  private func needsSearchAddressEnrichment(_ place: Place) -> Bool {
+    isUnhelpfulSearchAddress(place.address, placeName: place.name) || !hasPreciseStreetNumber(place.address)
+  }
+
+  private func needsNearbyAddressEnrichment(_ candidate: SearchCandidate) -> Bool {
+    candidate.kind == .shop && candidate.place.point != nil && needsSearchAddressEnrichment(candidate.place)
+  }
+
+  private func lookupNearbyAddressCandidates(for places: [Place]) async -> [NearbyAddressCandidate] {
+    guard let query = nearbyAddressLookupQuery(for: places.compactMap(\.point)),
+          let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+    else {
+      return []
+    }
+    let endpoints = [
+      "https://overpass-api.de/api/interpreter?data=\(encodedQuery)",
+      "https://overpass.kumi.systems/api/interpreter?data=\(encodedQuery)"
+    ]
+    for endpoint in endpoints {
+      guard let url = URL(string: endpoint) else { continue }
+      var request = URLRequest(url: url)
+      request.timeoutInterval = addressLookupTimeout
+      request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+      request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+      guard let (data, response) = try? await session.data(for: request),
+            let http = response as? HTTPURLResponse,
+            200..<300 ~= http.statusCode,
+            let decoded = try? JSONDecoder().decode(OverpassResponseDTO.self, from: data)
+      else {
+        continue
+      }
+      let parsed = decoded.elements.compactMap(nearbyAddressCandidate(from:))
+      if !parsed.isEmpty { return parsed }
+    }
+    return []
+  }
+
+  private func nearbyAddressLookupQuery(for points: [GeoPoint]) -> String? {
+    guard !points.isEmpty else { return nil }
+    var query = "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];("
+    for point in points {
+      let lat = formatCoordinate(point.latitude)
+      let lon = formatCoordinate(point.longitude)
+      query += "node(around:\(nearbyAddressLookupRadiusMeters),\(lat),\(lon))[\"addr:housenumber\"];"
+      query += "way(around:\(nearbyAddressLookupRadiusMeters),\(lat),\(lon))[\"addr:housenumber\"];"
+      query += "relation(around:\(nearbyAddressLookupRadiusMeters),\(lat),\(lon))[\"addr:housenumber\"];"
+    }
+    query += ");out center \(nearbyAddressLookupLimit);"
+    return query
+  }
+
+  private func nearbyAddressCandidate(from item: OverpassElementDTO) -> NearbyAddressCandidate? {
+    guard let tags = item.tags, let point = overpassPoint(for: item) else { return nil }
+    let address = overpassAddress(tags: tags, fallback: "")
+    guard !address.isEmpty, hasPreciseStreetNumber(address) else { return nil }
+    return NearbyAddressCandidate(address: address, point: point)
+  }
+
+  private func nearestNearbyAddress(for place: Place, in addresses: [NearbyAddressCandidate]) -> NearbyAddressCandidate? {
+    guard let point = place.point else { return nil }
+    let nearest = addresses.min { left, right in
+      point.distance(to: left.point) < point.distance(to: right.point)
+    }
+    guard let nearest, point.distance(to: nearest.point) <= Double(nearbyAddressLookupRadiusMeters) else {
+      return nil
+    }
+    return nearest
+  }
+
+  private func lookupAddressesByOSMIDs(_ lookupIDs: [String]) async throws -> [String: String] {
+    guard var components = URLComponents(string: "https://nominatim.openstreetmap.org/lookup") else {
+      throw NavigationAPIError.invalidURL
+    }
+    components.queryItems = [
+      .init(name: "format", value: "jsonv2"),
+      .init(name: "addressdetails", value: "1"),
+      .init(name: "namedetails", value: "1"),
+      .init(name: "osm_ids", value: lookupIDs.joined(separator: ","))
+    ]
+    guard let url = components.url else {
+      throw NavigationAPIError.invalidURL
+    }
+
+    var request = URLRequest(url: url)
+    request.timeoutInterval = addressLookupTimeout
+    request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+    request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+
+    let (data, response) = try await session.data(for: request)
+    guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
+      throw NavigationAPIError.badResponse
+    }
+    let decoded = try JSONDecoder().decode([SearchResultDTO].self, from: data)
+    var addresses: [String: String] = [:]
+    for item in decoded {
+      guard let lookupID = osmLookupID(fromNominatimResult: item) else { continue }
+      let address = formattedAddress(from: item.address, fallback: item.displayName)
+      guard !address.isEmpty else { continue }
+      addresses[lookupID] = address
+    }
+    return addresses
+  }
+
+  private func osmLookupID(fromPlaceID placeID: String) -> String? {
+    let normalizedID = placeID.replacingOccurrences(of: "_", with: "-")
+    guard normalizedID.hasPrefix("overpass-") else { return nil }
+    let parts = normalizedID.split(separator: "-")
+    guard parts.count == 3, Int64(parts[2]) != nil else { return nil }
+    let prefix: String
+    switch parts[1] {
+    case "node": prefix = "N"
+    case "way": prefix = "W"
+    case "relation": prefix = "R"
+    default: return nil
+    }
+    return "\(prefix)\(parts[2])"
+  }
+
+  private func osmLookupID(fromNominatimResult item: SearchResultDTO) -> String? {
+    guard let osmType = item.osmType?.lowercased(), let osmID = item.osmID else { return nil }
+    let prefix: String
+    switch osmType {
+    case "node": prefix = "N"
+    case "way": prefix = "W"
+    case "relation": prefix = "R"
+    default: return nil
+    }
+    return "\(prefix)\(osmID)"
+  }
+
+  private func isUnhelpfulSearchAddress(_ address: String, placeName: String) -> Bool {
+    let normalizedAddress = normalizeForSearch(address)
+    guard !normalizedAddress.isEmpty else { return true }
+    let normalizedName = normalizeForSearch(placeName)
+    let nameTail = placeName.split(separator: ":", maxSplits: 1).last.map(String.init) ?? placeName
+    let normalizedNameTail = normalizeForSearch(nameTail)
+    return normalizedAddress == normalizedName || normalizedAddress == normalizedNameTail
+  }
+
+  private func hasPreciseStreetNumber(_ address: String) -> Bool {
+    let streetLine = address.split(separator: ",", maxSplits: 1).first.map(String.init) ?? ""
+    guard !streetLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+    let separators = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/"))
+    return streetLine.components(separatedBy: separators).contains { part in
+      let token = part.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:()"))
+      return token.range(of: SharedProductRules.Address.houseNumberPattern, options: .regularExpression) != nil
+    }
+  }
+
   private func searchIntent(for query: String) -> SearchIntent {
     let normalized = normalizeForSearch(query)
     let tokens = normalized.split(separator: " ").map(String.init)
@@ -637,6 +1817,20 @@ actor NavigationAPIClient {
       wantsParcelLocker: tokens.contains(where: { parcelLockerQueryTerms.contains($0) }),
       wantsRailStation: tokens.contains(where: { railStationQueryTerms.contains($0) })
     )
+  }
+
+  private func isZabkaQuery(_ intent: SearchIntent) -> Bool {
+    intent.tokens.contains { token in
+      token == "zabka" || token == "zabki" || token == "zabke"
+    }
+  }
+
+  private func shopCategoryExpansionQueries() -> [String] {
+    ["zabka", "biedronka", "lidl", "supermarket", "market"]
+  }
+
+  private func parcelLockerCategoryExpansionQueries() -> [String] {
+    ["inpost", "orlen paczka", "dpd pickup"]
   }
 
   private func nominatimKind(for item: SearchResultDTO) -> PlaceKind {
@@ -748,6 +1942,23 @@ actor NavigationAPIClient {
       return candidateDistance < existingDistance
     }
     return candidate.importance > existing.importance
+  }
+
+  private func compareSearchCandidates(_ left: SearchCandidate, _ right: SearchCandidate) -> Bool {
+    let leftDistance = sortableDistance(left.distanceMeters)
+    let rightDistance = sortableDistance(right.distanceMeters)
+    let scoreDifference = left.score - right.score
+    if abs(scoreDifference) <= SharedProductRules.Search.nearbyBonus, leftDistance != rightDistance {
+      return leftDistance < rightDistance
+    }
+    if scoreDifference != 0 { return scoreDifference > 0 }
+    if left.isNearbyCandidate != right.isNearbyCandidate { return left.isNearbyCandidate && !right.isNearbyCandidate }
+    if leftDistance != rightDistance { return leftDistance < rightDistance }
+    return left.importance > right.importance
+  }
+
+  private func sortableDistance(_ distanceMeters: Int) -> Int {
+    distanceMeters > 0 ? distanceMeters : Int.max
   }
 
   private func searchViewBox(around location: GeoPoint, radiusKilometers: Double) -> String {

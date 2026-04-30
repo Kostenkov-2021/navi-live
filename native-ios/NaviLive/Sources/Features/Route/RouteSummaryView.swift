@@ -71,9 +71,10 @@ struct RouteSummaryView: View {
             Section {
               PrimaryActionButton(
                 title: L10n.text("route.action.start_guidance", table: .navigation),
-                systemImage: "location.north.line.fill"
+                systemImage: "location.fill"
               ) {
-                model.openHeadingAlign(placeID)
+                model.beginActiveNavigation()
+                model.openActiveNavigation(placeID)
               }
 
               SecondaryActionButton(

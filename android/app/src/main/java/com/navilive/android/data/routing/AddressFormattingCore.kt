@@ -8,7 +8,7 @@ internal object AddressFormattingCore {
         if (address == null) return normalizeFallbackAddress(fallback)
 
         val streetName = firstNonBlankFromKeys(address, SharedProductRules.Address.streetPriorityKeys)
-        val houseNumber = cleanAddressValue(address["house_number"])
+        val houseNumber = houseNumberWithUnit(address)
         val streetLine = when {
             !streetName.isNullOrBlank() && !houseNumber.isNullOrBlank() -> "$streetName $houseNumber"
             !streetName.isNullOrBlank() -> streetName
@@ -63,6 +63,17 @@ internal object AddressFormattingCore {
         val trimmed = value?.trim().orEmpty()
         return trimmed.takeIf {
             it.isNotBlank() && !it.equals("null", ignoreCase = true)
+        }
+    }
+
+    private fun houseNumberWithUnit(address: Map<String, String>): String? {
+        val houseNumber = cleanAddressValue(address["house_number"])
+        val unit = cleanAddressValue(address["unit"])
+            ?: cleanAddressValue(address["door"])
+            ?: cleanAddressValue(address["flats"])
+        return when {
+            !houseNumber.isNullOrBlank() && !unit.isNullOrBlank() -> "$houseNumber/$unit"
+            else -> houseNumber
         }
     }
 

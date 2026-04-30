@@ -13,6 +13,7 @@
 "navigation.step.roundabout" = "Wejdź na rondo";
 "navigation.step.continue" = "Kontynuuj";
 "navigation.step.continue.named" = "Kontynuuj %1$@";
+"navigation.step.crossing" = "Przejście dla pieszych. Przejdź na drugą stronę ulicy.";
 "navigation.modifier.left" = "w lewo";
 "navigation.modifier.right" = "w prawo";
 "navigation.modifier.slight left" = "lekko w lewo";
@@ -29,7 +30,7 @@
 "route.label.eta" = "Szacowany czas";
 "route.label.mode" = "Tryb";
 "route.mode.walking" = "Pieszo";
-"route.action.start_guidance" = "Uruchom prowadzenie";
+"route.action.start_guidance" = "Rozpocznij nawigację";
 "route.action.refresh" = "Odśwież trasę";
 "route.action.prepare" = "Przygotuj trasę";
 "route.status.loading" = "Wyznaczanie trasy";
@@ -63,6 +64,8 @@
 "active.section.status" = "Status nawigacji";
 "active.section.instructions" = "Wskazówki";
 "active.section.progress" = "Postęp";
+"active.section.alerts" = "Alerty";
+"active.section.route_plan" = "Plan trasy";
 "active.section.actions" = "Akcje";
 "active.label.current_instruction" = "Bieżąca wskazówka";
 "active.label.next_instruction" = "Następna wskazówka";
@@ -73,11 +76,18 @@
 "active.progress" = "Krok %d z %d";
 "active.off_route_meta" = "%@ od trasy";
 "active.action.repeat" = "Powtórz bieżącą wskazówkę";
+"active.action.previous_instruction" = "Powiedz poprzednią wskazówkę";
+"active.action.next_instruction" = "Powiedz następną wskazówkę";
 "active.action.pause" = "Wstrzymaj prowadzenie";
 "active.action.resume" = "Wznów prowadzenie";
 "active.action.recalculate" = "Przelicz trasę";
+"active.action.show_route_summary" = "Pokaż podsumowanie trasy";
 "active.action.stop" = "Zatrzymaj nawigację";
 "active.action.arrived" = "Oznacz jako dotarcie";
+"active.rotor.instructions" = "Wskazówki trasy";
+"active.rotor.alerts" = "Alerty";
+"active.route_step.title" = "Krok %1$d z %2$d";
+"active.route_step.current_format" = "%@, bieżący";
 "active.status.started" = "Aktywne prowadzenie rozpoczęte.";
 "active.status.paused" = "Nawigacja wstrzymana.";
 "active.status.resumed" = "Nawigacja wznowiona.";
@@ -88,8 +98,12 @@
 "active.status.recalculated" = "Trasa została przeliczona.";
 "active.status.auto_recalculated" = "Trasa została przeliczona po zejściu z trasy.";
 "active.status.off_route" = "Jesteś poza trasą.";
+"active.status.no_previous_instruction" = "To pierwsza wskazówka.";
+"active.status.no_next_instruction" = "To ostatnia wskazówka.";
 "active.spoken.off_route" = "Jesteś poza trasą.";
 "active.spoken.now" = "Teraz %1$@";
+"active.spoken.previous_instruction" = "Poprzednia wskazówka: %@";
+"active.spoken.next_instruction" = "Następna wskazówka: %@";
 "active.spoken.upcoming.distance" = "Za %1$d metrów: %2$@";
 "active.spoken.upcoming.time" = "Za %1$d sekund: %2$@";
 "active.spoken.recalculated" = "Trasa została przeliczona.";

@@ -2,6 +2,8 @@ package com.navilive.android.ui
 
 import android.app.Application
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.StringRes
 import androidx.core.content.pm.PackageInfoCompat
@@ -25,16 +27,19 @@ import com.navilive.android.model.GeoPoint
 import com.navilive.android.model.HeadingState
 import com.navilive.android.model.LocationFix
 import com.navilive.android.model.NaviLiveUiState
+import com.navilive.android.model.NearbyPoiCacheMode
 import com.navilive.android.model.Place
 import com.navilive.android.model.RouteStep
+import com.navilive.android.model.RouteStepKind
 import com.navilive.android.model.RouteSummary
 import com.navilive.android.model.SettingsState
+import com.navilive.android.model.ShakeStrength
 import com.navilive.android.model.SharedProductRules
+import com.navilive.android.model.SoundCueTheme
 import com.navilive.android.model.SpeechOutputMode
 import com.navilive.android.model.UpdateChannel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,6 +56,10 @@ private data class RouteSession(
     val pathPoints: List<GeoPoint>,
     val currentStepIndex: Int = 0,
 )
+
+private const val NearbyPoiCacheFreshMs = 24L * 60L * 60L * 1_000L
+private const val NearbyPoiCacheMoveThresholdMeters = 800.0
+private const val NearbyPoiCacheAttemptThrottleMs = 2L * 60L * 1_000L
 
 class NaviLiveViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -91,11 +100,13 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     private var headingIndex = 0
     private var searchJob: Job? = null
     private var reverseGeocodeJob: Job? = null
+    private var nearbyPoiCacheRefreshJob: Job? = null
     private var updateCheckJob: Job? = null
     private var updateDownloadJob: Job? = null
     private val routeCache = mutableMapOf<String, RouteSummary>()
     private var lastReversePoint: GeoPoint? = null
     private var lastReverseTimestampMs: Long = 0L
+    private var lastNearbyPoiCacheAttemptMs: Long = 0L
     private var activeRouteSession: RouteSession? = null
     private var isNavigationLive = false
     private var isRouteRecalculating = false
@@ -132,6 +143,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         observeLocationStore()
         refreshDiagnosticsState()
         refreshUpdateRuntimeState()
+        refreshNearbyPoiCacheState()
     }
 
     private fun observePreferencesStore() {
@@ -314,8 +326,104 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                 logTrackingStateChangeIfNeeded(trackerState.isTracking)
                 maybeReverseGeocode(trackerState.latestFix)
                 syncActiveNavigationWithLocation(trackerState.latestFix)
+                maybeRefreshNearbyPoiCache(trackerState.latestFix)
             }
         }
+    }
+
+    private fun refreshNearbyPoiCacheState() {
+        viewModelScope.launch {
+            val state = routingRepository.nearbyPoiCacheState()
+            _uiState.update { current ->
+                current.copy(nearbyPoiCacheState = state)
+            }
+        }
+    }
+
+    private fun maybeRefreshNearbyPoiCache(fix: LocationFix?, force: Boolean = false) {
+        val point = fix?.point ?: run {
+            if (force) {
+                _uiState.update { current ->
+                    current.copy(statusMessage = string(R.string.status_nearby_poi_cache_waiting_location))
+                }
+            }
+            return
+        }
+        val settings = _uiState.value.settingsState
+        if (!canRefreshNearbyPoiCache(settings.nearbyPoiCacheMode)) {
+            if (force && settings.nearbyPoiCacheMode == NearbyPoiCacheMode.WifiOnly) {
+                _uiState.update { current ->
+                    current.copy(statusMessage = string(R.string.status_nearby_poi_cache_waiting_wifi))
+                }
+            }
+            return
+        }
+        if (nearbyPoiCacheRefreshJob?.isActive == true) return
+        val now = System.currentTimeMillis()
+        if (!force && now - lastNearbyPoiCacheAttemptMs < NearbyPoiCacheAttemptThrottleMs) return
+        val cacheState = _uiState.value.nearbyPoiCacheState
+        if (!force && !shouldRefreshNearbyPoiCache(point, cacheState.lastCenter, cacheState.lastUpdatedAtMs, now)) {
+            return
+        }
+        lastNearbyPoiCacheAttemptMs = now
+        nearbyPoiCacheRefreshJob = viewModelScope.launch {
+            _uiState.update { current ->
+                current.copy(
+                    nearbyPoiCacheState = current.nearbyPoiCacheState.copy(isRefreshing = true),
+                    statusMessage = string(R.string.nearby_poi_cache_status_refreshing),
+                )
+            }
+            try {
+                val refreshed = routingRepository.refreshNearbyPoiCache(
+                    currentPoint = point,
+                    radiusKm = settings.nearbyPoiCacheRadiusKm,
+                )
+                _uiState.update { current ->
+                    current.copy(
+                        nearbyPoiCacheState = refreshed.copy(isRefreshing = false),
+                        statusMessage = string(R.string.format_status_nearby_poi_cache_updated, refreshed.cachedPlaceCount),
+                    )
+                }
+            } catch (error: Exception) {
+                _uiState.update { current ->
+                    current.copy(
+                        nearbyPoiCacheState = current.nearbyPoiCacheState.copy(isRefreshing = false),
+                        statusMessage = if (force) {
+                            string(R.string.status_nearby_poi_cache_failed)
+                        } else {
+                            current.statusMessage
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    private fun shouldRefreshNearbyPoiCache(
+        currentPoint: GeoPoint,
+        lastCenter: GeoPoint?,
+        lastUpdatedAtMs: Long?,
+        nowMs: Long,
+    ): Boolean {
+        if (lastUpdatedAtMs == null || nowMs - lastUpdatedAtMs > NearbyPoiCacheFreshMs) return true
+        if (lastCenter == null) return true
+        return distanceMeters(currentPoint, lastCenter) >= NearbyPoiCacheMoveThresholdMeters
+    }
+
+    private fun canRefreshNearbyPoiCache(mode: NearbyPoiCacheMode): Boolean {
+        return when (mode) {
+            NearbyPoiCacheMode.Enabled -> true
+            NearbyPoiCacheMode.Disabled -> false
+            NearbyPoiCacheMode.WifiOnly -> isWifiOrEthernetActive()
+        }
+    }
+
+    private fun isWifiOrEthernetActive(): Boolean {
+        val connectivityManager = appContext.getSystemService(ConnectivityManager::class.java) ?: return false
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
     }
 
     fun onLocationPermissionChanged(granted: Boolean) {
@@ -363,27 +471,42 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun hasPreparedRoute(placeId: String): Boolean {
+        return activeRouteSession?.destinationId == placeId
+    }
+
     fun updateSearchQuery(query: String) {
-        _uiState.update { current ->
-            current.copy(searchQuery = query)
-        }
         searchJob?.cancel()
-        if (query.isBlank()) {
-            _uiState.update { current ->
-                current.copy(
-                    searchResults = current.places,
-                    isLoadingSearch = false,
-                )
-            }
-            return
+        _uiState.update { current ->
+            current.copy(
+                searchQuery = query,
+                searchResults = if (query.isBlank()) current.places else emptyList(),
+                isLoadingSearch = false,
+            )
         }
+    }
+
+    fun submitSearchQuery() {
+        val query = _uiState.value.searchQuery.trim()
+        searchJob?.cancel()
+        _uiState.update { current ->
+            current.copy(
+                searchQuery = query,
+                searchResults = if (query.isBlank()) current.places else current.searchResults,
+                isLoadingSearch = query.isNotBlank(),
+            )
+        }
+        if (query.isBlank()) return
 
         searchJob = viewModelScope.launch {
-            _uiState.update { current -> current.copy(isLoadingSearch = true) }
-            delay(250)
             try {
                 val currentPoint = _uiState.value.locationState.latestFix?.point
-                val remote = routingRepository.searchPlaces(query, currentPoint)
+                val remote = routingRepository.searchPlaces(
+                    query = query,
+                    currentPoint = currentPoint,
+                    searchRadiusKm = _uiState.value.settingsState.searchRadiusKm,
+                    resultLimit = _uiState.value.settingsState.searchResultLimit,
+                )
                 _uiState.update { current ->
                     val merged = mergeById(current.places, remote)
                     current.copy(
@@ -486,7 +609,11 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun startRoute(placeId: String) {
+    fun startRoute(
+        placeId: String,
+        autoStartNavigation: Boolean = false,
+        onRouteReady: (() -> Unit)? = null,
+    ) {
         val place = getPlace(placeId) ?: return
         headingIndex = 0
         isNavigationLive = false
@@ -523,19 +650,35 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                 summary = fallback,
                 spokenMessage = string(R.string.format_fallback_route_ready, place.name),
                 statusMessage = string(R.string.format_fallback_route_ready, place.name),
+                announceRouteLoaded = !autoStartNavigation,
+            )
+            startPreparedRouteIfRequested(
+                placeId = place.id,
+                autoStartNavigation = autoStartNavigation,
+                onRouteReady = onRouteReady,
             )
             return
         }
 
         viewModelScope.launch {
             try {
-                val summary = routingRepository.buildWalkingRoute(currentPoint, targetPoint)
+                val summary = routingRepository.buildWalkingRoute(
+                    from = currentPoint,
+                    to = targetPoint,
+                    includePedestrianCrossings = _uiState.value.settingsState.pedestrianCrossingAlerts,
+                )
                 routeCache[place.id] = summary
                 applyRouteSummary(
                     place = place,
                     summary = summary,
                     spokenMessage = string(R.string.format_route_ready, place.name),
                     statusMessage = string(R.string.format_route_ready, place.name),
+                    announceRouteLoaded = !autoStartNavigation,
+                )
+                startPreparedRouteIfRequested(
+                    placeId = place.id,
+                    autoStartNavigation = autoStartNavigation,
+                    onRouteReady = onRouteReady,
                 )
             } catch (error: Exception) {
                 val fallback = fallbackRouteSummary(
@@ -549,9 +692,31 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                     summary = fallback,
                     spokenMessage = string(R.string.format_fallback_route_ready, place.name),
                     statusMessage = string(R.string.status_route_service_unavailable),
+                    announceRouteLoaded = !autoStartNavigation,
+                )
+                startPreparedRouteIfRequested(
+                    placeId = place.id,
+                    autoStartNavigation = autoStartNavigation,
+                    onRouteReady = onRouteReady,
                 )
             }
         }
+    }
+
+    fun beginPreparedRoute(placeId: String): Boolean {
+        if (activeRouteSession?.destinationId != placeId) return false
+        beginActiveNavigation()
+        return true
+    }
+
+    private fun startPreparedRouteIfRequested(
+        placeId: String,
+        autoStartNavigation: Boolean,
+        onRouteReady: (() -> Unit)?,
+    ) {
+        if (!autoStartNavigation || activeRouteSession?.destinationId != placeId) return
+        beginActiveNavigation()
+        onRouteReady?.invoke()
     }
 
     private fun applyRouteSummary(
@@ -560,6 +725,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         spokenMessage: String,
         statusMessage: String,
         keepNavigationLive: Boolean = false,
+        announceRouteLoaded: Boolean = true,
     ) {
         val normalized = normalizeSummary(place, summary)
         activeRouteSession = RouteSession(
@@ -575,12 +741,14 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         lastTelemetryFixPoint = null
         lastTelemetryFixTimestampMs = 0L
 
-        if (keepNavigationLive) {
-            speakNavigationNow(spokenMessage)
-        } else {
-            speakNow(spokenMessage)
+        if (announceRouteLoaded) {
+            if (keepNavigationLive) {
+                speakNavigationNow(spokenMessage)
+            } else {
+                speakNow(spokenMessage)
+            }
+            vibrateShortIfEnabled()
         }
-        vibrateShortIfEnabled()
         telemetryLogger.log(
             type = if (keepNavigationLive) "route_recalculated" else "route_loaded",
             message = statusMessage,
@@ -669,6 +837,12 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { current ->
             current.copy(statusMessage = string(R.string.status_repeating_instruction))
         }
+    }
+
+    fun onShakeGestureDetected() {
+        if (!_uiState.value.settingsState.shakeGestureEnabled) return
+        if (_uiState.value.activeNavigationState.currentInstruction.isBlank()) return
+        repeatCurrentInstruction()
     }
 
     fun togglePauseNavigation() {
@@ -785,7 +959,11 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             try {
-                val summary = routingRepository.buildWalkingRoute(currentPoint, destinationPoint)
+                val summary = routingRepository.buildWalkingRoute(
+                    from = currentPoint,
+                    to = destinationPoint,
+                    includePedestrianCrossings = _uiState.value.settingsState.pedestrianCrossingAlerts,
+                )
                 routeCache[destination.id] = summary
                 applyRouteSummary(
                     place = destination,
@@ -850,6 +1028,24 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun setShakeGestureEnabled(enabled: Boolean) {
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(shakeGestureEnabled = enabled))
+        }
+        viewModelScope.launch {
+            preferencesStore.setShakeGestureEnabled(enabled)
+        }
+    }
+
+    fun setShakeStrength(strength: ShakeStrength) {
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(shakeStrength = strength))
+        }
+        viewModelScope.launch {
+            preferencesStore.setShakeStrength(strength)
+        }
+    }
+
     fun setSoundCues(enabled: Boolean) {
         _uiState.update { current ->
             current.copy(settingsState = current.settingsState.copy(soundCuesEnabled = enabled))
@@ -859,8 +1055,34 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun setSoundCueVolumePercent(percent: Int) {
+        val normalized = percent.coerceIn(0, 100)
+        _uiState.update { current ->
+            current.copy(
+                settingsState = current.settingsState.copy(soundCueVolumePercent = normalized),
+                statusMessage = string(R.string.format_status_sound_cue_volume_updated, normalized),
+            )
+        }
+        viewModelScope.launch {
+            preferencesStore.setSoundCueVolumePercent(normalized)
+        }
+    }
+
+    fun setSoundCueTheme(theme: SoundCueTheme) {
+        _uiState.update { current ->
+            current.copy(
+                settingsState = current.settingsState.copy(soundCueTheme = theme),
+                statusMessage = string(R.string.format_status_sound_theme_updated, soundCueThemeLabel(theme)),
+            )
+        }
+        viewModelScope.launch {
+            preferencesStore.setSoundCueTheme(theme)
+        }
+    }
+
     fun previewSoundCue(cue: NavigationSoundCue) {
-        feedbackEngine.playSoundCue(cue)
+        val settings = _uiState.value.settingsState
+        feedbackEngine.playSoundCue(cue, settings.soundCueVolumePercent, settings.soundCueTheme)
     }
 
     fun setAutoRecalculate(enabled: Boolean) {
@@ -881,6 +1103,16 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun setPedestrianCrossingAlerts(enabled: Boolean) {
+        routeCache.clear()
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(pedestrianCrossingAlerts = enabled))
+        }
+        viewModelScope.launch {
+            preferencesStore.setPedestrianCrossingAlerts(enabled)
+        }
+    }
+
     fun setTurnByTurnAnnouncements(enabled: Boolean) {
         _uiState.update { current ->
             current.copy(settingsState = current.settingsState.copy(turnByTurnAnnouncements = enabled))
@@ -897,6 +1129,77 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         resetCountdownAnnouncementState()
         viewModelScope.launch {
             preferencesStore.setAnnouncementCadenceMode(mode)
+        }
+    }
+
+    fun setSearchRadiusKm(radiusKm: Int) {
+        val normalized = radiusKm.coerceIn(
+            SharedProductRules.Search.minimumRadiusKm,
+            SharedProductRules.Search.maximumRadiusKm,
+        )
+        _uiState.update { current ->
+            current.copy(
+                settingsState = current.settingsState.copy(searchRadiusKm = normalized),
+                statusMessage = string(R.string.format_status_search_radius_updated, normalized),
+            )
+        }
+        viewModelScope.launch {
+            preferencesStore.setSearchRadiusKm(normalized)
+        }
+    }
+
+    fun setSearchResultLimit(limit: Int) {
+        val normalized = limit.coerceIn(
+            SharedProductRules.Search.minimumResultLimit,
+            SharedProductRules.Search.maximumResultLimit,
+        )
+        _uiState.update { current ->
+            current.copy(
+                settingsState = current.settingsState.copy(searchResultLimit = normalized),
+                statusMessage = string(R.string.format_status_search_result_limit_updated, normalized),
+            )
+        }
+        viewModelScope.launch {
+            preferencesStore.setSearchResultLimit(normalized)
+        }
+    }
+
+    fun setNearbyPoiCacheMode(mode: NearbyPoiCacheMode) {
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(nearbyPoiCacheMode = mode))
+        }
+        viewModelScope.launch {
+            preferencesStore.setNearbyPoiCacheMode(mode)
+        }
+        if (mode != NearbyPoiCacheMode.Disabled) {
+            maybeRefreshNearbyPoiCache(_uiState.value.locationState.latestFix, force = true)
+        }
+    }
+
+    fun setNearbyPoiCacheRadiusKm(radiusKm: Int) {
+        val normalized = radiusKm.coerceIn(SharedProductRules.Search.minimumRadiusKm, 5)
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(nearbyPoiCacheRadiusKm = normalized))
+        }
+        viewModelScope.launch {
+            preferencesStore.setNearbyPoiCacheRadiusKm(normalized)
+        }
+        maybeRefreshNearbyPoiCache(_uiState.value.locationState.latestFix, force = true)
+    }
+
+    fun refreshNearbyPoiCacheNow() {
+        maybeRefreshNearbyPoiCache(_uiState.value.locationState.latestFix, force = true)
+    }
+
+    fun clearNearbyPoiCache() {
+        viewModelScope.launch {
+            val state = routingRepository.clearNearbyPoiCache()
+            _uiState.update { current ->
+                current.copy(
+                    nearbyPoiCacheState = state,
+                    statusMessage = string(R.string.status_nearby_poi_cache_cleared),
+                )
+            }
         }
     }
 
@@ -1540,7 +1843,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         lastAnnouncedStepIndex = session.currentStepIndex
         if (_uiState.value.settingsState.turnByTurnAnnouncements) {
             if (session.currentStepIndex != lastImmediateAnnouncedStepIndex) {
-                playSoundCueIfEnabled(NavigationSoundCue.TurnNow)
+                playSoundCueIfEnabled(session.steps[session.currentStepIndex].soundCue(defaultCue = NavigationSoundCue.TurnNow))
                 speakNavigationNow(
                     string(
                         R.string.format_navigation_immediate_instruction,
@@ -1604,7 +1907,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                     upcomingStep.instruction,
                 )
         }
-        playSoundCueIfEnabled(NavigationSoundCue.Countdown)
+        playSoundCueIfEnabled(upcomingStep.soundCue(defaultCue = NavigationSoundCue.Countdown))
         speakNavigationNow(spokenMessage)
         vibrateShortIfEnabled()
         telemetryLogger.log(
@@ -1639,7 +1942,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
 
         lastImmediateAnnouncedStepIndex = upcomingStepIndex
-        playSoundCueIfEnabled(NavigationSoundCue.TurnNow)
+        playSoundCueIfEnabled(upcomingStep.soundCue(defaultCue = NavigationSoundCue.TurnNow))
         speakNavigationNow(
             string(
                 R.string.format_navigation_immediate_instruction,
@@ -1819,8 +2122,24 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun playSoundCueIfEnabled(cue: NavigationSoundCue) {
-        if (_uiState.value.settingsState.soundCuesEnabled) {
-            feedbackEngine.playSoundCue(cue)
+        val settings = _uiState.value.settingsState
+        if (settings.soundCuesEnabled) {
+            feedbackEngine.playSoundCue(cue, settings.soundCueVolumePercent, settings.soundCueTheme)
+        }
+    }
+
+    private fun soundCueThemeLabel(theme: SoundCueTheme): String {
+        return when (theme) {
+            SoundCueTheme.Standard -> string(R.string.settings_sound_theme_standard)
+            SoundCueTheme.Tetris -> string(R.string.settings_sound_theme_tetris)
+            SoundCueTheme.Cosmic -> string(R.string.settings_sound_theme_cosmic)
+        }
+    }
+
+    private fun RouteStep.soundCue(defaultCue: NavigationSoundCue): NavigationSoundCue {
+        return when (kind) {
+            RouteStepKind.PedestrianCrossing -> NavigationSoundCue.PedestrianCrossing
+            RouteStepKind.Instruction -> defaultCue
         }
     }
 
