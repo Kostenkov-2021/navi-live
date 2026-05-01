@@ -1,4 +1,4 @@
-import Foundation
+﻿import Foundation
 
 enum NavigationAPIError: LocalizedError {
   case invalidURL
@@ -68,6 +68,7 @@ struct OverpassElementDTO: Decodable {
   let lon: Double?
   let center: OverpassCenterDTO?
   let tags: [String: String]?
+  let geometry: [OverpassGeometryPointDTO]?
 }
 
 private struct ZabkaStoreDTO: Decodable {
@@ -91,6 +92,17 @@ private struct ZabkaStoreDTO: Decodable {
 struct OverpassCenterDTO: Decodable {
   let lat: Double
   let lon: Double
+}
+
+struct OverpassGeometryPointDTO: Decodable {
+  let lat: Double
+  let lon: Double
+}
+
+private struct NamedRouteWay {
+  let name: String
+  let highway: String?
+  let geometry: [GeoPoint]
 }
 
 private struct RouteCrossingCandidate {
@@ -139,6 +151,7 @@ struct OSRMStep: Decodable {
   let distance: Double
   let name: String
   let maneuver: OSRMManeuver
+  let geometry: OSRMGeometry?
 }
 
 struct OSRMManeuver: Decodable {
@@ -198,7 +211,10 @@ actor NavigationAPIClient {
   private let nearbyAddressLookupRadiusMeters = 80
   private let nearbyAddressLookupLimit = 220
   private let routeRequestTimeout: TimeInterval = 10
+  private let routeRoadNameRequestTimeout: TimeInterval = 5
   private let crossingRequestTimeout: TimeInterval = 2
+  private let crossingDuplicateProximityMeters = 3.0
+  private let crossingTurnProximityMeters = 8.0
   private let minimumUsefulSearchResults = 3
   private let officialChainScore = 3_000
   private let poiCacheRefreshLimit = 350
@@ -421,19 +437,28 @@ actor NavigationAPIClient {
       throw NavigationAPIError.noRoute
     }
 
-    let baseSteps = route.legs.flatMap(\.steps).map { step in
-      RouteStep(
-        instruction: humanInstruction(for: step),
-        distanceMeters: Int(step.distance.rounded()),
-        maneuverPoint: step.maneuver.location.count >= 2
-          ? GeoPoint(latitude: step.maneuver.location[1], longitude: step.maneuver.location[0])
-          : nil
-      )
-    }
-
     let points = route.geometry.coordinates.compactMap { coordinate -> GeoPoint? in
       guard coordinate.count >= 2 else { return nil }
       return GeoPoint(latitude: coordinate[1], longitude: coordinate[0])
+    }
+    let namedRouteWays = await fetchNamedRouteWays(pathPoints: points)
+
+    let baseSteps = route.legs.flatMap(\.steps).map { step in
+      let maneuverPoint = step.maneuver.location.count >= 2
+        ? GeoPoint(latitude: step.maneuver.location[1], longitude: step.maneuver.location[0])
+        : nil
+      let inferredRoadName = inferredRoadName(
+        for: step,
+        maneuverPoint: maneuverPoint,
+        namedRouteWays: namedRouteWays
+      )
+      return RouteStep(
+        instruction: humanInstruction(for: step, inferredRoadName: inferredRoadName),
+        distanceMeters: Int(step.distance.rounded()),
+        maneuverPoint: maneuverPoint,
+        maneuverType: step.maneuver.type,
+        maneuverModifier: step.maneuver.modifier
+      )
     }
 
     let steps = includePedestrianCrossings
@@ -482,12 +507,135 @@ actor NavigationAPIClient {
     ].compactMap(URL.init(string:))
   }
 
-  private func humanInstruction(for step: OSRMStep) -> String {
+  private func fetchNamedRouteWays(pathPoints: [GeoPoint]) async -> [NamedRouteWay] {
+    guard pathPoints.count >= 2 else { return [] }
+    for url in buildNamedRouteWayURLs(pathPoints: pathPoints) {
+      do {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = routeRoadNameRequestTimeout
+        request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
+        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
+          continue
+        }
+        let decoded = try JSONDecoder().decode(OverpassResponseDTO.self, from: data)
+        let ways = decoded.elements.compactMap(namedRouteWay(from:))
+        if !ways.isEmpty { return ways }
+      } catch {
+        continue
+      }
+    }
+    return []
+  }
+
+  private func buildNamedRouteWayURLs(pathPoints: [GeoPoint]) -> [URL] {
+    let box = routeBoundingBox(pathPoints: pathPoints, paddingMeters: 60)
+    let bbox = "(\(formatCoordinate(box.south)),\(formatCoordinate(box.west))," +
+      "\(formatCoordinate(box.north)),\(formatCoordinate(box.east)))"
+    let query = "[out:json][timeout:\(SharedProductRules.Search.overpassTimeoutSeconds)];" +
+      "way[\"highway\"][\"name\"]\(bbox);out geom;"
+    return [
+      "https://overpass-api.de/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter"
+    ].compactMap { rawURL in
+      guard var components = URLComponents(string: rawURL) else { return nil }
+      components.queryItems = [.init(name: "data", value: query)]
+      return components.url
+    }
+  }
+
+  private func namedRouteWay(from item: OverpassElementDTO) -> NamedRouteWay? {
+    guard item.type == "way",
+          let tags = item.tags,
+          let name = tags["name"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+          !name.isEmpty,
+          isUsefulRouteWayName(highway: tags["highway"], tags: tags) else {
+      return nil
+    }
+    let geometry = item.geometry?.map { GeoPoint(latitude: $0.lat, longitude: $0.lon) } ?? []
+    guard geometry.count >= 2 else { return nil }
+    return NamedRouteWay(name: name, highway: tags["highway"], geometry: geometry)
+  }
+
+  private func isUsefulRouteWayName(highway: String?, tags: [String: String]) -> Bool {
+    guard let highway, !highway.isEmpty else { return false }
+    if ["platform", "corridor", "elevator", "construction", "proposed"].contains(highway) {
+      return false
+    }
+    return tags["area"] != "yes"
+  }
+
+  private func inferredRoadName(
+    for step: OSRMStep,
+    maneuverPoint: GeoPoint?,
+    namedRouteWays: [NamedRouteWay]
+  ) -> String? {
+    guard !namedRouteWays.isEmpty else { return nil }
+    let samples = routeNameSamples(stepGeometry: stepGeometry(for: step), maneuverPoint: maneuverPoint)
+    guard !samples.isEmpty else { return nil }
+
+    return namedRouteWays
+      .compactMap { way -> (way: NamedRouteWay, score: Double)? in
+        let distance = samples
+          .map { routeWayDistanceMeters(way: way, point: $0) }
+          .min() ?? .greatestFiniteMagnitude
+        guard distance <= 45 else { return nil }
+        return (way, distance + routeWayPriorityPenalty(highway: way.highway))
+      }
+      .min(by: { $0.score < $1.score })?
+      .way
+      .name
+  }
+
+  private func stepGeometry(for step: OSRMStep) -> [GeoPoint] {
+    step.geometry?.coordinates.compactMap { coordinate in
+      guard coordinate.count >= 2 else { return nil }
+      return GeoPoint(latitude: coordinate[1], longitude: coordinate[0])
+    } ?? []
+  }
+
+  private func routeNameSamples(stepGeometry: [GeoPoint], maneuverPoint: GeoPoint?) -> [GeoPoint] {
+    if stepGeometry.count >= 3 {
+      return [stepGeometry[stepGeometry.count / 2], stepGeometry[stepGeometry.count - 1]]
+    }
+    if let maneuverPoint { return [maneuverPoint] }
+    return stepGeometry
+  }
+
+  private func routeWayDistanceMeters(way: NamedRouteWay, point: GeoPoint) -> Double {
+    guard way.geometry.count >= 2 else { return .greatestFiniteMagnitude }
+    var minimumDistance = Double.greatestFiniteMagnitude
+    for index in 0..<(way.geometry.count - 1) {
+      let projection = projectOntoSegment(
+        point: point,
+        start: way.geometry[index],
+        end: way.geometry[index + 1]
+      )
+      minimumDistance = min(minimumDistance, projection.lateralDistanceMeters)
+    }
+    return minimumDistance
+  }
+
+  private func routeWayPriorityPenalty(highway: String?) -> Double {
+    switch highway {
+    case "footway", "path", "steps", "cycleway", "track":
+      return 8
+    default:
+      return 0
+    }
+  }
+
+  private func humanInstruction(for step: OSRMStep, inferredRoadName: String? = nil) -> String {
     if let instruction = step.maneuver.instruction, !instruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
       return instruction
     }
 
-    let roadName = step.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let explicitRoadName = step.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let inferredRoadName = inferredRoadName?
+      .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let roadName = explicitRoadName.isEmpty ? inferredRoadName : explicitRoadName
     let descriptor = NavigationInstructionCore.describe(
       maneuverType: step.maneuver.type,
       modifier: step.maneuver.modifier,
@@ -554,10 +702,23 @@ actor NavigationAPIClient {
 
     for stepIndex in 1..<steps.count {
       let stepAlongMeters = stepDistances[stepIndex]
+      let nextStep = steps[stepIndex]
       while crossingIndex < crossings.count,
             crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters {
         let crossing = crossings[crossingIndex]
-        let distanceFromPrevious = max(Int((crossing.distanceAlongRouteMeters - lastAlongMeters).rounded()), 1)
+        let previousStep = augmented.last(where: { $0.kind == .instruction })
+        let distanceFromPreviousRaw = crossing.distanceAlongRouteMeters - lastAlongMeters
+        let distanceToNextStep = stepAlongMeters - crossing.distanceAlongRouteMeters
+        if shouldSuppressCrossingAlert(
+          distanceFromPreviousMeters: distanceFromPreviousRaw,
+          previousStep: previousStep,
+          distanceToNextStepMeters: distanceToNextStep,
+          nextStep: nextStep
+        ) {
+          crossingIndex += 1
+          continue
+        }
+        let distanceFromPrevious = max(Int(distanceFromPreviousRaw.rounded()), 1)
         augmented.append(
           RouteStep(
             instruction: L10n.text("navigation.step.crossing", table: .navigation),
@@ -573,6 +734,24 @@ actor NavigationAPIClient {
       lastAlongMeters = max(lastAlongMeters, stepAlongMeters)
     }
     return augmented
+  }
+
+  private func shouldSuppressCrossingAlert(
+    distanceFromPreviousMeters: Double,
+    previousStep: RouteStep?,
+    distanceToNextStepMeters: Double,
+    nextStep: RouteStep
+  ) -> Bool {
+    if distanceFromPreviousMeters < crossingDuplicateProximityMeters { return true }
+    if distanceFromPreviousMeters < crossingTurnProximityMeters,
+       previousStep?.isTurnLikeManeuver == true {
+      return true
+    }
+    if distanceToNextStepMeters < crossingTurnProximityMeters,
+       nextStep.isTurnLikeManeuver {
+      return true
+    }
+    return false
   }
 
   private func fetchPedestrianCrossings(pathPoints: [GeoPoint]) async throws -> [RouteCrossingCandidate] {
@@ -606,7 +785,7 @@ actor NavigationAPIClient {
             let projection = projectOntoRoute(pathPoints: pathPoints, point: point) else {
         return nil
       }
-      guard projection.lateralDistanceMeters <= 18 else { return nil }
+      guard projection.lateralDistanceMeters <= 10 else { return nil }
       guard projection.distanceAlongRouteMeters >= 20 else { return nil }
       guard projection.distanceAlongRouteMeters <= routeLength - 20 else { return nil }
       return RouteCrossingCandidate(
@@ -1977,5 +2156,28 @@ actor NavigationAPIClient {
       .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
       .replacingOccurrences(of: "[^\\p{L}\\p{N}]+", with: " ", options: .regularExpression)
       .trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+}
+private extension RouteStep {
+  var isTurnLikeManeuver: Bool {
+    let type = maneuverType?
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .lowercased() ?? ""
+    let modifier = maneuverModifier
+      .map { SharedProductRules.Instructions.normalizeModifier($0) } ?? ""
+    if modifier == "straight" { return false }
+    if SharedProductRules.Instructions.supportedModifiers.contains(modifier) { return true }
+    return [
+      "turn",
+      "end of road",
+      "fork",
+      "merge",
+      "on ramp",
+      "off ramp",
+      "roundabout turn",
+      "exit roundabout",
+      "rotary",
+      "roundabout"
+    ].contains(type)
   }
 }

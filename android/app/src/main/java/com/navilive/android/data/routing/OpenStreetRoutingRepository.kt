@@ -92,6 +92,12 @@ class OpenStreetRoutingRepository(
         val east: Double,
     )
 
+    private data class NamedRouteWay(
+        val name: String,
+        val highway: String?,
+        val geometry: List<GeoPoint>,
+    )
+
     private val appContext = context.applicationContext
     private val poiCacheStore = NearbyPoiCacheStore(appContext)
 
@@ -138,7 +144,10 @@ class OpenStreetRoutingRepository(
         const val NEARBY_ADDRESS_LOOKUP_RADIUS_METERS = 80
         const val NEARBY_ADDRESS_LOOKUP_LIMIT = 220
         const val ROUTE_REQUEST_TIMEOUT_MS = 10_000
+        const val ROUTE_ROAD_NAME_REQUEST_TIMEOUT_MS = 5_000
         const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
+        const val CROSSING_DUPLICATE_PROXIMITY_METERS = 3.0
+        const val CROSSING_TURN_PROXIMITY_METERS = 8.0
         const val MINIMUM_USEFUL_SEARCH_RESULTS = 3
         const val OFFICIAL_CHAIN_SCORE = 3_000
         const val POI_CACHE_REFRESH_LIMIT = 350
@@ -334,7 +343,8 @@ class OpenStreetRoutingRepository(
                 ?.optJSONObject(0)
                 ?.optJSONArray("steps")
             val pathPoints = parsePath(route.optJSONObject("geometry"))
-            val baseSteps = parseSteps(steps)
+            val namedRouteWays = queryNamedRouteWays(pathPoints)
+            val baseSteps = parseSteps(steps, namedRouteWays)
             val parsedSteps = if (includePedestrianCrossings) {
                 addPedestrianCrossingSteps(
                     steps = baseSteps,
@@ -387,7 +397,10 @@ class OpenStreetRoutingRepository(
         return instructionForStep(step)
     }
 
-    private fun parseSteps(steps: JSONArray?): List<RouteStep> {
+    private fun parseSteps(
+        steps: JSONArray?,
+        namedRouteWays: List<NamedRouteWay> = emptyList(),
+    ): List<RouteStep> {
         if (steps == null || steps.length() == 0) {
             return listOf(RouteStep(instruction = string(R.string.generic_follow_route_guidance), distanceMeters = 0))
         }
@@ -404,10 +417,18 @@ class OpenStreetRoutingRepository(
             } else {
                 null
             }
+            val stepGeometry = parsePath(step.optJSONObject("geometry"))
+            val inferredRoadName = inferRoadNameForStep(
+                stepGeometry = stepGeometry,
+                maneuverPoint = maneuverPoint,
+                namedRouteWays = namedRouteWays,
+            )
             parsed += RouteStep(
-                instruction = instructionForStep(step),
+                instruction = instructionForStep(step, inferredRoadName),
                 distanceMeters = step.optDouble("distance", 0.0).roundToInt(),
                 maneuverPoint = maneuverPoint,
+                maneuverType = maneuver?.optString("type")?.takeIf { it.isNotBlank() },
+                maneuverModifier = maneuver?.optString("modifier")?.takeIf { it.isNotBlank() },
             )
         }
         return parsed.ifEmpty {
@@ -446,12 +467,27 @@ class OpenStreetRoutingRepository(
         augmented += steps.first()
         for (stepIndex in 1 until steps.size) {
             val stepAlongMeters = stepDistances[stepIndex]
+            val nextStep = steps[stepIndex]
             while (
                 crossingIndex < crossings.size &&
                 crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters
             ) {
                 val crossing = crossings[crossingIndex]
-                val distanceFromPrevious = (crossing.distanceAlongRouteMeters - lastAlongMeters)
+                val previousStep = augmented.lastOrNull { it.kind == RouteStepKind.Instruction }
+                val distanceFromPreviousRaw = crossing.distanceAlongRouteMeters - lastAlongMeters
+                val distanceToNextStep = stepAlongMeters - crossing.distanceAlongRouteMeters
+                if (
+                    shouldSuppressCrossingAlert(
+                        distanceFromPreviousMeters = distanceFromPreviousRaw,
+                        previousStep = previousStep,
+                        distanceToNextStepMeters = distanceToNextStep,
+                        nextStep = nextStep,
+                    )
+                ) {
+                    crossingIndex += 1
+                    continue
+                }
+                val distanceFromPrevious = distanceFromPreviousRaw
                     .roundToInt()
                     .coerceAtLeast(1)
                 augmented += RouteStep(
@@ -467,6 +503,49 @@ class OpenStreetRoutingRepository(
             lastAlongMeters = maxOf(lastAlongMeters, stepAlongMeters)
         }
         return augmented
+    }
+
+    private fun shouldSuppressCrossingAlert(
+        distanceFromPreviousMeters: Double,
+        previousStep: RouteStep?,
+        distanceToNextStepMeters: Double,
+        nextStep: RouteStep,
+    ): Boolean {
+        if (distanceFromPreviousMeters < CROSSING_DUPLICATE_PROXIMITY_METERS) return true
+        if (
+            distanceFromPreviousMeters < CROSSING_TURN_PROXIMITY_METERS &&
+            previousStep?.isTurnLikeManeuver() == true
+        ) {
+            return true
+        }
+        if (
+            distanceToNextStepMeters < CROSSING_TURN_PROXIMITY_METERS &&
+            nextStep.isTurnLikeManeuver()
+        ) {
+            return true
+        }
+        return false
+    }
+
+    private fun RouteStep.isTurnLikeManeuver(): Boolean {
+        val type = maneuverType?.lowercase(Locale.ROOT).orEmpty()
+        val modifier = maneuverModifier
+            ?.let(SharedProductRules.Instructions::normalizeModifier)
+            .orEmpty()
+        if (modifier == "straight") return false
+        if (modifier in SharedProductRules.Instructions.supportedModifiers) return true
+        return type in setOf(
+            "turn",
+            "end of road",
+            "fork",
+            "merge",
+            "on ramp",
+            "off ramp",
+            "roundabout turn",
+            "exit roundabout",
+            "rotary",
+            "roundabout",
+        )
     }
 
     private fun queryPedestrianCrossings(pathPoints: List<GeoPoint>): List<RouteCrossingCandidate> {
@@ -485,7 +564,7 @@ class OpenStreetRoutingRepository(
             val item = elements.optJSONObject(index) ?: continue
             val point = overpassPoint(item) ?: continue
             val projection = projectOntoRoute(pathPoints, point) ?: continue
-            if (projection.lateralDistanceMeters > 18.0) continue
+            if (projection.lateralDistanceMeters > 10.0) continue
             if (projection.distanceAlongRouteMeters < 20.0) continue
             if (projection.distanceAlongRouteMeters > routeLengthMeters - 20.0) continue
             candidates += RouteCrossingCandidate(
@@ -521,6 +600,121 @@ class OpenStreetRoutingRepository(
             "https://overpass-api.de/api/interpreter?data=$encoded",
             "https://overpass.kumi.systems/api/interpreter?data=$encoded",
         )
+    }
+
+    private fun queryNamedRouteWays(pathPoints: List<GeoPoint>): List<NamedRouteWay> {
+        if (pathPoints.size < 2) return emptyList()
+        for (endpoint in buildNamedRouteWayEndpoints(pathPoints)) {
+            val response = runCatching {
+                requestText(endpoint, timeoutMs = ROUTE_ROAD_NAME_REQUEST_TIMEOUT_MS)
+            }.getOrNull() ?: continue
+            val ways = parseNamedRouteWays(response)
+            if (ways.isNotEmpty()) return ways
+        }
+        return emptyList()
+    }
+
+    private fun buildNamedRouteWayEndpoints(pathPoints: List<GeoPoint>): List<String> {
+        val box = routeBoundingBox(pathPoints, paddingMeters = 60.0)
+        val bbox = "(${formatCoordinate(box.south)},${formatCoordinate(box.west)}," +
+            "${formatCoordinate(box.north)},${formatCoordinate(box.east)})"
+        val query = "[out:json][timeout:${SharedProductRules.Search.overpassTimeoutSeconds}];" +
+            "way[\"highway\"][\"name\"]$bbox;out geom;"
+        val encoded = URLEncoder.encode(query, Charsets.UTF_8.name())
+        return listOf(
+            "https://overpass-api.de/api/interpreter?data=$encoded",
+            "https://overpass.kumi.systems/api/interpreter?data=$encoded",
+        )
+    }
+
+    private fun parseNamedRouteWays(response: String): List<NamedRouteWay> {
+        val elements = JSONObject(response).optJSONArray("elements") ?: return emptyList()
+        val ways = mutableListOf<NamedRouteWay>()
+        for (index in 0 until elements.length()) {
+            val item = elements.optJSONObject(index) ?: continue
+            if (item.optString("type") != "way") continue
+            val tags = item.optJSONObject("tags")?.toStringMap().orEmpty()
+            val highway = tags["highway"]
+            val name = tags["name"]?.trim().orEmpty()
+            if (name.isBlank() || !isUsefulRouteWayName(highway, tags)) continue
+            val geometry = parseOverpassGeometry(item.optJSONArray("geometry"))
+            if (geometry.size < 2) continue
+            ways += NamedRouteWay(
+                name = name,
+                highway = highway,
+                geometry = geometry,
+            )
+        }
+        return ways
+    }
+
+    private fun parseOverpassGeometry(geometry: JSONArray?): List<GeoPoint> {
+        if (geometry == null) return emptyList()
+        val points = ArrayList<GeoPoint>(geometry.length())
+        for (index in 0 until geometry.length()) {
+            val item = geometry.optJSONObject(index) ?: continue
+            val latitude = item.optDouble("lat", Double.NaN)
+            val longitude = item.optDouble("lon", Double.NaN)
+            if (!latitude.isNaN() && !longitude.isNaN()) {
+                points += GeoPoint(latitude, longitude)
+            }
+        }
+        return points
+    }
+
+    private fun isUsefulRouteWayName(highway: String?, tags: Map<String, String>): Boolean {
+        if (highway.isNullOrBlank()) return false
+        if (highway in setOf("platform", "corridor", "elevator", "construction", "proposed")) return false
+        if (tags["area"] == "yes") return false
+        return true
+    }
+
+    private fun inferRoadNameForStep(
+        stepGeometry: List<GeoPoint>,
+        maneuverPoint: GeoPoint?,
+        namedRouteWays: List<NamedRouteWay>,
+    ): String? {
+        if (namedRouteWays.isEmpty()) return null
+        val samples = routeNameSamples(stepGeometry, maneuverPoint)
+        if (samples.isEmpty()) return null
+        return namedRouteWays
+            .mapNotNull { way ->
+                val distance = samples.minOfOrNull { sample ->
+                    routeWayDistanceMeters(way, sample)
+                } ?: return@mapNotNull null
+                if (distance > 45.0) return@mapNotNull null
+                way to (distance + routeWayPriorityPenalty(way.highway))
+            }
+            .minByOrNull { it.second }
+            ?.first
+            ?.name
+    }
+
+    private fun routeNameSamples(
+        stepGeometry: List<GeoPoint>,
+        maneuverPoint: GeoPoint?,
+    ): List<GeoPoint> {
+        if (stepGeometry.size >= 3) {
+            return listOf(
+                stepGeometry[stepGeometry.size / 2],
+                stepGeometry.last(),
+            )
+        }
+        if (stepGeometry.isNotEmpty()) return listOf(stepGeometry.last())
+        return listOfNotNull(maneuverPoint)
+    }
+
+    private fun routeWayDistanceMeters(way: NamedRouteWay, point: GeoPoint): Double {
+        return projectOntoRoute(way.geometry, point)?.lateralDistanceMeters ?: Double.MAX_VALUE
+    }
+
+    private fun routeWayPriorityPenalty(highway: String?): Double {
+        return when (highway) {
+            "primary", "secondary", "tertiary", "residential", "living_street", "unclassified" -> 0.0
+            "pedestrian", "service" -> 8.0
+            "footway", "path", "steps" -> 14.0
+            else -> 20.0
+        }
     }
 
     private fun stepDistancesAlongRoute(
@@ -621,10 +815,12 @@ class OpenStreetRoutingRepository(
         return length
     }
 
-    private fun instructionForStep(step: JSONObject): String {
+    private fun instructionForStep(step: JSONObject, inferredRoadName: String? = null): String {
         val maneuver = step.optJSONObject("maneuver")
         val maneuverType = maneuver?.optString("type").orEmpty()
-        val roadName = step.optString("name").trim().ifBlank { null }
+        val roadName = step.optString("name").trim().ifBlank {
+            inferredRoadName?.trim()?.takeIf { it.isNotBlank() }
+        }
         val fallbackRoad = roadName ?: string(R.string.generic_next_segment)
         val descriptor = NavigationInstructionCore.describe(
             maneuverType = maneuverType,
@@ -1906,7 +2102,6 @@ class OpenStreetRoutingRepository(
             requestMethod = "GET"
             connectTimeout = timeoutMs
             readTimeout = timeoutMs
-            setRequestProperty("Accept", "application/json")
             setRequestProperty("User-Agent", "navi-live/0.1 (accessibility-navigation-prototype)")
             setRequestProperty("Accept-Language", Locale.getDefault().toLanguageTag())
         }

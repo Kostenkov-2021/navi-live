@@ -18,8 +18,14 @@ Najwazniejsze: pole Wpisz adres / miejsce, przycisk Szukaj i klawisz Szukaj/Ente
 Sprawdz ekran glowny na iPhonie.
 Najwazniejsze: Ustawienia maja byc widoczne w prawym dolnym rogu bez przewijania, Navi Live ma byc czytane jako pierwszy element, a biezaca lokalizacja ma pokazywac przyblizona dokladnosc.
 
-Sprawdz prowadzenie po trasie.
-Najwazniejsze: komunikaty glosowe maja pojawiac sie same podczas ruchu, odliczanie ma informowac przed manewrem, a przy manewrze ma byc komunikat typu teraz skrec w nazwe ulicy w lewo/prawo. Przejscia dla pieszych na trasie maja byc zapowiadane.
+Sprawdz prowadzenie po trasie z wlaczonymi komunikatami glosowymi.
+Najwazniejsze: komunikaty maja pojawiac sie same podczas ruchu, odliczanie ma informowac przed manewrem, a przy manewrze ma byc komunikat z nazwa ulicy i kierunkiem, np. teraz skrec w Wschodnia w prawo albo skrec w Pomorska w lewo. Nie powinien pojawiac sie tekst kolejnym odcinku zamiast nazwy ulicy.
+
+Sprawdz trase Wlokiennicza 4 -> Plac Wolnosci w Lodzi.
+Najwazniejsze: kroki powinny przechodzic kolejno przez Wlokiennicza, Wschodnia, Pomorska i Plac Wolnosci, nie zatrzymywac sie na jednym kroku po minieciu manewru, a na koncu powinno pojawic sie dotarcie do celu.
+
+Sprawdz alerty przejsc dla pieszych.
+Najwazniejsze: przejscia dla pieszych na trasie maja byc zapowiadane jako ostrozne ostrzezenie, bez komunikatu przejdz na druga strone ulicy. Sprawdz tez sytuacje, gdy idziesz dalej ta sama ulica, a na skrzyzowaniu jest przejscie dla pieszych; alert powinien sie pojawic, jesli przejscie lezy na trasie.
 
 Sprawdz ustawienia Prowadzenie.
 Najwazniejsze: mozna wlaczyc/wylaczyc alerty przejsc dla pieszych, zmienic sposob odliczania komunikatow, sile potrzasniecia i zachowanie informacji haptycznej.
@@ -56,8 +62,14 @@ Focus on the Enter address / place field, the Search button and the keyboard Sea
 Test the iPhone Home screen.
 Focus on Settings staying visible in the bottom-right corner without scrolling, Navi Live being read first, and current location showing approximate accuracy.
 
-Test active route guidance.
-Focus on spoken prompts starting automatically while moving, countdown prompts before maneuvers, and final prompts such as now turn left/right onto the street name. Pedestrian crossings on the route should be announced.
+Test active route guidance with spoken prompts enabled.
+Focus on prompts starting automatically while moving, countdown prompts before maneuvers, and final maneuver prompts using the street name and direction, for example turn right onto Wschodnia or turn left onto Pomorska. The app should not say the next segment instead of a street name.
+
+Test the route Wlokiennicza 4 -> Plac Wolnosci in Lodz.
+Focus on route steps advancing through Wlokiennicza, Wschodnia, Pomorska and Plac Wolnosci, not getting stuck on one step after passing a maneuver, and showing arrival at the end.
+
+Test pedestrian crossing alerts.
+Focus on pedestrian crossings on the route being announced as a caution alert, without telling the user to cross to the other side of the street. Also test continuing along the same street when a crossing is at an intersection; the alert should still appear if the crossing is on the route.
 
 Test Guidance settings.
 Focus on pedestrian crossing alerts, announcement cadence, shake gesture strength and haptic feedback behavior.

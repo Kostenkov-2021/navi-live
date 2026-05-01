@@ -54,7 +54,20 @@ private data class RouteSession(
     val destinationPoint: GeoPoint?,
     val steps: List<RouteStep>,
     val pathPoints: List<GeoPoint>,
+    val stepDistancesAlongRoute: List<Double>,
     val currentStepIndex: Int = 0,
+)
+
+private data class RouteProgressProjection(
+    val distanceAlongRouteMeters: Double,
+    val remainingRouteMeters: Double,
+    val lateralDistanceMeters: Double,
+)
+
+private data class SegmentProjection(
+    val ratio: Double,
+    val lengthMeters: Double,
+    val lateralDistanceMeters: Double,
 )
 
 private const val NearbyPoiCacheFreshMs = 24L * 60L * 60L * 1_000L
@@ -734,6 +747,10 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             destinationPoint = place.point,
             steps = normalized.steps,
             pathPoints = normalized.pathPoints,
+            stepDistancesAlongRoute = stepDistancesAlongRoute(
+                steps = normalized.steps,
+                pathPoints = normalized.pathPoints,
+            ),
         )
         isNavigationLive = keepNavigationLive
         resetNavigationAnnouncementState()
@@ -1725,6 +1742,11 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         val freshState = updatedState ?: return
         logNavigationFixIfNeeded(updatedSession, fix, deviationMeters)
 
+        if (shouldMarkArrived(updatedSession, fix)) {
+            markArrived()
+            return
+        }
+
         if (nextStepIndex != session.currentStepIndex) {
             announceStepChange(updatedSession)
         } else {
@@ -1782,21 +1804,25 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun resolveStepIndex(session: RouteSession, fix: LocationFix): Int {
-        var index = session.currentStepIndex
-        while (index < session.steps.lastIndex) {
-            val nextManeuver = session.steps[index + 1].maneuverPoint ?: break
-            if (
-                NavigationScenarioCore.shouldAdvanceStep(
-                    distanceToManeuverMeters = distanceMeters(fix.point, nextManeuver),
-                    accuracyMeters = fix.accuracyMeters,
-                )
-            ) {
-                index += 1
-            } else {
-                break
-            }
+        val nextIndex = session.currentStepIndex + 1
+        if (nextIndex > session.steps.lastIndex) return session.currentStepIndex
+        val nextManeuver = session.steps[nextIndex].maneuverPoint ?: return session.currentStepIndex
+        val advanceThreshold = NavigationScenarioCore.maneuverAdvanceThresholdMeters(fix.accuracyMeters)
+        val projectedProgress = routeProgressProjection(session.pathPoints, fix.point)
+        val nextDistanceAlongRoute = session.stepDistancesAlongRoute.getOrNull(nextIndex)
+        val hasPassedManeuver = projectedProgress != null &&
+            nextDistanceAlongRoute != null &&
+            projectedProgress.distanceAlongRouteMeters >= nextDistanceAlongRoute - advanceThreshold
+        return if (
+            NavigationScenarioCore.shouldAdvanceStep(
+                distanceToManeuverMeters = distanceMeters(fix.point, nextManeuver),
+                accuracyMeters = fix.accuracyMeters,
+            ) || hasPassedManeuver
+        ) {
+            nextIndex
+        } else {
+            session.currentStepIndex
         }
-        return index
     }
 
     private fun buildActiveNavigationState(
@@ -1810,18 +1836,28 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         val currentIndex = session.currentStepIndex.coerceIn(0, session.steps.lastIndex)
         val currentStep = session.steps[currentIndex]
         val nextStep = session.steps.getOrNull(currentIndex + 1)
+        val routeEndPoint = session.routeEndPoint()
+        val routeProgress = fix?.let { routeProgressProjection(session.pathPoints, it.point) }
+        val remainingFromRoute = routeProgress?.remainingRouteMeters
         val distanceToNext = when {
+            nextStep != null && routeProgress != null ->
+                (
+                    (session.stepDistancesAlongRoute.getOrNull(currentIndex + 1)
+                        ?: routeProgress.distanceAlongRouteMeters) - routeProgress.distanceAlongRouteMeters
+                    )
+                    .roundToInt()
+                    .coerceAtLeast(0)
             nextStep?.maneuverPoint != null && fix != null ->
                 distanceMeters(fix.point, nextStep.maneuverPoint).roundToInt().coerceAtLeast(1)
             nextStep != null && nextStep.distanceMeters > 0 ->
                 nextStep.distanceMeters
-            session.destinationPoint != null && fix != null ->
-                distanceMeters(fix.point, session.destinationPoint).roundToInt().coerceAtLeast(1)
+            routeEndPoint != null && fix != null ->
+                distanceMeters(fix.point, routeEndPoint).roundToInt().coerceAtLeast(0)
             else -> currentStep.distanceMeters.coerceAtLeast(1)
         }
         val remainingFromSteps = session.steps.drop(currentIndex).sumOf { it.distanceMeters }
-        val remainingFromDestination = if (fix != null && session.destinationPoint != null) {
-            distanceMeters(fix.point, session.destinationPoint).roundToInt()
+        val remainingFromDestination = if (fix != null && routeEndPoint != null) {
+            distanceMeters(fix.point, routeEndPoint).roundToInt()
         } else {
             0
         }
@@ -1829,7 +1865,10 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             currentInstruction = currentStep.instruction,
             nextInstruction = nextStep?.instruction ?: string(R.string.generic_destination_ahead),
             distanceToNextMeters = distanceToNext,
-            remainingDistanceMeters = maxOf(remainingFromSteps, remainingFromDestination),
+            remainingDistanceMeters = remainingFromRoute
+                ?.roundToInt()
+                ?.coerceAtLeast(0)
+                ?: maxOf(remainingFromSteps, remainingFromDestination),
             progressLabel = string(R.string.format_progress_step, currentIndex + 1, session.steps.size),
             isPaused = previous.isPaused,
             isOffRoute = isOffRoute,
@@ -2163,6 +2202,80 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
+    private fun shouldMarkArrived(session: RouteSession, fix: LocationFix): Boolean {
+        val routeEndPoint = session.routeEndPoint() ?: return false
+        val distanceToEnd = distanceMeters(fix.point, routeEndPoint)
+        val remainingOnRoute = routeProgressProjection(session.pathPoints, fix.point)
+            ?.remainingRouteMeters
+            ?: Double.MAX_VALUE
+        val arrivalThreshold = fix.accuracyMeters
+            .coerceIn(8f, 18f)
+            .toDouble() * 2.0
+        return minOf(distanceToEnd, remainingOnRoute) <= arrivalThreshold
+    }
+
+    private fun RouteSession.routeEndPoint(): GeoPoint? {
+        return pathPoints.lastOrNull() ?: destinationPoint
+    }
+
+    private fun stepDistancesAlongRoute(
+        steps: List<RouteStep>,
+        pathPoints: List<GeoPoint>,
+    ): List<Double> {
+        if (steps.isEmpty()) return emptyList()
+        val routeLength = routeLengthMeters(pathPoints)
+        var previousDistance = 0.0
+        return steps.mapIndexed { index, step ->
+            val rawDistance = step.maneuverPoint
+                ?.let { routeProgressProjection(pathPoints, it)?.distanceAlongRouteMeters }
+                ?: if (index == 0) 0.0 else routeLength
+            val normalized = rawDistance
+                .coerceIn(0.0, routeLength)
+                .coerceAtLeast(previousDistance)
+            previousDistance = normalized
+            normalized
+        }
+    }
+
+    private fun routeLengthMeters(pathPoints: List<GeoPoint>): Double {
+        if (pathPoints.size < 2) return 0.0
+        var length = 0.0
+        for (index in 0 until pathPoints.lastIndex) {
+            length += distanceMeters(pathPoints[index], pathPoints[index + 1])
+        }
+        return length
+    }
+
+    private fun routeProgressProjection(pathPoints: List<GeoPoint>, point: GeoPoint): RouteProgressProjection? {
+        if (pathPoints.size < 2) return null
+        val segmentProjections = pathPoints.zipWithNext { start, end ->
+            projectOntoSegment(
+                point = point,
+                start = start,
+                end = end,
+            )
+        }
+        val routeLength = segmentProjections.sumOf { it.lengthMeters }
+        if (routeLength <= 0.0) return null
+
+        var distanceBeforeSegment = 0.0
+        var best: RouteProgressProjection? = null
+        for (projection in segmentProjections) {
+            val distanceAlongRoute = distanceBeforeSegment + projection.lengthMeters * projection.ratio
+            val candidate = RouteProgressProjection(
+                distanceAlongRouteMeters = distanceAlongRoute,
+                remainingRouteMeters = (routeLength - distanceAlongRoute).coerceAtLeast(0.0),
+                lateralDistanceMeters = projection.lateralDistanceMeters,
+            )
+            val currentBest = best
+            if (currentBest == null || candidate.lateralDistanceMeters < currentBest.lateralDistanceMeters) {
+                best = candidate
+            }
+            distanceBeforeSegment += projection.lengthMeters
+        }
+        return best
+    }
+
     private fun routeDeviationMeters(pathPoints: List<GeoPoint>, point: GeoPoint): Int? {
         if (pathPoints.size < 3) return null
         var minimumMeters = Double.MAX_VALUE
@@ -2184,6 +2297,18 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         start: GeoPoint,
         end: GeoPoint,
     ): Double {
+        return projectOntoSegment(
+            point = point,
+            start = start,
+            end = end,
+        ).lateralDistanceMeters
+    }
+
+    private fun projectOntoSegment(
+        point: GeoPoint,
+        start: GeoPoint,
+        end: GeoPoint,
+    ): SegmentProjection {
         val latitudeReference = Math.toRadians((point.latitude + start.latitude + end.latitude) / 3.0)
         val earthRadius = 6_371_000.0
 
@@ -2199,14 +2324,22 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         val dx = ex - sx
         val dy = ey - sy
         if (dx == 0.0 && dy == 0.0) {
-            return kotlin.math.hypot(px - sx, py - sy)
+            return SegmentProjection(
+                ratio = 0.0,
+                lengthMeters = 0.0,
+                lateralDistanceMeters = kotlin.math.hypot(px - sx, py - sy),
+            )
         }
 
         val t = (((px - sx) * dx) + ((py - sy) * dy)) / ((dx * dx) + (dy * dy))
         val clamped = t.coerceIn(0.0, 1.0)
         val nearestX = sx + (clamped * dx)
         val nearestY = sy + (clamped * dy)
-        return kotlin.math.hypot(px - nearestX, py - nearestY)
+        return SegmentProjection(
+            ratio = clamped,
+            lengthMeters = kotlin.math.hypot(dx, dy),
+            lateralDistanceMeters = kotlin.math.hypot(px - nearestX, py - nearestY),
+        )
     }
 
     private fun distanceMeters(a: GeoPoint, b: GeoPoint): Double {

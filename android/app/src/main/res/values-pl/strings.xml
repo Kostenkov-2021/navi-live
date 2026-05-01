@@ -401,12 +401,12 @@
     <string name="generic_destination_ahead">Cel jest przed Tobą.</string>
     <string name="generic_arriving_destination">Zbliżasz się do celu.</string>
     <string name="generic_next_segment">kolejny odcinek</string>
-    <string name="route_step_depart">Ruszaj i kontynuuj %1$s.</string>
+    <string name="route_step_depart">Ruszaj w kierunku %1$s.</string>
     <string name="route_step_turn_generic">Skręć w %1$s.</string>
-    <string name="route_step_turn_with_modifier">Skręć w %2$s w %1$s.</string>
+    <string name="route_step_turn_with_modifier">Skręć %1$s w %2$s.</string>
     <string name="route_step_continue">Kontynuuj %1$s.</string>
     <string name="route_step_proceed_toward">Kieruj się w stronę %1$s.</string>
-    <string name="route_step_crossing">Przejście dla pieszych. Przejdź na drugą stronę ulicy.</string>
+    <string name="route_step_crossing">Przejście dla pieszych na trasie. Zachowaj ostrożność.</string>
     <string name="route_modifier_left">w lewo</string>
     <string name="route_modifier_right">w prawo</string>
     <string name="route_modifier_slight_left">lekko w lewo</string>

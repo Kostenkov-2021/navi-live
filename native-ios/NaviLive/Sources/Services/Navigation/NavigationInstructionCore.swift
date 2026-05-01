@@ -39,32 +39,7 @@ enum NavigationInstructionCore {
     case "arrive":
       return NavigationInstructionDescriptor(strategy: .arrive, roadName: nil, normalizedModifier: nil)
     case "turn":
-      if let normalizedRoad, let normalizedModifier {
-        return NavigationInstructionDescriptor(
-          strategy: .turnNamed,
-          roadName: normalizedRoad,
-          normalizedModifier: normalizedModifier
-        )
-      }
-      if let normalizedRoad {
-        return NavigationInstructionDescriptor(
-          strategy: .turnGenericNamed,
-          roadName: normalizedRoad,
-          normalizedModifier: nil
-        )
-      }
-      if let normalizedModifier {
-        return NavigationInstructionDescriptor(
-          strategy: .turnBareModifier,
-          roadName: nil,
-          normalizedModifier: normalizedModifier
-        )
-      }
-      return NavigationInstructionDescriptor(
-        strategy: .turnGenericNamed,
-        roadName: nil,
-        normalizedModifier: nil
-      )
+      return turnDescriptor(normalizedRoad: normalizedRoad, normalizedModifier: normalizedModifier)
     case "new name", "continue":
       return NavigationInstructionDescriptor(
         strategy: .continueNamed,
@@ -72,12 +47,47 @@ enum NavigationInstructionCore {
         normalizedModifier: nil
       )
     default:
+      if let normalizedModifier {
+        return turnDescriptor(normalizedRoad: normalizedRoad, normalizedModifier: normalizedModifier)
+      }
       return NavigationInstructionDescriptor(
         strategy: .proceedTowardNamed,
         roadName: normalizedRoad,
         normalizedModifier: nil
       )
     }
+  }
+
+  private static func turnDescriptor(
+    normalizedRoad: String?,
+    normalizedModifier: String?
+  ) -> NavigationInstructionDescriptor {
+    if let normalizedRoad, let normalizedModifier {
+      return NavigationInstructionDescriptor(
+        strategy: .turnNamed,
+        roadName: normalizedRoad,
+        normalizedModifier: normalizedModifier
+      )
+    }
+    if let normalizedRoad {
+      return NavigationInstructionDescriptor(
+        strategy: .turnGenericNamed,
+        roadName: normalizedRoad,
+        normalizedModifier: nil
+      )
+    }
+    if let normalizedModifier {
+      return NavigationInstructionDescriptor(
+        strategy: .turnBareModifier,
+        roadName: nil,
+        normalizedModifier: normalizedModifier
+      )
+    }
+    return NavigationInstructionDescriptor(
+      strategy: .turnGenericNamed,
+      roadName: nil,
+      normalizedModifier: nil
+    )
   }
 }
 

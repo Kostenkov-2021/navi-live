@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -200,7 +201,11 @@ private fun ScreenScaffold(
                 actions = { actions?.invoke() },
             )
 
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .navigationBarsPadding(),
+            ) {
                 content(
                     Modifier
                         .fillMaxSize()
@@ -653,15 +658,15 @@ fun PlaceDetailsScreen(
                 }
             }
 
-            HelperMapCard(
-                title = stringResource(R.string.helper_map_title),
-                subtitle = stringResource(R.string.place_details_helper_map_message),
-            )
-
             PrimaryActionButton(
                 label = stringResource(R.string.place_details_show_route),
                 icon = Icons.AutoMirrored.Filled.AssistantDirection,
                 onClick = onShowRoute,
+            )
+
+            HelperMapCard(
+                title = stringResource(R.string.helper_map_title),
+                subtitle = stringResource(R.string.place_details_helper_map_message),
             )
 
             SecondaryActionButton(

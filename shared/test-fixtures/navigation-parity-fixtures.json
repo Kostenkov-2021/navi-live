@@ -98,11 +98,11 @@
       "expectedParity": "ContinueNamed|Grodzka|-"
     },
     {
-      "name": "fallback_proceed_toward_named",
+      "name": "directional_fallback_uses_turn_named",
       "maneuverType": "fork",
       "modifier": "slight left",
       "roadName": "Mostowa",
-      "expectedParity": "ProceedTowardNamed|Mostowa|-"
+      "expectedParity": "TurnNamed|Mostowa|slight left"
     }
   ],
   "scenarioCases": {

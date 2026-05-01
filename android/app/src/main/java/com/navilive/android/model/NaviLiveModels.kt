@@ -36,6 +36,8 @@ data class RouteStep(
     val distanceMeters: Int,
     val maneuverPoint: GeoPoint? = null,
     val kind: RouteStepKind = RouteStepKind.Instruction,
+    val maneuverType: String? = null,
+    val maneuverModifier: String? = null,
 )
 
 data class HeadingState(
