@@ -1204,7 +1204,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
 
     fun previewSoundCue(cue: NavigationSoundCue) {
         val settings = _uiState.value.settingsState
-        feedbackEngine.playSoundCue(cue, settings.soundCueVolumePercent, settings.soundCueTheme)
+        feedbackEngine.previewSoundCue(cue, settings.soundCueVolumePercent, settings.soundCueTheme)
     }
 
     fun setAutoRecalculate(enabled: Boolean) {

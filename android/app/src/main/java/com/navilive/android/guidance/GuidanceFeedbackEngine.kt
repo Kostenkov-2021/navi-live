@@ -59,6 +59,7 @@ class GuidanceFeedbackEngine(context: Context) {
     private var defaultSystemTtsEngineLabel: String? = null
     private var activeSystemTtsEngineLabel: String? = null
     private val soundExecutor = Executors.newSingleThreadExecutor()
+    private val previewSoundExecutor = Executors.newSingleThreadExecutor()
     private val soundQueueLock = Any()
     private var soundQueueAvailableAtMs = 0L
 
@@ -160,10 +161,22 @@ class GuidanceFeedbackEngine(context: Context) {
         }
         return startDelayMs
     }
+    fun previewSoundCue(
+        cue: NavigationSoundCue,
+        volumePercent: Int = DefaultSoundCueVolumePercent,
+        theme: SoundCueTheme = SoundCueTheme.Standard,
+    ) {
+        val sequence = cue.toneSequence(theme)
+        if (sequence.isEmpty()) return
+        previewSoundExecutor.execute {
+            playToneSequence(sequence, volumePercent)
+        }
+    }
 
     fun shutdown() {
         shutdownTextToSpeech()
         soundExecutor.shutdownNow()
+        previewSoundExecutor.shutdownNow()
     }
 
     private fun shutdownTextToSpeech() {

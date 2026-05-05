@@ -2224,8 +2224,13 @@ private fun SoundCuePreviewRow(
     cue: NavigationSoundCue,
     onPreviewSoundCue: (NavigationSoundCue) -> Unit,
 ) {
+    val playLabel = stringResource(R.string.settings_sound_cue_play)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button) { onPreviewSoundCue(cue) }
+            .padding(vertical = 8.dp)
+            .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -2248,12 +2253,13 @@ private fun SoundCuePreviewRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        OutlinedButton(
-            onClick = { onPreviewSoundCue(cue) },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.clearAndSetSemantics { },
         ) {
             Icon(Icons.Filled.PlayArrow, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.settings_sound_cue_play))
+            Text(playLabel)
         }
     }
 }
