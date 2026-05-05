@@ -25,6 +25,7 @@ struct FavoritesView: View {
               }
               .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .accessibilityLabel(favoriteAccessibilityLabel(for: place))
             .accessibilityHint(L10n.text("favorites.open_hint", table: .home))
           }
           .onDelete { offsets in
@@ -40,6 +41,13 @@ struct FavoritesView: View {
     .listStyle(.insetGrouped)
     .navigationTitle(L10n.text("favorites.title", table: .home))
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private func favoriteAccessibilityLabel(for place: Place) -> String {
+    [place.name, place.address]
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+      .joined(separator: ". ")
   }
 }
 

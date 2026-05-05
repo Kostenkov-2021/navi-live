@@ -159,7 +159,7 @@ class GuidanceFeedbackEngine(context: Context) {
         soundExecutor.execute {
             playToneSequence(sequence, volumePercent)
         }
-        return startDelayMs
+        return startDelayMs + sequence.soundCueDurationMillis()
     }
     fun previewSoundCue(
         cue: NavigationSoundCue,
@@ -288,7 +288,7 @@ class GuidanceFeedbackEngine(context: Context) {
         val track = AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build(),
             )

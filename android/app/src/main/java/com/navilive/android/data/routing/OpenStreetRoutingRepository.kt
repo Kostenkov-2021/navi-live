@@ -148,6 +148,8 @@ class OpenStreetRoutingRepository(
         const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
         const val CROSSING_DUPLICATE_PROXIMITY_METERS = 3.0
         const val CROSSING_TURN_PROXIMITY_METERS = 8.0
+        const val ROUTE_START_APPROACH_THRESHOLD_METERS = 18.0
+        const val APPROACH_MANEUVER_TYPE = "approach"
         const val MINIMUM_USEFUL_SEARCH_RESULTS = 3
         const val OFFICIAL_CHAIN_SCORE = 3_000
         const val POI_CACHE_REFRESH_LIMIT = 350
@@ -344,7 +346,11 @@ class OpenStreetRoutingRepository(
                 ?.optJSONArray("steps")
             val pathPoints = parsePath(route.optJSONObject("geometry"))
             val namedRouteWays = queryNamedRouteWays(pathPoints)
-            val baseSteps = simplifyRouteSteps(parseSteps(steps, namedRouteWays))
+            val baseSteps = stepsWithStartApproach(
+                from = from,
+                pathPoints = pathPoints,
+                steps = simplifyRouteSteps(parseSteps(steps, namedRouteWays)),
+            )
             val parsedSteps = if (includePedestrianCrossings) {
                 addPedestrianCrossingSteps(
                     steps = baseSteps,
@@ -452,6 +458,23 @@ class OpenStreetRoutingRepository(
             )
         }
         return points
+    }
+
+    private fun stepsWithStartApproach(
+        from: GeoPoint,
+        pathPoints: List<GeoPoint>,
+        steps: List<RouteStep>,
+    ): List<RouteStep> {
+        val routeStart = pathPoints.firstOrNull() ?: return steps
+        val distanceToRouteStart = haversineMeters(from, routeStart)
+        if (distanceToRouteStart < ROUTE_START_APPROACH_THRESHOLD_METERS) return steps
+        val approachStep = RouteStep(
+            instruction = string(R.string.route_step_reach_route_start),
+            distanceMeters = distanceToRouteStart.roundToInt().coerceAtLeast(1),
+            maneuverPoint = routeStart,
+            maneuverType = APPROACH_MANEUVER_TYPE,
+        )
+        return listOf(approachStep) + steps
     }
 
     private fun simplifyRouteSteps(steps: List<RouteStep>): List<RouteStep> {

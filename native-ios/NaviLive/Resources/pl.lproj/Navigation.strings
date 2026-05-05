@@ -1,5 +1,6 @@
 "navigation.step.depart" = "Rozpocznij marsz";
 "navigation.step.depart.named" = "Ruszaj. Dalej: %1$@";
+"navigation.step.reach_route_start" = "Dojdź do początku trasy.";
 "navigation.step.arrive" = "Dotarłeś do celu";
 "navigation.step.turn.left" = "Skręć w lewo";
 "navigation.step.turn.right" = "Skręć w prawo";
@@ -9,8 +10,8 @@
 "navigation.step.turn.sharp right" = "Skręć ostro w prawo";
 "navigation.step.turn.straight" = "Idź prosto";
 "navigation.step.turn.default" = "Kontynuuj trasę";
-"navigation.step.turn.named" = "Skręć %2$@. Dalej: %1$@";
-"navigation.step.turn.generic.named" = "Skręć. Dalej: %1$@";
+"navigation.step.turn.named" = "Skręć %2$@ w %1$@";
+"navigation.step.turn.generic.named" = "Skręć w %1$@";
 "navigation.step.roundabout" = "Wejdź na rondo";
 "navigation.step.continue" = "Kontynuuj";
 "navigation.step.continue.named" = "Idź dalej: %1$@";

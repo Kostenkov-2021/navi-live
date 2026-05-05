@@ -147,7 +147,7 @@ final class VoiceOverAnnouncer: NSObject {
       )
     )
     startSoundCueQueueIfNeeded()
-    return startDelay
+    return startDelay + duration
   }
 
   private func reserveSoundCueStartDelay(duration: TimeInterval) -> TimeInterval {

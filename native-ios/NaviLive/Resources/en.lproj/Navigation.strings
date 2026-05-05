@@ -1,5 +1,6 @@
 "navigation.step.depart" = "Start walking";
 "navigation.step.depart.named" = "Start. Continue on %1$@";
+"navigation.step.reach_route_start" = "Walk to the start of the route.";
 "navigation.step.arrive" = "You have arrived";
 "navigation.step.turn.left" = "Turn left";
 "navigation.step.turn.right" = "Turn right";
@@ -9,8 +10,8 @@
 "navigation.step.turn.sharp right" = "Turn sharply right";
 "navigation.step.turn.straight" = "Continue straight";
 "navigation.step.turn.default" = "Continue on the route";
-"navigation.step.turn.named" = "Turn %2$@. Continue on %1$@";
-"navigation.step.turn.generic.named" = "Turn. Continue on %1$@";
+"navigation.step.turn.named" = "Turn %2$@ onto %1$@";
+"navigation.step.turn.generic.named" = "Turn onto %1$@";
 "navigation.step.roundabout" = "Enter the roundabout";
 "navigation.step.continue" = "Continue";
 "navigation.step.continue.named" = "Continue on %1$@";

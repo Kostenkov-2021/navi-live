@@ -414,11 +414,12 @@
     <string name="generic_next_segment">kolejny odcinek</string>
     <string name="route_step_depart">Ruszaj. Dalej: %1$s</string>
     <string name="route_step_depart_default">Ruszaj</string>
+    <string name="route_step_reach_route_start">Dojdź do początku trasy.</string>
     <string name="route_step_turn_default">Kontynuuj trasę</string>
     <string name="route_step_turn_bare_modifier">Skręć %1$s</string>
     <string name="route_step_continue_default">Idź dalej</string>
-    <string name="route_step_turn_generic">Skręć. Dalej: %1$s</string>
-    <string name="route_step_turn_with_modifier">Skręć %1$s. Dalej: %2$s</string>
+    <string name="route_step_turn_generic">Skręć w %1$s</string>
+    <string name="route_step_turn_with_modifier">Skręć %1$s w %2$s</string>
     <string name="route_step_continue">Idź dalej: %1$s</string>
     <string name="route_step_proceed_toward">Kieruj się do: %1$s</string>
     <string name="route_step_crossing">Przejście dla pieszych na trasie. Zachowaj ostrożność.</string>

@@ -215,6 +215,8 @@ actor NavigationAPIClient {
   private let crossingRequestTimeout: TimeInterval = 2
   private let crossingDuplicateProximityMeters = 3.0
   private let crossingTurnProximityMeters = 8.0
+  private let routeStartApproachThresholdMeters = 18.0
+  private let approachManeuverType = "approach"
   private let minimumUsefulSearchResults = 3
   private let officialChainScore = 3_000
   private let poiCacheRefreshLimit = 350
@@ -465,10 +467,11 @@ actor NavigationAPIClient {
     }
 
     let simplifiedSteps = simplifyRouteSteps(baseSteps)
+    let baseRouteSteps = routeStepsWithStartApproach(start: start, pathPoints: points, steps: simplifiedSteps)
 
     let steps = includePedestrianCrossings
-      ? await routeStepsAddingPedestrianCrossings(steps: simplifiedSteps, pathPoints: points)
-      : simplifiedSteps
+      ? await routeStepsAddingPedestrianCrossings(steps: baseRouteSteps, pathPoints: points)
+      : baseRouteSteps
 
     return RouteSummary(
       distanceMeters: Int(route.distance.rounded()),
@@ -482,6 +485,23 @@ actor NavigationAPIClient {
       steps: steps,
       pathPoints: points
     )
+  }
+
+  private func routeStepsWithStartApproach(
+    start: GeoPoint,
+    pathPoints: [GeoPoint],
+    steps: [RouteStep]
+  ) -> [RouteStep] {
+    guard let routeStart = pathPoints.first else { return steps }
+    let distanceToRouteStart = start.distance(to: routeStart)
+    guard distanceToRouteStart >= routeStartApproachThresholdMeters else { return steps }
+    let approachStep = RouteStep(
+      instruction: L10n.text("navigation.step.reach_route_start", table: .navigation),
+      distanceMeters: max(Int(distanceToRouteStart.rounded()), 1),
+      maneuverPoint: routeStart,
+      maneuverType: approachManeuverType
+    )
+    return [approachStep] + steps
   }
 
   private func fetchRouteResponse(coordinateString: String) async throws -> OSRMResponse {

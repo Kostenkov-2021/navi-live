@@ -33,6 +33,8 @@ final class LiveNavigationEngine {
     var currentStepIndex: Int
   }
 
+  private static let approachManeuverType = "approach"
+
   private var session: RouteSession?
   private var lastAutoRecalculateAt: Date = .distantPast
 
@@ -127,7 +129,8 @@ final class LiveNavigationEngine {
       )
     }
 
-    if isOffRoute, let deviation {
+    let isApproachingRouteStart = session.steps[safe: session.currentStepIndex]?.maneuverType == Self.approachManeuverType
+    if !isApproachingRouteStart, isOffRoute, let deviation {
       let state = buildState(
         currentStepIndex: session.currentStepIndex,
         fix: fix,
@@ -199,7 +202,19 @@ final class LiveNavigationEngine {
       accuracyMeters: fix.accuracyMeters
     )
     while index < session.steps.count - 1 {
-      guard let nextManeuver = session.steps[index + 1].maneuverPoint else { break }
+      let currentStep = session.steps[safe: index]
+      if currentStep?.maneuverType == Self.approachManeuverType {
+        guard let approachTarget = currentStep?.maneuverPoint else { break }
+        if NavigationScenarioCore.shouldAdvanceStep(
+          distanceToManeuverMeters: fix.point.distance(to: approachTarget),
+          accuracyMeters: fix.accuracyMeters
+        ) {
+          index += 1
+          continue
+        }
+        break
+      }
+      guard let nextManeuver = session.steps[safe: index + 1]?.maneuverPoint else { break }
       let nextDistanceAlongRoute = session.stepDistancesAlongRoute[safe: index + 1] ?? .greatestFiniteMagnitude
       let hasPassedManeuver = projectedProgress != nil &&
         projectedProgress!.distanceAlongRouteMeters >= nextDistanceAlongRoute - advanceThreshold
@@ -233,6 +248,11 @@ final class LiveNavigationEngine {
     let routeProgress = fix.flatMap { routeProgressProjection(pathPoints: session.pathPoints, point: $0.point) }
 
     let distanceToNext: Int = {
+      if currentStep.maneuverType == Self.approachManeuverType,
+         let maneuverPoint = currentStep.maneuverPoint,
+         let fix {
+        return max(Int(fix.point.distance(to: maneuverPoint).rounded()), 1)
+      }
       if nextStep != nil, let routeProgress {
         let nextDistance = session.stepDistancesAlongRoute[safe: safeIndex + 1] ?? routeProgress.distanceAlongRouteMeters
         return max(Int((nextDistance - routeProgress.distanceAlongRouteMeters).rounded()), 0)

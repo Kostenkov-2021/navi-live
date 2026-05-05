@@ -1253,13 +1253,7 @@ fun FavoritesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 16.dp),
         ) {
-            item {
-                StatusCard(
-                    title = stringResource(R.string.favorites_status_title),
-                    message = stringResource(R.string.favorites_status_message),
-                    tone = BannerTone.Info,
-                )
-            }
+
             item {
                 FilledTonalButton(
                     onClick = onAddFavorite,
@@ -1279,14 +1273,28 @@ fun FavoritesScreen(
                 }
             } else {
                 items(favorites, key = { it.id }) { place ->
+                    val timingLabel = placeTimingLabel(place)
+                    val placeAccessibilityLabel = remember(place.name, place.address, timingLabel) {
+                        listOf(place.name, place.address, timingLabel)
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .joinToString(separator = ". ")
+                    }
                     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                         Column(
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Text(place.name, fontWeight = FontWeight.SemiBold)
-                            Text(place.address, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(placeTimingLabel(place))
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.clearAndSetSemantics {
+                                    contentDescription = placeAccessibilityLabel
+                                },
+                            ) {
+                                Text(place.name, fontWeight = FontWeight.SemiBold)
+                                Text(place.address, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(timingLabel)
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -2196,37 +2204,31 @@ private fun SoundCueTutorialCard(
         ) {
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_countdown_title),
-                description = stringResource(R.string.settings_sound_cue_countdown_message),
                 cue = NavigationSoundCue.Countdown,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_turn_now_title),
-                description = stringResource(R.string.settings_sound_cue_turn_now_message),
                 cue = NavigationSoundCue.TurnNow,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_pedestrian_crossing_title),
-                description = stringResource(R.string.settings_sound_cue_pedestrian_crossing_message),
                 cue = NavigationSoundCue.PedestrianCrossing,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_warning_title),
-                description = stringResource(R.string.settings_sound_cue_warning_message),
                 cue = NavigationSoundCue.Warning,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_success_title),
-                description = stringResource(R.string.settings_sound_cue_success_message),
                 cue = NavigationSoundCue.Success,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
             SoundCuePreviewRow(
                 title = stringResource(R.string.settings_sound_cue_arrival_title),
-                description = stringResource(R.string.settings_sound_cue_arrival_message),
                 cue = NavigationSoundCue.Arrival,
                 onPreviewSoundCue = onPreviewSoundCue,
             )
@@ -2237,7 +2239,6 @@ private fun SoundCueTutorialCard(
 @Composable
 private fun SoundCuePreviewRow(
     title: String,
-    description: String,
     cue: NavigationSoundCue,
     onPreviewSoundCue: (NavigationSoundCue) -> Unit,
 ) {
@@ -2264,11 +2265,6 @@ private fun SoundCuePreviewRow(
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(title, fontWeight = FontWeight.SemiBold)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,

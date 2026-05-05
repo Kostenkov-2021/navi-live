@@ -76,6 +76,7 @@ private const val NearbyPoiCacheMoveThresholdMeters = 800.0
 private const val NearbyPoiCacheAttemptThrottleMs = 2L * 60L * 1_000L
 private const val CustomFavoritePlaceIdPrefix = "custom-current-"
 private const val NavigationSpeechAfterSoundDelayMs = 500L
+private const val ApproachManeuverType = "approach"
 
 class NaviLiveViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -1839,7 +1840,10 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         if (currentState.isPaused) return
 
         val deviationMeters = routeDeviationMeters(session.pathPoints, fix.point)
-        if (NavigationScenarioCore.shouldTriggerOffRoute(deviationMeters, fix.accuracyMeters)) {
+        val isApproachingRouteStart = session.steps
+            .getOrNull(session.currentStepIndex)
+            ?.maneuverType == ApproachManeuverType
+        if (!isApproachingRouteStart && NavigationScenarioCore.shouldTriggerOffRoute(deviationMeters, fix.accuracyMeters)) {
             handleOffRoute(session, fix, requireNotNull(deviationMeters))
             return
         }
@@ -1934,6 +1938,19 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     private fun resolveStepIndex(session: RouteSession, fix: LocationFix): Int {
         val nextIndex = session.currentStepIndex + 1
         if (nextIndex > session.steps.lastIndex) return session.currentStepIndex
+        val currentStep = session.steps.getOrNull(session.currentStepIndex)
+        if (currentStep?.maneuverType == ApproachManeuverType) {
+            val approachTarget = currentStep.maneuverPoint ?: return session.currentStepIndex
+            return if (NavigationScenarioCore.shouldAdvanceStep(
+                    distanceToManeuverMeters = distanceMeters(fix.point, approachTarget),
+                    accuracyMeters = fix.accuracyMeters,
+                )
+            ) {
+                nextIndex
+            } else {
+                session.currentStepIndex
+            }
+        }
         val nextManeuver = session.steps[nextIndex].maneuverPoint ?: return session.currentStepIndex
         val advanceThreshold = NavigationScenarioCore.maneuverAdvanceThresholdMeters(fix.accuracyMeters)
         val projectedProgress = routeProgressProjection(session.pathPoints, fix.point)
@@ -1968,6 +1985,8 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         val routeProgress = fix?.let { routeProgressProjection(session.pathPoints, it.point) }
         val remainingFromRoute = routeProgress?.remainingRouteMeters
         val distanceToNext = when {
+            currentStep.maneuverType == ApproachManeuverType && currentStep.maneuverPoint != null && fix != null ->
+                distanceMeters(fix.point, currentStep.maneuverPoint).roundToInt().coerceAtLeast(1)
             nextStep != null && routeProgress != null ->
                 (
                     (session.stepDistancesAlongRoute.getOrNull(currentIndex + 1)
