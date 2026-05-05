@@ -50,6 +50,9 @@ struct ActiveNavigationView: View {
         .accessibilityAction(named: Text(L10n.text("active.action.recalculate", table: .navigation))) {
           model.recalculateRoute()
         }
+        .accessibilityAction(named: Text(L10n.text("active.action.report_problem", table: .navigation))) {
+          model.reportRouteProblem()
+        }
         .accessibilityAction(named: Text(L10n.text("active.action.show_route_summary", table: .navigation))) {
           model.openRouteSummary(placeID)
         }
@@ -136,6 +139,13 @@ struct ActiveNavigationView: View {
           systemImage: "arrow.clockwise"
         ) {
           model.recalculateRoute()
+        }
+
+        SecondaryActionButton(
+          title: L10n.text("active.action.report_problem", table: .navigation),
+          systemImage: "exclamationmark.bubble"
+        ) {
+          model.reportRouteProblem()
         }
 
         SecondaryActionButton(

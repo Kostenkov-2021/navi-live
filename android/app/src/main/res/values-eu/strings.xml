@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ez da lekurik aurkitu</string>
     <string name="search_empty_results_message">Saiatu beste leku-izen bat edo itzuli eta erabili gogokoenak.</string>
     <string name="place_details_title">Lekuaren xehetasunak</string>
-    <string name="place_details_status_title">Hautatutako helmuga</string>
-    <string name="place_details_status_message">Egiaztatu helbidea eta oinezkoen estimazioa ibilbidea hasi aurretik.</string>
     <string name="label_address">Helbidea</string>
     <string name="label_walking_estimate">Ibilaldiaren estimazioa</string>
     <string name="label_phone">Telefonoa</string>
     <string name="label_website">Webgunea</string>
-    <string name="helper_map_title">Laguntzailea mapa</string>
-    <string name="place_details_helper_map_message">Mantendu mapa bigarren mailan. Ahotsa, testua eta bibrazioa gidari nagusia izaten jarraitzen dute.</string>
     <string name="place_details_show_route">Erakutsi ibilbidea</string>
     <string name="common_remove_from_favorites">Kendu gogokoetatik</string>
     <string name="common_save_favorite">Gorde gogokoa</string>
     <string name="route_summary_title">Ibilbidearen laburpena</string>
-    <string name="route_summary_status_title">Oinezko ibilbidea prest</string>
-    <string name="route_summary_status_message">Hasi nabigazioa prest dagoenean. Navi Live-k norabidea automatikoki zehaztuko du oinez hasten zarenean.</string>
     <string name="label_travel_time">Bidaia-denbora</string>
     <string name="label_distance">Distantzia</string>
     <string name="label_mode">Modua</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Gogokoa gorde da</string>
     <string name="route_summary_start_route">Hasi nabigazioa</string>
     <string name="route_summary_preparing_route">Ibilbidea prestatzen...</string>
-    <string name="route_summary_helper_map_message">Erabili ibilbidearen aurrebista testuinguru gehigarri gisa soilik. Ibilbidea ulergarria izaten jarraitzen du mapari begiratu gabe.</string>
     <string name="heading_title">Ezarri goiburua</string>
     <string name="heading_confirmed_title">Norabidea berretsi da</string>
     <string name="heading_confirmed_message">Ibilbideari begira zaude. Hasi ibiltzen prest dagoenean.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Oraindik ez dago gogokorik</string>
     <string name="current_position_no_favorites_message">Gorde tokiak, hala nola Etxea edo Lantokia, ibilbideak azkar hasteko.</string>
     <string name="favorites_title">Gogokoak</string>
-    <string name="favorites_status_title">Gordetako lekuak</string>
-    <string name="favorites_status_message">Mantendu zerrenda hau laburra eta aurreikusgarria, ibilbideak ahalik eta esfortzu txikienarekin hasteko.</string>
     <string name="favorites_add_from_search">Gehitu bilaketatik</string>
     <string name="favorites_empty_title">Gogokoak hutsik daude</string>
     <string name="favorites_empty_message">Bilatu leku bat lehenik eta gorde gero ibilbide azkarragoetarako.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Nabigazioa eten egin da</string>
     <string name="navigation_status_paused_message">Jarraitu gidari ibiltzen jarraitzeko prest zaudenean.</string>
     <string name="navigation_status_active_title">Orientazio aktiboa</string>
-    <string name="navigation_status_active_message">Jarraitu uneko argibideei eta mantendu mapa laguntza-testuinguru gisa soilik.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

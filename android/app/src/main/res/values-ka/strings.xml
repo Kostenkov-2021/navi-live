@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">ადგილები ვერ მოიძებნა</string>
     <string name="search_empty_results_message">სცადეთ ადგილის სხვა სახელი ან დაბრუნდით და გამოიყენეთ თქვენი ფავორიტები.</string>
     <string name="place_details_title">ადგილის დეტალები</string>
-    <string name="place_details_status_title">არჩეული დანიშნულება</string>
-    <string name="place_details_status_message">მარშრუტის დაწყებამდე შეამოწმეთ მისამართი და საფეხმავლო შეფასება.</string>
     <string name="label_address">მისამართი</string>
     <string name="label_walking_estimate">სასეირნო შეფასება</string>
     <string name="label_phone">ტელეფონი</string>
     <string name="label_website">საიტი</string>
-    <string name="helper_map_title">დამხმარე რუკა</string>
-    <string name="place_details_helper_map_message">შეინახეთ რუკა მეორეხარისხოვანი. ხმა, ტექსტი და ვიბრაცია რჩება მთავარ სახელმძღვანელოდ.</string>
     <string name="place_details_show_route">მარშრუტის ჩვენება</string>
     <string name="common_remove_from_favorites">რჩეულებიდან ამოღება</string>
     <string name="common_save_favorite">შეინახეთ საყვარელი</string>
     <string name="route_summary_title">მარშრუტის შეჯამება</string>
-    <string name="route_summary_status_title">საფეხმავლო მარშრუტი მზადაა</string>
-    <string name="route_summary_status_message">დაიწყეთ ნავიგაცია, როცა მზად იქნებით. Navi Live ავტომატურად განსაზღვრავს მიმართულებას სიარულის დაწყებისას.</string>
     <string name="label_travel_time">მოგზაურობის დრო</string>
     <string name="label_distance">მანძილი</string>
     <string name="label_mode">რეჟიმი</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">რჩეული შენახულია</string>
     <string name="route_summary_start_route">ნავიგაციის დაწყება</string>
     <string name="route_summary_preparing_route">მარშრუტის მომზადება...</string>
-    <string name="route_summary_helper_map_message">გამოიყენეთ მარშრუტის გადახედვა მხოლოდ დამატებით კონტექსტად. მარშრუტი გასაგები რჩება რუკის დათვალიერების გარეშე.</string>
     <string name="heading_title">სათაურის დაყენება</string>
     <string name="heading_confirmed_title">მიმართულება დადასტურებულია</string>
     <string name="heading_confirmed_message">მარშრუტის წინაშე დგახართ. დაიწყეთ სიარული, როდესაც მზად ხართ.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">ჯერ არ არის რჩეული</string>
     <string name="current_position_no_favorites_message">მარშრუტების სწრაფად დასაწყებად შეინახეთ ისეთი ადგილები, როგორიცაა სახლი ან სამსახური.</string>
     <string name="favorites_title">რჩეულები</string>
-    <string name="favorites_status_title">შენახული ადგილები</string>
-    <string name="favorites_status_message">შეინახეთ ეს სია მოკლე და პროგნოზირებადი, რათა მარშრუტები დაიწყოს რაც შეიძლება ნაკლები ძალისხმევით.</string>
     <string name="favorites_add_from_search">დამატება ძიებიდან</string>
     <string name="favorites_empty_title">ფავორიტები ცარიელია</string>
     <string name="favorites_empty_message">ჯერ მოძებნეთ ადგილი და შეინახეთ მოგვიანებით უფრო სწრაფი მარშრუტებისთვის.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">ნავიგაცია შეჩერებულია</string>
     <string name="navigation_status_paused_message">განაახლეთ ხელმძღვანელობა, როდესაც მზად იქნებით სიარულის გასაგრძელებლად.</string>
     <string name="navigation_status_active_title">ხელმძღვანელობა აქტიურია</string>
-    <string name="navigation_status_active_message">მიჰყევით მიმდინარე ინსტრუქციას და შეინახეთ რუკა მხოლოდ დამხმარე კონტექსტში.</string>
     <string name="format_eta_minutes">%1$d წთ</string>
     <string name="format_distance_meters">%1$d მ</string>
     <string name="format_walk_time_only">%1$d წთ</string>

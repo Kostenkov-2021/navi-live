@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Non se atoparon lugares</string>
     <string name="search_empty_results_message">Proba un nome de lugar diferente ou volve e usa os teus favoritos.</string>
     <string name="place_details_title">Datos do lugar</string>
-    <string name="place_details_status_title">Destino seleccionado</string>
-    <string name="place_details_status_message">Consulta o enderezo e a estimación de camiños antes de comezar a ruta.</string>
     <string name="label_address">Enderezo</string>
     <string name="label_walking_estimate">Estimación a pé</string>
     <string name="label_phone">Teléfono</string>
     <string name="label_website">Páxina web</string>
-    <string name="helper_map_title">Mapa auxiliar</string>
-    <string name="place_details_helper_map_message">Manter o mapa secundario. A voz, o texto e a vibración seguen sendo a principal guía.</string>
     <string name="place_details_show_route">Amosar ruta</string>
     <string name="common_remove_from_favorites">Eliminar dos favoritos</string>
     <string name="common_save_favorite">Gardar favorito</string>
     <string name="route_summary_title">Resumo da ruta</string>
-    <string name="route_summary_status_title">Preparado para a ruta a pé</string>
-    <string name="route_summary_status_message">Inicia a navegación cando estea listo. Navi Live determinará a dirección automaticamente cando comeces a camiñar.</string>
     <string name="label_travel_time">Tempo de viaxe</string>
     <string name="label_distance">Distancia</string>
     <string name="label_mode">Modo</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favorito gardado</string>
     <string name="route_summary_start_route">Iniciar navegación</string>
     <string name="route_summary_preparing_route">Preparando ruta...</string>
-    <string name="route_summary_helper_map_message">Use a vista previa da ruta só como contexto adicional. A ruta segue sendo comprensible sen mirar o mapa.</string>
     <string name="heading_title">Establecer título</string>
     <string name="heading_confirmed_title">Dirección confirmada</string>
     <string name="heading_confirmed_message">Estás de cara á ruta. Comeza a camiñar cando estea listo.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Aínda non hai favoritos</string>
     <string name="current_position_no_favorites_message">Garda lugares como Casa ou Traballo para iniciar rutas rapidamente.</string>
     <string name="favorites_title">Favoritos</string>
-    <string name="favorites_status_title">Lugares gardados</string>
-    <string name="favorites_status_message">Mantén esta lista curta e previsible para que as rutas comecen co mínimo esforzo posible.</string>
     <string name="favorites_add_from_search">Engadir desde a busca</string>
     <string name="favorites_empty_title">Os favoritos están baleiros</string>
     <string name="favorites_empty_message">Busca primeiro un lugar e gárdao para rutas máis rápidas despois.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">A navegación detívose</string>
     <string name="navigation_status_paused_message">Retoma a orientación cando estea preparado para seguir camiñando.</string>
     <string name="navigation_status_active_title">Orientación activa</string>
-    <string name="navigation_status_active_message">Siga a instrución actual e mantén o mapa só como contexto auxiliar.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

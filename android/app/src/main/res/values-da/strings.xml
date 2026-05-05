@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ingen steder fundet</string>
     <string name="search_empty_results_message">Prøv et andet stednavn, eller gå tilbage og brug dine favoritter.</string>
     <string name="place_details_title">Steddetaljer</string>
-    <string name="place_details_status_title">Valgt destination</string>
-    <string name="place_details_status_message">Tjek adressen og gåoverslaget, før du starter ruten.</string>
     <string name="label_address">Adresse</string>
     <string name="label_walking_estimate">Vandrende skøn</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Hjemmeside</string>
-    <string name="helper_map_title">Hjælper kort</string>
-    <string name="place_details_helper_map_message">Hold kortet sekundært. Stemme, tekst og vibration er fortsat den vigtigste vejledning.</string>
     <string name="place_details_show_route">Vis rute</string>
     <string name="common_remove_from_favorites">Fjern fra favoritter</string>
     <string name="common_save_favorite">Gem favorit</string>
     <string name="route_summary_title">Ruteoversigt</string>
-    <string name="route_summary_status_title">Gårute klar</string>
-    <string name="route_summary_status_message">Start navigation, når du er klar. Navi Live bestemmer automatisk retning, når du begynder at gå.</string>
     <string name="label_travel_time">Rejsetid</string>
     <string name="label_distance">Afstand</string>
     <string name="label_mode">Mode</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favorit gemt</string>
     <string name="route_summary_start_route">Start navigation</string>
     <string name="route_summary_preparing_route">Forbereder rute...</string>
-    <string name="route_summary_helper_map_message">Brug kun ruteeksemplet som ekstra kontekst. Ruten forbliver forståelig uden at se på kortet.</string>
     <string name="heading_title">Sæt overskrift</string>
     <string name="heading_confirmed_title">Retning bekræftet</string>
     <string name="heading_confirmed_message">Du står over for ruten. Begynd at gå, når du er klar.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Ingen favoritter endnu</string>
     <string name="current_position_no_favorites_message">Gem steder som Hjem eller Arbejde for hurtigt at starte ruter.</string>
     <string name="favorites_title">Favoritter</string>
-    <string name="favorites_status_title">Gemte steder</string>
-    <string name="favorites_status_message">Hold denne liste kort og forudsigelig, så ruterne starter med så lidt indsats som muligt.</string>
     <string name="favorites_add_from_search">Tilføj fra søgning</string>
     <string name="favorites_empty_title">Favoritter er tomme</string>
     <string name="favorites_empty_message">Søg først efter et sted, og gem det til hurtigere ruter senere.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigation sat på pause</string>
     <string name="navigation_status_paused_message">Genoptag vejledningen, når du er klar til at fortsætte med at gå.</string>
     <string name="navigation_status_active_title">Vejledning aktiv</string>
-    <string name="navigation_status_active_message">Følg den aktuelle instruktion og behold kortet kun som hjælperkontekst.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

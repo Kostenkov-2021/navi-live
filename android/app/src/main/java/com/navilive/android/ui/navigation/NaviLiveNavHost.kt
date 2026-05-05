@@ -314,8 +314,10 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                     if (!uiState.value.locationState.hasPermission) {
                         permissionLauncher.launch(locationPermissionsForRequest())
                     } else if (uiState.value.locationState.isForegroundTracking) {
+                        viewModel.playLiveTrackingToggleSound(starting = false)
                         context.startService(LocationForegroundService.stopIntent(context))
                     } else {
+                        viewModel.playLiveTrackingToggleSound(starting = true)
                         ContextCompat.startForegroundService(
                             context,
                             LocationForegroundService.startIntent(context),
@@ -439,6 +441,7 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                     onPauseResume = viewModel::togglePauseNavigation,
                     onRepeatInstruction = viewModel::repeatCurrentInstruction,
                     onRecalculate = viewModel::recalculateRoute,
+                    onReportProblem = viewModel::reportRouteProblem,
                     onArrived = {
                         viewModel.markArrived()
                         navController.navigate(Routes.arrival(place.id))

@@ -1,51 +1,27 @@
 POLSKI
 
-Sprawdź prowadzenie piesze od samego startu trasy.
-Gdy punkt startowy routera jest odsunięty od faktycznej pozycji, aplikacja powinna najpierw poprosić o dojście do początku trasy, zamiast od razu mówić błędny skręt. Dopiero po zbliżeniu się do początku trasy powinny pojawiać się zwykłe manewry.
+Sprawdź zgłaszanie problemu z trasą podczas prowadzenia.
+Na ekranie prowadzenia wybierz „Zgłoś problem z trasą”. Aplikacja powinna krótko potwierdzić zapis zgłoszenia i dalej prowadzić po trasie. To zgłoszenie ma pomóc nam później sprawdzić, jaką wskazówkę aplikacja pokazywała w chwili problemu.
 
-Sprawdź komunikaty skrętów.
-Przy skręcie aplikacja powinna używać kierunku i nazwy ulicy, jeśli są dostępne, np. „skręć w lewo w ulicę”. Komunikaty nie powinny mówić ogólnego „kolejny odcinek”, jeśli da się podać nazwę drogi.
+Sprawdź włączanie i wyłączanie śledzenia na żywo.
+Po włączeniu śledzenia powinien pojawić się krótki dźwięk startu. Po wyłączeniu powinien pojawić się inny krótki dźwięk zatrzymania. Na iPhonie po wyłączeniu śledzenia ekran główny i ekran bieżącej pozycji powinny mówić, że śledzenie na żywo jest wyłączone, a nie pokazywać ostatni zapamiętany adres.
 
-Sprawdź alerty przejść dla pieszych.
-Alert powinien informować, że na trasie jest przejście dla pieszych i zachować ostrożność. Nie powinien automatycznie sugerować przejścia na drugą stronę ulicy, jeśli z samej trasy nie wynika taki manewr.
+Sprawdź dźwięki podczas prowadzenia.
+Dźwięk powinien być odtwarzany przed komunikatem głosowym. Jeśli kilka zdarzeń pojawi się szybko po sobie, dźwięki powinny grać po kolei, bez nakładania się.
 
-Sprawdź kolejność dźwięku i mowy podczas prowadzenia.
-Dźwięk nawigacyjny powinien zakończyć się przed komunikatem głosowym. Gdy kilka zdarzeń pojawi się szybko po sobie, dźwięki powinny grać po kolei, bez nakładania się.
-
-Sprawdź działanie audio na słuchawkach Bluetooth.
-Na Androidzie dźwięki nawigacji powinny iść kanałem prowadzenia nawigacyjnego i być słyszalne razem z komunikatami głosowymi.
-
-Sprawdź Ulubione z czytnikiem ekranu.
-Na Androidzie pojedyncze ulubione miejsce powinno być czytane raz: nazwa, adres i szacowanie dojścia. Potem osobno powinny być dostępne przyciski „Trasa” i „Usuń”. Nie powinno być dublowania nazwy i opisu.
-
-Sprawdź podgląd dźwięków w Ustawienia > Dźwięki.
-Lista powinna być krótsza i stabilniejsza dla czytnika ekranu. Aktywacja całego wiersza dźwięku powinna odtwarzać podgląd.
-
-Sprawdź zapis bieżącej pozycji do ulubionych.
-Po wpisaniu własnej nazwy aplikacja powinna zapisać także aktualny adres punktu, współrzędne, przybliżoną dokładność i czas zapisu. Ponowne zapisanie tego samego punktu powinno odświeżyć dane bez tworzenia duplikatu.
+Sprawdź krótsze ekrany na Androidzie z TalkBack.
+W szczegółach miejsca, podsumowaniu trasy, ulubionych i aktywnym prowadzeniu nie powinno już być długich podpowiedzi o mapie pomocniczej, krótkiej liście ulubionych ani „podążaniu za bieżącą instrukcją”. Ekrany powinny być szybsze do przechodzenia gestami.
 
 ENGLISH
 
-Test walking guidance from the very beginning of a route.
-When the router starts the route away from the actual user position, the app should first ask the user to walk to the route start instead of announcing an incorrect turn immediately. Normal maneuvers should begin only after reaching the route start.
+Test reporting a route problem during guidance.
+On the active guidance screen, choose "Report route problem". The app should briefly confirm that the report was saved and continue navigation. The report should help us later check which instruction the app was showing at the moment of the problem.
 
-Test turn instructions.
-When available, turn prompts should include both the direction and the street name, for example “turn left onto the street”. Prompts should not say a generic “next segment” when a road name can be used.
+Test turning live tracking on and off.
+Starting live tracking should play a short start sound. Stopping it should play a different short stop sound. On iPhone, after tracking is stopped, the home screen and current position screen should say that live tracking is off instead of showing the last remembered address.
 
-Test pedestrian crossing alerts.
-The alert should say that there is a pedestrian crossing on the route and ask the user to use caution. It should not automatically say to cross to the other side unless that is clearly part of the route maneuver.
+Test sounds during guidance.
+A sound should play before the spoken prompt. If several events happen close together, sounds should play one after another without overlapping.
 
-Test sound and speech timing during guidance.
-The navigation sound should finish before the spoken prompt starts. When several events happen quickly, sounds should play one after another without overlap.
-
-Test audio on Bluetooth headphones.
-On Android, navigation sounds should use the navigation guidance audio channel and remain audible together with spoken prompts.
-
-Test Favorites with a screen reader.
-On Android, each favorite place should be read once: name, address and walking estimate. The Route and Remove buttons should then be available separately. The name and description should not be repeated.
-
-Test sound preview in Settings > Sounds.
-The list should be shorter and more stable for screen readers. Activating the whole sound row should play the preview.
-
-Test saving the current position to favorites.
-After entering a custom name, the app should also save the current address, coordinates, approximate accuracy and save time. Saving the same point again should refresh the data without creating a duplicate.
+Test shorter Android screens with TalkBack.
+Place details, route summary, favorites, and active guidance should no longer include long helper hints about the helper map, keeping favorites short, or following the current instruction. The screens should be faster to move through with swipe gestures.

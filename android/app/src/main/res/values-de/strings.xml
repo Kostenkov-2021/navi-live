@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Keine Orte gefunden</string>
     <string name="search_empty_results_message">Versuchen Sie es mit einem anderen Ortsnamen oder gehen Sie zurück und verwenden Sie Ihre Favoriten.</string>
     <string name="place_details_title">Ortsdetails</string>
-    <string name="place_details_status_title">Ausgewähltes Ziel</string>
-    <string name="place_details_status_message">Überprüfen Sie die Adresse und die geschätzte Gehzeit, bevor Sie mit der Route beginnen.</string>
     <string name="label_address">Adresse</string>
     <string name="label_walking_estimate">Kostenvoranschlag für Gehwege</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Website</string>
-    <string name="helper_map_title">Hilfskarte</string>
-    <string name="place_details_helper_map_message">Halten Sie die Karte zweitrangig. Stimme, Text und Vibration bleiben die Hauptführungselemente.</string>
     <string name="place_details_show_route">Route anzeigen</string>
     <string name="common_remove_from_favorites">Aus Favoriten entfernen</string>
     <string name="common_save_favorite">Favorit speichern</string>
     <string name="route_summary_title">Routenzusammenfassung</string>
-    <string name="route_summary_status_title">Wanderroute bereit</string>
-    <string name="route_summary_status_message">Starten Sie die Navigation, wenn Sie bereit sind. Navi Live bestimmt automatisch die Richtung, wenn Sie mit dem Gehen beginnen.</string>
     <string name="label_travel_time">Reisezeit</string>
     <string name="label_distance">Entfernung</string>
     <string name="label_mode">Modus</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favorit gespeichert</string>
     <string name="route_summary_start_route">Navigation starten</string>
     <string name="route_summary_preparing_route">Route wird vorbereitet...</string>
-    <string name="route_summary_helper_map_message">Verwenden Sie die Routenvorschau nur als zusätzlichen Kontext. Die Route bleibt auch ohne einen Blick auf die Karte verständlich.</string>
     <string name="heading_title">Kurs festlegen</string>
     <string name="heading_confirmed_title">Richtung bestätigt</string>
     <string name="heading_confirmed_message">Sie blicken auf die Route. Beginnen Sie mit dem Gehen, wenn Sie bereit sind.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Noch keine Favoriten</string>
     <string name="current_position_no_favorites_message">Speichern Sie Orte wie Zuhause oder Arbeit, um Routen schnell zu starten.</string>
     <string name="favorites_title">Favoriten</string>
-    <string name="favorites_status_title">Gespeicherte Orte</string>
-    <string name="favorites_status_message">Halten Sie diese Liste kurz und vorhersehbar, damit Routen mit möglichst geringem Aufwand beginnen.</string>
     <string name="favorites_add_from_search">Aus der Suche hinzufügen</string>
     <string name="favorites_empty_title">Favoriten sind leer</string>
     <string name="favorites_empty_message">Suchen Sie zuerst nach einem Ort und speichern Sie ihn für später schnellere Routen.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigation angehalten</string>
     <string name="navigation_status_paused_message">Nehmen Sie die Führung wieder auf, wenn Sie zum Weitergehen bereit sind.</string>
     <string name="navigation_status_active_title">Führung aktiv</string>
-    <string name="navigation_status_active_message">Befolgen Sie die aktuelle Anweisung und behalten Sie die Karte nur als Hilfskontext bei.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

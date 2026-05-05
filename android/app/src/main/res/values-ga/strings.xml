@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Níor aimsíodh aon áit</string>
     <string name="search_empty_results_message">Bain triail as logainm eile nó téigh ar ais agus bain úsáid as do rogha pearsanta.</string>
     <string name="place_details_title">Sonraí áit</string>
-    <string name="place_details_status_title">Ceann scríbe roghnaithe</string>
-    <string name="place_details_status_message">Seiceáil an seoladh agus an meastachán siúil sula dtosaíonn tú ar an mbealach.</string>
     <string name="label_address">Seoladh</string>
     <string name="label_walking_estimate">Meastachán siúil</string>
     <string name="label_phone">Fón</string>
     <string name="label_website">Suíomh Gréasáin</string>
-    <string name="helper_map_title">Léarscáil cúntóir</string>
-    <string name="place_details_helper_map_message">Coinnigh an léarscáil tánaisteach. Is iad gutha, téacs agus creathadh an príomhthreoir i gcónaí.</string>
     <string name="place_details_show_route">Taispeáin bealach</string>
     <string name="common_remove_from_favorites">Bain ó cheanáin</string>
     <string name="common_save_favorite">Sábháil is fearr leat</string>
     <string name="route_summary_title">Achoimre bealaigh</string>
-    <string name="route_summary_status_title">Bealach siúil réidh</string>
-    <string name="route_summary_status_message">Tosaigh an nascleanúint agus tú réidh. Cinnfidh Navi Live treo go huathoibríoch agus tú ag tosú ag siúl.</string>
     <string name="label_travel_time">Am taistil</string>
     <string name="label_distance">Fad</string>
     <string name="label_mode">Mód</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Sábháladh an ceann is fearr leat</string>
     <string name="route_summary_start_route">Tosaigh nascleanúint</string>
     <string name="route_summary_preparing_route">Bealach á ullmhú...</string>
-    <string name="route_summary_helper_map_message">Bain úsáid as réamhamharc an bhealaigh mar chomhthéacs breise amháin. Fanann an bealach intuigthe gan breathnú ar an léarscáil.</string>
     <string name="heading_title">Socraigh ceannteideal</string>
     <string name="heading_confirmed_title">Treo deimhnithe</string>
     <string name="heading_confirmed_message">Tá tú ag tabhairt aghaidh ar an mbealach. Tosaigh ag siúl agus tú réidh.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Níl aon cheanáin go fóill</string>
     <string name="current_position_no_favorites_message">Sábháil áiteanna ar nós Baile nó Obair chun bealaí a thosú go tapa.</string>
     <string name="favorites_title">Ceanáin</string>
-    <string name="favorites_status_title">Áiteanna sábháilte</string>
-    <string name="favorites_status_message">Coinnigh an liosta seo gearr agus intuartha ionas go dtosóidh bealaí gan mórán dua agus is féidir.</string>
     <string name="favorites_add_from_search">Cuir ó chuardach</string>
     <string name="favorites_empty_title">Tá ceanáin folamh</string>
     <string name="favorites_empty_message">Cuardaigh áit ar dtús agus sábháil é le haghaidh bealaí níos tapúla níos déanaí.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Nascleanúint ar sos</string>
     <string name="navigation_status_paused_message">Lean ar aghaidh leis an treoir agus tú réidh chun leanúint ar aghaidh ag siúl.</string>
     <string name="navigation_status_active_title">Treoir gníomhach</string>
-    <string name="navigation_status_active_message">Lean an treoir reatha agus coinnigh an léarscáil mar chomhthéacs cabhrach amháin.</string>
     <string name="format_eta_minutes">%1$d nóim</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d nóim</string>

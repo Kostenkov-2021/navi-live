@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Nem találhatók helyek</string>
     <string name="search_empty_results_message">Próbáljon ki egy másik helynevet, vagy menjen vissza, és használja kedvenceit.</string>
     <string name="place_details_title">Helyadatok</string>
-    <string name="place_details_status_title">Kiválasztott úticél</string>
-    <string name="place_details_status_message">Az útvonal megkezdése előtt ellenőrizze a címet és a becsült gyaloglást.</string>
     <string name="label_address">Cím</string>
     <string name="label_walking_estimate">Becsült séta</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Webhely</string>
-    <string name="helper_map_title">Segítőtérkép</string>
-    <string name="place_details_helper_map_message">Tartsa a térképet másodlagos helyen. A hang, a szöveg és a rezgés továbbra is a fő útmutatás.</string>
     <string name="place_details_show_route">Útvonal mutatása</string>
     <string name="common_remove_from_favorites">Eltávolítás a kedvencekből</string>
     <string name="common_save_favorite">Kedvenc mentése</string>
     <string name="route_summary_title">Útvonal összefoglaló</string>
-    <string name="route_summary_status_title">Gyalogos útvonal készen áll</string>
-    <string name="route_summary_status_message">Indítsa el a navigációt, ha készen áll. A Navi Live automatikusan meghatározza az irányt, amikor elindul.</string>
     <string name="label_travel_time">Utazási idő</string>
     <string name="label_distance">Távolság</string>
     <string name="label_mode">Mód</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Kedvenc mentve</string>
     <string name="route_summary_start_route">Navigáció indítása</string>
     <string name="route_summary_preparing_route">Útvonal előkészítése...</string>
-    <string name="route_summary_helper_map_message">Az útvonal előnézetét csak extra kontextusként használja. Az útvonal a térkép megtekintése nélkül is érthető marad.</string>
     <string name="heading_title">Állítsa be a címsort</string>
     <string name="heading_confirmed_title">Az irány megerősítve</string>
     <string name="heading_confirmed_message">Az útvonallal szemben állsz. Ha készen áll, kezdjen el sétálni.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Még nincs kedvenc</string>
     <string name="current_position_no_favorites_message">Az útvonalak gyors elindításához mentse el a helyeket, például az Otthon vagy a Munkahelyet.</string>
     <string name="favorites_title">Kedvencek</string>
-    <string name="favorites_status_title">Mentett helyek</string>
-    <string name="favorites_status_message">Legyen ez a lista rövid és kiszámítható, hogy az útvonalak a lehető legkevesebb erőfeszítéssel induljanak el.</string>
     <string name="favorites_add_from_search">Hozzáadás a keresésből</string>
     <string name="favorites_empty_title">A kedvencek üresek</string>
     <string name="favorites_empty_message">Először keressen meg egy helyet, majd mentse el a gyorsabb útvonalak érdekében.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">A navigáció szünetel</string>
     <string name="navigation_status_paused_message">Ha készen áll a séta folytatására, folytassa az útmutatást.</string>
     <string name="navigation_status_active_title">Útmutató aktív</string>
-    <string name="navigation_status_active_message">Kövesse az aktuális utasítást, és a térképet csak segítő kontextusként tartsa meg.</string>
     <string name="format_eta_minutes">%1$d perc</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d perc</string>

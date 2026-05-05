@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Δεν βρέθηκαν μέρη</string>
     <string name="search_empty_results_message">Δοκιμάστε ένα διαφορετικό τοπωνύμιο ή επιστρέψτε και χρησιμοποιήστε τα αγαπημένα σας.</string>
     <string name="place_details_title">Στοιχεία θέσης</string>
-    <string name="place_details_status_title">Επιλεγμένος προορισμός</string>
-    <string name="place_details_status_message">Ελέγξτε τη διεύθυνση και την εκτίμηση πεζοπορίας πριν ξεκινήσετε τη διαδρομή.</string>
     <string name="label_address">Διεύθυνση</string>
     <string name="label_walking_estimate">Εκτίμηση πεζοπορίας</string>
     <string name="label_phone">Τηλέφωνο</string>
     <string name="label_website">Ιστότοπος</string>
-    <string name="helper_map_title">Χάρτης βοήθειας</string>
-    <string name="place_details_helper_map_message">Διατηρήστε τον χάρτη δευτερεύοντα. Η φωνή, το κείμενο και η δόνηση παραμένουν η κύρια καθοδήγηση.</string>
     <string name="place_details_show_route">Εμφάνιση διαδρομής</string>
     <string name="common_remove_from_favorites">Κατάργηση από τα αγαπημένα</string>
     <string name="common_save_favorite">Αποθήκευση αγαπημένων</string>
     <string name="route_summary_title">Σύνοψη διαδρομής</string>
-    <string name="route_summary_status_title">Έτοιμη διαδρομή πεζοπορίας</string>
-    <string name="route_summary_status_message">Ξεκινήστε την πλοήγηση όταν είστε έτοιμοι. Το Navi Live θα καθορίσει την κατεύθυνση αυτόματα καθώς ξεκινάτε να περπατάτε.</string>
     <string name="label_travel_time">Χρόνος ταξιδιού</string>
     <string name="label_distance">Απόσταση</string>
     <string name="label_mode">Λειτουργία</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Αγαπημένο αποθηκευμένο</string>
     <string name="route_summary_start_route">Έναρξη πλοήγησης</string>
     <string name="route_summary_preparing_route">Προετοιμασία διαδρομής...</string>
-    <string name="route_summary_helper_map_message">Χρησιμοποιήστε την προεπισκόπηση διαδρομής μόνο ως επιπλέον πλαίσιο. Η διαδρομή παραμένει κατανοητή χωρίς να κοιτάξετε τον χάρτη.</string>
     <string name="heading_title">Ορισμός επικεφαλίδας</string>
     <string name="heading_confirmed_title">Η κατεύθυνση επιβεβαιώθηκε</string>
     <string name="heading_confirmed_message">Αντιμετωπίζετε τη διαδρομή. Ξεκινήστε να περπατάτε όταν είστε έτοιμοι.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Δεν υπάρχουν ακόμα αγαπημένα</string>
     <string name="current_position_no_favorites_message">Αποθηκεύστε μέρη όπως το σπίτι ή την εργασία για να ξεκινήσετε γρήγορα διαδρομές.</string>
     <string name="favorites_title">Αγαπημένα</string>
-    <string name="favorites_status_title">Αποθηκευμένα μέρη</string>
-    <string name="favorites_status_message">Διατηρήστε αυτή τη λίστα σύντομη και προβλέψιμη, ώστε οι διαδρομές να ξεκινούν με όσο το δυνατόν λιγότερη προσπάθεια.</string>
     <string name="favorites_add_from_search">Προσθήκη από αναζήτηση</string>
     <string name="favorites_empty_title">Τα αγαπημένα είναι άδεια</string>
     <string name="favorites_empty_message">Αναζητήστε πρώτα ένα μέρος και αποθηκεύστε το για πιο γρήγορες διαδρομές αργότερα.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Η πλοήγηση σε παύση</string>
     <string name="navigation_status_paused_message">Συνεχίστε την καθοδήγηση όταν είστε έτοιμοι να συνεχίσετε το περπάτημα.</string>
     <string name="navigation_status_active_title">Καθοδήγηση ενεργή</string>
-    <string name="navigation_status_active_message">Ακολουθήστε τις τρέχουσες οδηγίες και διατηρήστε τον χάρτη μόνο ως βοηθητικό περιβάλλον.</string>
     <string name="format_eta_minutes">%1$d λεπτά</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d λεπτά</string>

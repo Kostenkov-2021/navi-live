@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Nebyla nalezena žádná místa</string>
     <string name="search_empty_results_message">Zkuste jiný název místa nebo se vraťte a použijte svá oblíbená místa.</string>
     <string name="place_details_title">Podrobnosti o místě</string>
-    <string name="place_details_status_title">Vybraný cíl</string>
-    <string name="place_details_status_message">Před zahájením trasy zkontrolujte adresu a odhad chůze.</string>
     <string name="label_address">Adresa</string>
     <string name="label_walking_estimate">Odhad chůze</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Webová stránka</string>
-    <string name="helper_map_title">Pomocná mapa</string>
-    <string name="place_details_helper_map_message">Mapu ponechte jako sekundární. Hlavním vodítkem zůstává hlas, text a vibrace.</string>
     <string name="place_details_show_route">Zobrazit trasu</string>
     <string name="common_remove_from_favorites">Odebrat z oblíbených</string>
     <string name="common_save_favorite">Uložit oblíbené</string>
     <string name="route_summary_title">Souhrn trasy</string>
-    <string name="route_summary_status_title">Připravena pěší trasa</string>
-    <string name="route_summary_status_message">Až budete připraveni, spusťte navigaci. Navi Live určí směr automaticky, jakmile začnete chodit.</string>
     <string name="label_travel_time">Doba jízdy</string>
     <string name="label_distance">Vzdálenost</string>
     <string name="label_mode">Režim</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Oblíbené uloženo</string>
     <string name="route_summary_start_route">Spustit navigaci</string>
     <string name="route_summary_preparing_route">Příprava trasy...</string>
-    <string name="route_summary_helper_map_message">Náhled trasy používejte pouze jako další kontext. Trasa zůstává srozumitelná i bez pohledu na mapu.</string>
     <string name="heading_title">Nastavit nadpis</string>
     <string name="heading_confirmed_title">Směr potvrzen</string>
     <string name="heading_confirmed_message">Jste čelem k trase. Začněte chodit, až budete připraveni.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Zatím žádné oblíbené</string>
     <string name="current_position_no_favorites_message">Uložte si místa, jako je Domov nebo Práce, abyste mohli rychle zahájit trasy.</string>
     <string name="favorites_title">Oblíbené</string>
-    <string name="favorites_status_title">Uložená místa</string>
-    <string name="favorites_status_message">Udržujte tento seznam krátký a předvídatelný, aby trasy začínaly s co nejmenším úsilím.</string>
     <string name="favorites_add_from_search">Přidat z vyhledávání</string>
     <string name="favorites_empty_title">Oblíbené jsou prázdné</string>
     <string name="favorites_empty_message">Nejprve vyhledejte místo a uložte si ho pro rychlejší trasy později.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigace pozastavena</string>
     <string name="navigation_status_paused_message">Až budete připraveni pokračovat v chůzi, pokračujte v navádění.</string>
     <string name="navigation_status_active_title">Navádění aktivní</string>
-    <string name="navigation_status_active_message">Postupujte podle aktuálních pokynů a ponechejte mapu pouze jako pomocný kontext.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

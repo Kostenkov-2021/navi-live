@@ -7,6 +7,7 @@
 "home.location.unavailable" = "Location is not available yet.";
 "home.location.waiting" = "Waiting for current location.";
 "home.location.fallback" = "Current address could not be resolved.";
+"home.location.tracking_stopped" = "Live tracking is off.";
 "home.location.accuracy" = "Approximate accuracy: %d m";
 "home.status.ready" = "Navi Live is ready.";
 "home.status.location_later" = "You can allow location later in Settings.";

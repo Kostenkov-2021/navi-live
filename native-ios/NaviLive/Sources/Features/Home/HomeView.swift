@@ -76,6 +76,14 @@ struct HomeView: View {
   }
 
   private var currentLocationMessage: String {
+    guard model.hasLocationPermission else {
+      return L10n.text("home.location.unavailable", table: .home)
+    }
+
+    guard model.isLiveTracking else {
+      return L10n.text("home.location.tracking_stopped", table: .home)
+    }
+
     guard !model.currentLocationDescription.isEmpty else {
       return L10n.text("home.location.waiting", table: .home)
     }

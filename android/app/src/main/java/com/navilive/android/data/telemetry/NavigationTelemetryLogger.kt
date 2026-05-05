@@ -179,6 +179,7 @@ class NavigationTelemetryLogger(
             "heading_aligned" -> string(R.string.diagnostics_event_heading_aligned)
             "navigation_started" -> string(R.string.diagnostics_event_navigation_started)
             "instruction_repeated" -> string(R.string.diagnostics_event_instruction_repeated)
+            "route_problem_reported" -> string(R.string.diagnostics_event_route_problem_reported)
             "navigation_paused" -> string(R.string.diagnostics_event_navigation_paused)
             "navigation_resumed" -> string(R.string.diagnostics_event_navigation_resumed)
             "route_recalculate_auto_started" -> string(R.string.diagnostics_event_auto_recalculate_started)

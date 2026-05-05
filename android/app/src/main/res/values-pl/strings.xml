@@ -69,8 +69,6 @@
     <string name="search_empty_results_title">Nie znaleziono miejsc</string>
     <string name="search_empty_results_message">Spróbuj innej nazwy albo wróć do ulubionych.</string>
     <string name="place_details_title">Szczegóły miejsca</string>
-    <string name="place_details_status_title">Wybrany cel</string>
-    <string name="place_details_status_message">Sprawdź adres i szacowany czas dojścia przed uruchomieniem trasy.</string>
     <string name="label_address">Adres</string>
     <string name="label_walking_estimate">Szacowany czas dojścia</string>
     <string name="label_coordinates">Współrzędne</string>
@@ -78,16 +76,12 @@
     <string name="label_saved_at">Zapisano</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Strona internetowa</string>
-    <string name="helper_map_title">Mapa pomocnicza</string>
-    <string name="place_details_helper_map_message">Mapa ma być tylko wsparciem. Główne prowadzenie zapewniają głos, tekst i wibracje.</string>
     <string name="place_details_show_route">Pokaż trasę</string>
     <string name="common_remove_from_favorites">Usuń z ulubionych</string>
     <string name="common_save_favorite">Zapisz w ulubionych</string>
     <string name="common_save">Zapisz</string>
     <string name="common_cancel">Anuluj</string>
     <string name="route_summary_title">Podsumowanie trasy</string>
-    <string name="route_summary_status_title">Trasa piesza gotowa</string>
-    <string name="route_summary_status_message">Rozpocznij nawigację, gdy będziesz gotowy. Navi Live ustali kierunek automatycznie, gdy zaczniesz iść.</string>
     <string name="label_travel_time">Czas przejścia</string>
     <string name="label_distance">Odległość</string>
     <string name="label_mode">Tryb</string>
@@ -95,7 +89,6 @@
     <string name="route_summary_favorite_saved">Zapisano w ulubionych</string>
     <string name="route_summary_start_route">Rozpocznij nawigację</string>
     <string name="route_summary_preparing_route">Przygotowuję trasę...</string>
-    <string name="route_summary_helper_map_message">Podgląd trasy traktuj tylko jako dodatkowy kontekst. Trasa pozostaje zrozumiała bez patrzenia na mapę.</string>
     <string name="heading_title">Ustaw kierunek</string>
     <string name="heading_confirmed_title">Kierunek potwierdzony</string>
     <string name="heading_confirmed_message">Jesteś ustawiony w stronę trasy. Ruszaj, kiedy będziesz gotowy.</string>
@@ -112,6 +105,7 @@
     <string name="active_navigation_recalculating">Przeliczam trasę...</string>
     <string name="active_navigation_recalculate">Przelicz trasę</string>
     <string name="active_navigation_need_new_route">Potrzebna nowa trasa</string>
+    <string name="active_navigation_report_problem">Zgłoś problem z trasą</string>
     <string name="common_resume">Wznów</string>
     <string name="common_pause">Wstrzymaj</string>
     <string name="common_repeat">Powtórz</string>
@@ -129,8 +123,6 @@
     <string name="current_position_no_favorites_title">Brak ulubionych</string>
     <string name="current_position_no_favorites_message">Zapisz miejsca takie jak Dom albo Praca, aby szybciej uruchamiać trasy.</string>
     <string name="favorites_title">Ulubione</string>
-    <string name="favorites_status_title">Zapisane miejsca</string>
-    <string name="favorites_status_message">Ta lista powinna być krótka i przewidywalna, aby uruchamianie tras wymagało jak najmniej wysiłku.</string>
     <string name="favorites_add_from_search">Dodaj z wyszukiwania</string>
     <string name="favorites_empty_title">Lista ulubionych jest pusta</string>
     <string name="favorites_empty_message">Najpierw wyszukaj miejsce i zapisz je, aby później szybciej uruchamiać trasy.</string>
@@ -288,7 +280,6 @@
     <string name="navigation_status_paused_title">Nawigacja wstrzymana</string>
     <string name="navigation_status_paused_message">Wznów prowadzenie, kiedy będziesz gotowy do dalszego marszu.</string>
     <string name="navigation_status_active_title">Prowadzenie aktywne</string>
-    <string name="navigation_status_active_message">Podążaj za bieżącą instrukcją, a mapę traktuj tylko jako pomocniczy kontekst.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>
@@ -383,6 +374,7 @@
     <string name="status_heading_aligned">Kierunek ustawiony.</string>
     <string name="status_active_guidance_started">Aktywne prowadzenie zostało uruchomione.</string>
     <string name="status_repeating_instruction">Powtarzam bieżącą instrukcję.</string>
+    <string name="status_route_problem_reported">Zapisano zgłoszenie problemu z trasą.</string>
     <string name="spoken_navigation_paused">Nawigacja wstrzymana.</string>
     <string name="spoken_navigation_resumed">Nawigacja wznowiona.</string>
     <string name="status_navigation_paused">Nawigacja wstrzymana.</string>
@@ -452,6 +444,7 @@
     <string name="diagnostics_event_heading_aligned">Kierunek został ustawiony.</string>
     <string name="diagnostics_event_navigation_started">Aktywna nawigacja została uruchomiona.</string>
     <string name="diagnostics_event_instruction_repeated">Powtórzono bieżącą instrukcję.</string>
+    <string name="diagnostics_event_route_problem_reported">Zgłoszono problem z prowadzeniem.</string>
     <string name="diagnostics_event_navigation_paused">Nawigacja została wstrzymana.</string>
     <string name="diagnostics_event_navigation_resumed">Nawigacja została wznowiona.</string>
     <string name="diagnostics_event_auto_recalculate_started">Rozpoczęto automatyczne przeliczanie trasy.</string>

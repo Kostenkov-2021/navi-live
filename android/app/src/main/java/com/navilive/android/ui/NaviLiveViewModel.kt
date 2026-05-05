@@ -983,10 +983,55 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun playLiveTrackingToggleSound(starting: Boolean) {
+        playSoundCueIfEnabled(if (starting) NavigationSoundCue.Success else NavigationSoundCue.Warning)
+    }
+
     fun onShakeGestureDetected() {
         if (!_uiState.value.settingsState.shakeGestureEnabled) return
         if (_uiState.value.activeNavigationState.currentInstruction.isBlank()) return
         repeatCurrentInstruction()
+    }
+
+    fun reportRouteProblem() {
+        val session = activeRouteSession ?: return
+        val state = _uiState.value.activeNavigationState
+        val fix = _uiState.value.locationState.latestFix
+        val currentStep = session.steps.getOrNull(session.currentStepIndex)
+        val nextStep = session.steps.getOrNull(session.currentStepIndex + 1)
+        val deviationMeters = fix?.let { routeDeviationMeters(session.pathPoints, it.point) }
+        val message = string(R.string.status_route_problem_reported)
+
+        telemetryLogger.log(
+            type = "route_problem_reported",
+            message = "Route problem reported by tester.",
+            attributes = linkedMapOf(
+                "step_index" to session.currentStepIndex,
+                "step_count" to session.steps.size,
+                "current_instruction" to state.currentInstruction,
+                "next_instruction" to state.nextInstruction,
+                "distance_to_next_m" to state.distanceToNextMeters,
+                "remaining_distance_m" to state.remainingDistanceMeters,
+                "is_off_route" to state.isOffRoute,
+                "off_route_distance_m" to state.offRouteDistanceMeters,
+                "route_deviation_m" to deviationMeters,
+                "accuracy_m" to fix?.accuracyMeters,
+                "current_step_kind" to currentStep?.kind?.name,
+                "current_step_maneuver_type" to currentStep?.maneuverType,
+                "current_step_modifier" to currentStep?.maneuverModifier,
+                "current_step_road" to currentStep?.roadName,
+                "next_step_kind" to nextStep?.kind?.name,
+                "next_step_maneuver_type" to nextStep?.maneuverType,
+                "next_step_modifier" to nextStep?.maneuverModifier,
+                "next_step_road" to nextStep?.roadName,
+            ),
+        )
+        refreshDiagnosticsState()
+        vibrateShortIfEnabled()
+        _uiState.update { current ->
+            current.copy(statusMessage = message)
+        }
+        speakNow(message)
     }
 
     fun togglePauseNavigation() {

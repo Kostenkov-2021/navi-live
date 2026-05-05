@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Engir staðir fundust</string>
     <string name="search_empty_results_message">Prófaðu annað örnefni eða farðu til baka og notaðu uppáhöldin þín.</string>
     <string name="place_details_title">Upplýsingar um stað</string>
-    <string name="place_details_status_title">Valinn áfangastaður</string>
-    <string name="place_details_status_message">Athugaðu heimilisfangið og gönguáætlun áður en þú byrjar leiðina.</string>
     <string name="label_address">Heimilisfang</string>
     <string name="label_walking_estimate">Göngumat</string>
     <string name="label_phone">Sími</string>
     <string name="label_website">Vefsíða</string>
-    <string name="helper_map_title">Hjálparkort</string>
-    <string name="place_details_helper_map_message">Hafðu kortið aukaatriði. Rödd, texti og titringur eru áfram aðalleiðsögnin.</string>
     <string name="place_details_show_route">Sýna leið</string>
     <string name="common_remove_from_favorites">Fjarlægja úr eftirlæti</string>
     <string name="common_save_favorite">Vista uppáhalds</string>
     <string name="route_summary_title">Leiðaryfirlit</string>
-    <string name="route_summary_status_title">Gönguleið tilbúin</string>
-    <string name="route_summary_status_message">Byrjaðu leiðsögn þegar þú ert tilbúinn. Navi Live mun ákvarða stefnu sjálfkrafa þegar þú byrjar að ganga.</string>
     <string name="label_travel_time">Ferðatími</string>
     <string name="label_distance">Fjarlægð</string>
     <string name="label_mode">Mode</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Uppáhalds vistað</string>
     <string name="route_summary_start_route">Byrjaðu leiðsögn</string>
     <string name="route_summary_preparing_route">Undirbýr leið...</string>
-    <string name="route_summary_helper_map_message">Notaðu leiðarforskoðunina eingöngu sem aukasamhengi. Leiðin er skiljanleg án þess að horfa á kortið.</string>
     <string name="heading_title">Stilltu fyrirsögn</string>
     <string name="heading_confirmed_title">Stefna staðfest</string>
     <string name="heading_confirmed_message">Þú stendur frammi fyrir leiðinni. Byrjaðu að ganga þegar þú ert tilbúinn.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Engin eftirlæti ennþá</string>
     <string name="current_position_no_favorites_message">Vistaðu staði eins og heimili eða vinnu til að hefja leiðir fljótt.</string>
     <string name="favorites_title">Uppáhalds</string>
-    <string name="favorites_status_title">Vistaðir staðir</string>
-    <string name="favorites_status_message">Hafðu þennan lista stuttan og fyrirsjáanlegan svo að leiðir byrji með eins lítilli fyrirhöfn og mögulegt er.</string>
     <string name="favorites_add_from_search">Bæta við úr leit</string>
     <string name="favorites_empty_title">Uppáhalds eru tóm</string>
     <string name="favorites_empty_message">Leitaðu að stað fyrst og vistaðu hann fyrir hraðari leiðir síðar.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Leiðsögn stöðvuð</string>
     <string name="navigation_status_paused_message">Haltu áfram leiðsögn þegar þú ert tilbúinn að halda áfram að ganga.</string>
     <string name="navigation_status_active_title">Leiðsögn virk</string>
-    <string name="navigation_status_active_message">Fylgdu núverandi leiðbeiningum og haltu kortinu eingöngu sem hjálparsamhengi.</string>
     <string name="format_eta_minutes">%1$d mín</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d mín</string>

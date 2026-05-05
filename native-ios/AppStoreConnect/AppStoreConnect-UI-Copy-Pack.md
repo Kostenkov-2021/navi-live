@@ -19,7 +19,7 @@ Settings include speech, vibration, tutorial, help, and privacy options. The app
 ### What to Test
 
 ```text
-Please test a real walking route from search to arrival. Focus on VoiceOver behavior, spoken guidance clarity, timing of haptics and announcements, off-route detection, route recalculation, and overall stability during a short real walk.
+Test reporting a route problem during guidance, turning live tracking on and off, and guidance with sound plus speech. The route problem action should confirm that the report was saved without stopping navigation. Live tracking should play distinct start and stop sounds, and after stopping on iPhone the home screen and current position screen should say that tracking is off instead of showing the last remembered address. Navigation sounds should play before spoken prompts and should not overlap. On Android, place details, route summary, favorites, and active guidance should be shorter with TalkBack and should no longer include long helper hints.
 ```
 
 ### Beta App Review Notes

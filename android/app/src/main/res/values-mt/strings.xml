@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ma nstab l-ebda post</string>
     <string name="search_empty_results_message">Ipprova isem ta\' post differenti jew mur lura u uża l-favoriti tiegħek.</string>
     <string name="place_details_title">Id-dettalji tal-post</string>
-    <string name="place_details_status_title">Destinazzjoni magħżula</string>
-    <string name="place_details_status_message">Iċċekkja l-indirizz u l-istima tal-mixi qabel tibda r-rotta.</string>
     <string name="label_address">Indirizz</string>
     <string name="label_walking_estimate">Stima tal-mixi</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Website</string>
-    <string name="helper_map_title">Helper map</string>
-    <string name="place_details_helper_map_message">Żomm il-mappa sekondarja. Il-vuċi, it-test u l-vibrazzjoni jibqgħu l-gwida ewlenija.</string>
     <string name="place_details_show_route">Uri r-rotta</string>
     <string name="common_remove_from_favorites">Neħħi mill-favoriti</string>
     <string name="common_save_favorite">Issejvja favoriti</string>
     <string name="route_summary_title">Sommarju tar-rotta</string>
-    <string name="route_summary_status_title">Rotta tal-mixi lesta</string>
-    <string name="route_summary_status_message">Ibda n-navigazzjoni meta tkun lesta. Navi Live jiddetermina d-direzzjoni awtomatikament hekk kif tibda timxi.</string>
     <string name="label_travel_time">Ħin tal-ivvjaġġar</string>
     <string name="label_distance">Distanza</string>
     <string name="label_mode">Modalità</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favoriti salvati</string>
     <string name="route_summary_start_route">Ibda n-navigazzjoni</string>
     <string name="route_summary_preparing_route">Nipprepara r-rotta...</string>
-    <string name="route_summary_helper_map_message">Uża l-previżjoni tar-rotta biss bħala kuntest addizzjonali. Ir-rotta tibqa’ tinftiehem mingħajr ma tħares lejn il-mappa.</string>
     <string name="heading_title">Issettja l-intestatura</string>
     <string name="heading_confirmed_title">Direzzjoni kkonfermata</string>
     <string name="heading_confirmed_message">Qed tiffaċċja r-rotta. Ibda mixi meta tkun lesta.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Għadu l-ebda favoriti</string>
     <string name="current_position_no_favorites_message">Issejvja postijiet bħad-Dar jew ix-Xogħol biex tibda r-rotot malajr.</string>
     <string name="favorites_title">Favoriti</string>
-    <string name="favorites_status_title">Postijiet salvati</string>
-    <string name="favorites_status_message">Żomm din il-lista qasira u prevedibbli sabiex ir-rotot jibdew bl-inqas sforz possibbli.</string>
     <string name="favorites_add_from_search">Żid mit-tfittxija</string>
     <string name="favorites_empty_title">Il-favoriti huma vojta</string>
     <string name="favorites_empty_message">Fittex post l-ewwel u ssejvjah għal rotot aktar mgħaġġla aktar tard.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">In-navigazzjoni waqfet</string>
     <string name="navigation_status_paused_message">Ibda l-gwida meta tkun lest biex tkompli timxi.</string>
     <string name="navigation_status_active_title">Gwida attiva</string>
-    <string name="navigation_status_active_message">Segwi l-istruzzjoni attwali u żomm il-mappa bħala kuntest helper biss.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

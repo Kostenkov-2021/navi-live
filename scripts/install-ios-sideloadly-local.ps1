@@ -79,9 +79,21 @@ set -euo pipefail
 
 cd "__REMOTE_ROOT__"
 
+XCODEGEN_BIN=""
 if command -v xcodegen >/dev/null 2>&1; then
-  (cd native-ios && xcodegen generate)
+  XCODEGEN_BIN="$(command -v xcodegen)"
+elif [ -x /opt/homebrew/bin/xcodegen ]; then
+  XCODEGEN_BIN="/opt/homebrew/bin/xcodegen"
+elif [ -x /usr/local/bin/xcodegen ]; then
+  XCODEGEN_BIN="/usr/local/bin/xcodegen"
 fi
+
+if [ -z "$XCODEGEN_BIN" ]; then
+  echo "xcodegen not found on Mac. Install it or add it to PATH." >&2
+  exit 1
+fi
+
+(cd native-ios && "$XCODEGEN_BIN" generate)
 
 xcodebuild \
   -project native-ios/NaviLive.xcodeproj \

@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Nenhum lugar encontrado</string>
     <string name="search_empty_results_message">Experimente um nome de lugar diferente ou volte e use seus favoritos.</string>
     <string name="place_details_title">Detalhes do local</string>
-    <string name="place_details_status_title">Destino selecionado</string>
-    <string name="place_details_status_message">Verifique o endereço e estimativa de caminhada antes de iniciar o percurso.</string>
     <string name="label_address">Endereço</string>
     <string name="label_walking_estimate">Estimativa de caminhada</string>
     <string name="label_phone">Telefone</string>
     <string name="label_website">Site</string>
-    <string name="helper_map_title">Mapa auxiliar</string>
-    <string name="place_details_helper_map_message">Mantenha o mapa secundário. Voz, texto e vibração continuam sendo as principais orientações.</string>
     <string name="place_details_show_route">Mostrar rota</string>
     <string name="common_remove_from_favorites">Remover dos favoritos</string>
     <string name="common_save_favorite">Salvar favorito</string>
     <string name="route_summary_title">Resumo da rota</string>
-    <string name="route_summary_status_title">Rota a pé pronta</string>
-    <string name="route_summary_status_message">Inicie a navegação quando estiver pronto. Navi Live determinará a direção automaticamente quando você começar a caminhar.</string>
     <string name="label_travel_time">Tempo de viagem</string>
     <string name="label_distance">Distância</string>
     <string name="label_mode">Modo</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favorito salvo</string>
     <string name="route_summary_start_route">Iniciar navegação</string>
     <string name="route_summary_preparing_route">Preparando rota...</string>
-    <string name="route_summary_helper_map_message">Use a visualização da rota apenas como contexto extra. A rota permanece compreensível sem olhar o mapa.</string>
     <string name="heading_title">Definir direção</string>
     <string name="heading_confirmed_title">Direção confirmada</string>
     <string name="heading_confirmed_message">Você está de frente para a rota. Comece a caminhar quando estiver pronto.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Ainda não há favoritos</string>
     <string name="current_position_no_favorites_message">Salve lugares como Casa ou Trabalho para iniciar rotas rapidamente.</string>
     <string name="favorites_title">Favoritos</string>
-    <string name="favorites_status_title">Locais guardados</string>
-    <string name="favorites_status_message">Mantenha esta lista curta e previsível para que os percursos comecem com o mínimo esforço possível.</string>
     <string name="favorites_add_from_search">Adicionar da pesquisa</string>
     <string name="favorites_empty_title">Os favoritos estão vazios</string>
     <string name="favorites_empty_message">Pesquise um local primeiro e salve-o para rotas mais rápidas depois.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navegação pausada</string>
     <string name="navigation_status_paused_message">Retome a orientação quando estiver pronto para continuar andando.</string>
     <string name="navigation_status_active_title">Orientação ativa</string>
-    <string name="navigation_status_active_message">Siga as instruções atuais e mantenha o mapa apenas como contexto auxiliar.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

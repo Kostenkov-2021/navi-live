@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Paikkoja ei löytynyt</string>
     <string name="search_empty_results_message">Kokeile toista paikannimeä tai palaa ja käytä suosikkejasi.</string>
     <string name="place_details_title">Paikkatiedot</string>
-    <string name="place_details_status_title">Valittu kohde</string>
-    <string name="place_details_status_message">Tarkista osoite ja kävelyarvio ennen reitin aloittamista.</string>
     <string name="label_address">Osoite</string>
     <string name="label_walking_estimate">Kävelyarvio</string>
     <string name="label_phone">Puhelin</string>
     <string name="label_website">Verkkosivusto</string>
-    <string name="helper_map_title">Auttaja kartta</string>
-    <string name="place_details_helper_map_message">Pidä kartta toissijaisena. Ääni, teksti ja värinä ovat edelleen pääohjeita.</string>
     <string name="place_details_show_route">Näytä reitti</string>
     <string name="common_remove_from_favorites">Poista suosikeista</string>
     <string name="common_save_favorite">Tallenna suosikki</string>
     <string name="route_summary_title">Reitin yhteenveto</string>
-    <string name="route_summary_status_title">Kävelyreitti valmis</string>
-    <string name="route_summary_status_message">Aloita navigointi, kun olet valmis. Navi Live määrittää suunnan automaattisesti, kun aloitat kävelyn.</string>
     <string name="label_travel_time">Matka-aika</string>
     <string name="label_distance">Etäisyys</string>
     <string name="label_mode">tila</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Suosikki tallennettu</string>
     <string name="route_summary_start_route">Aloita navigointi</string>
     <string name="route_summary_preparing_route">Valmistellaan reittiä...</string>
-    <string name="route_summary_helper_map_message">Käytä reitin esikatselua vain lisäkontekstina. Reitti pysyy ymmärrettävänä karttaa katsomattakin.</string>
     <string name="heading_title">Aseta otsikko</string>
     <string name="heading_confirmed_title">Suunta varmistettu</string>
     <string name="heading_confirmed_message">Olet reitin edessä. Aloita kävely, kun olet valmis.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Ei vielä suosikkeja</string>
     <string name="current_position_no_favorites_message">Tallenna paikat, kuten koti tai työ, aloittaaksesi reitit nopeasti.</string>
     <string name="favorites_title">Suosikit</string>
-    <string name="favorites_status_title">Tallennetut paikat</string>
-    <string name="favorites_status_message">Pidä tämä luettelo lyhyenä ja ennustettavana, jotta reitit alkavat mahdollisimman pienellä vaivalla.</string>
     <string name="favorites_add_from_search">Lisää hausta</string>
     <string name="favorites_empty_title">Suosikit ovat tyhjiä</string>
     <string name="favorites_empty_message">Etsi ensin paikka ja tallenna se myöhemmin nopeampia reittejä varten.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigointi keskeytetty</string>
     <string name="navigation_status_paused_message">Jatka opastusta, kun olet valmis jatkamaan kävelyä.</string>
     <string name="navigation_status_active_title">Ohjaus aktiivinen</string>
-    <string name="navigation_status_active_message">Noudata voimassa olevia ohjeita ja säilytä kartta vain apukontekstina.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

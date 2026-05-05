@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Nu s-au găsit locuri</string>
     <string name="search_empty_results_message">Încercați un alt nume de loc sau întoarceți-vă și utilizați preferatele.</string>
     <string name="place_details_title">Detalii loc</string>
-    <string name="place_details_status_title">Destinația selectată</string>
-    <string name="place_details_status_message">Verificați adresa și estimarea de mers pe jos înainte de a începe traseul.</string>
     <string name="label_address">Adresă</string>
     <string name="label_walking_estimate">Deviz de mers pe jos</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Site web</string>
-    <string name="helper_map_title">Hartă de ajutor</string>
-    <string name="place_details_helper_map_message">Păstrați harta secundară. Vocea, textul și vibrațiile rămân ghidul principal.</string>
     <string name="place_details_show_route">Afișați traseul</string>
     <string name="common_remove_from_favorites">Eliminați din favorite</string>
     <string name="common_save_favorite">Salvați favorit</string>
     <string name="route_summary_title">Rezumatul traseului</string>
-    <string name="route_summary_status_title">Traseu de mers pe jos gata</string>
-    <string name="route_summary_status_message">Începeți navigarea când este gata. Navi Live va determina direcția automat pe măsură ce începeți să mergeți.</string>
     <string name="label_travel_time">Timp de călătorie</string>
     <string name="label_distance">Distanță</string>
     <string name="label_mode">Mod</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favorit salvat</string>
     <string name="route_summary_start_route">Porniți navigarea</string>
     <string name="route_summary_preparing_route">Se pregătește traseul...</string>
-    <string name="route_summary_helper_map_message">Utilizați previzualizarea rutei doar ca context suplimentar. Traseul rămâne de înțeles fără să te uiți la hartă.</string>
     <string name="heading_title">Setați titlul</string>
     <string name="heading_confirmed_title">Direcția confirmată</string>
     <string name="heading_confirmed_message">Sunteți în fața traseului. Începeți să mergeți când sunteți gata.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Încă nu sunt favorite</string>
     <string name="current_position_no_favorites_message">Salvați locuri precum Acasă sau Serviciu pentru a începe rapid traseele.</string>
     <string name="favorites_title">Favorite</string>
-    <string name="favorites_status_title">Locuri salvate</string>
-    <string name="favorites_status_message">Păstrați această listă scurtă și previzibilă, astfel încât rutele să înceapă cu cât mai puțin efort posibil.</string>
     <string name="favorites_add_from_search">Adăugați din căutare</string>
     <string name="favorites_empty_title">Favoritele sunt goale</string>
     <string name="favorites_empty_message">Căutați mai întâi un loc și salvați-l pentru rute mai rapide ulterior.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigarea a fost întreruptă</string>
     <string name="navigation_status_paused_message">Reluați ghidarea când sunteți gata să continuați mersul.</string>
     <string name="navigation_status_active_title">Îndrumare activă</string>
-    <string name="navigation_status_active_message">Urmați instrucțiunile curente și păstrați harta doar ca context de ajutor.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

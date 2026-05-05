@@ -10,14 +10,14 @@ struct CurrentPositionView: View {
   }
 
   var body: some View {
+    let canUseCurrentFix = model.hasLocationPermission && model.isLiveTracking
+
     List {
       Section {
         StatusCard(
           title: L10n.text("current.title", table: .home),
-          message: model.currentLocationDescription.isEmpty
-            ? L10n.text("home.location.waiting", table: .home)
-            : model.currentLocationDescription,
-          tone: model.hasLocationPermission ? .success : .warning
+          message: currentLocationMessage,
+          tone: canUseCurrentFix ? .success : .warning
         )
       }
 
@@ -29,6 +29,7 @@ struct CurrentPositionView: View {
           favoriteName = ""
           isSaveDialogPresented = true
         }
+        .disabled(!canUseCurrentFix)
         .accessibilitySortPriority(2)
 
         SecondaryActionButton(
@@ -37,16 +38,19 @@ struct CurrentPositionView: View {
         ) {
           Task { await model.loadCurrentAddress() }
         }
+        .disabled(!canUseCurrentFix)
         .accessibilitySortPriority(1)
       }
 
-      Section {
-        LabeledContent(
-          L10n.text("current.label.accuracy", table: .home),
-          value: AppFormatters.accuracy(model.locationService.latestFix?.accuracyMeters)
-        )
-      } header: {
-        Text(L10n.text("current.section.details", table: .home))
+      if canUseCurrentFix {
+        Section {
+          LabeledContent(
+            L10n.text("current.label.accuracy", table: .home),
+            value: AppFormatters.accuracy(model.locationService.latestFix?.accuracyMeters)
+          )
+        } header: {
+          Text(L10n.text("current.section.details", table: .home))
+        }
       }
 
       if !model.currentPositionStatusMessage.isEmpty {
@@ -74,6 +78,17 @@ struct CurrentPositionView: View {
       }
       .disabled(trimmedFavoriteName.isEmpty)
     }
+  }
+  private var currentLocationMessage: String {
+    guard model.hasLocationPermission else {
+      return L10n.text("home.location.unavailable", table: .home)
+    }
+    guard model.isLiveTracking else {
+      return L10n.text("home.location.tracking_stopped", table: .home)
+    }
+    return model.currentLocationDescription.isEmpty
+      ? L10n.text("home.location.waiting", table: .home)
+      : model.currentLocationDescription
   }
 }
 

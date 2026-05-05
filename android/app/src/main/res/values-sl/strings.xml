@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ni najdenih mest</string>
     <string name="search_empty_results_message">Poskusite z drugim imenom kraja ali se vrnite in uporabite svoje priljubljene.</string>
     <string name="place_details_title">Podrobnosti kraja</string>
-    <string name="place_details_status_title">Izbrani cilj</string>
-    <string name="place_details_status_message">Pred začetkom poti preverite naslov in oceno hoje.</string>
     <string name="label_address">Naslov</string>
     <string name="label_walking_estimate">Ocena hoje</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Spletna stran</string>
-    <string name="helper_map_title">Pomožni zemljevid</string>
-    <string name="place_details_helper_map_message">Naj bo zemljevid sekundarni. Glas, besedilo in vibriranje ostajajo glavno vodilo.</string>
     <string name="place_details_show_route">Prikaži pot</string>
     <string name="common_remove_from_favorites">Odstrani iz priljubljenih</string>
     <string name="common_save_favorite">Shrani priljubljeno</string>
     <string name="route_summary_title">Povzetek poti</string>
-    <string name="route_summary_status_title">Peš pot pripravljena</string>
-    <string name="route_summary_status_message">Zaženite navigacijo, ko ste pripravljeni. Navi Live bo samodejno določil smer, ko začnete hoditi.</string>
     <string name="label_travel_time">Čas potovanja</string>
     <string name="label_distance">Razdalja</string>
     <string name="label_mode">Način</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Priljubljeno shranjeno</string>
     <string name="route_summary_start_route">Začni navigacijo</string>
     <string name="route_summary_preparing_route">Priprava poti ...</string>
-    <string name="route_summary_helper_map_message">Predogled poti uporabite samo kot dodaten kontekst. Pot ostane razumljiva brez pogleda na zemljevid.</string>
     <string name="heading_title">Nastavi smer</string>
     <string name="heading_confirmed_title">Smer potrjena</string>
     <string name="heading_confirmed_message">Obrnjeni ste proti poti. Začnite hoditi, ko ste pripravljeni.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Še ni priljubljenih</string>
     <string name="current_position_no_favorites_message">Shrani mesta, kot sta Dom ali Služba, da hitro začneš poti.</string>
     <string name="favorites_title">Priljubljene</string>
-    <string name="favorites_status_title">Shranjena mesta</string>
-    <string name="favorites_status_message">Naj bo ta seznam kratek in predvidljiv, da se poti začnejo s čim manj truda.</string>
     <string name="favorites_add_from_search">Dodaj iz iskanja</string>
     <string name="favorites_empty_title">Priljubljene so prazne</string>
     <string name="favorites_empty_message">Najprej poiščite mesto in ga pozneje shranite za hitrejše poti.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigacija začasno ustavljena</string>
     <string name="navigation_status_paused_message">Nadaljujte z vodenjem, ko ste pripravljeni nadaljevati hojo.</string>
     <string name="navigation_status_active_title">Aktivno vodenje</string>
-    <string name="navigation_status_active_message">Sledite trenutnim navodilom in obdržite zemljevid le kot kontekst pomoči.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

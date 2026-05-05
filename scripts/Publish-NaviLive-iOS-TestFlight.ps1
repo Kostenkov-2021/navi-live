@@ -26,7 +26,68 @@ function Invoke-GitHub {
   }
 }
 
+function Assert-RemoteWorkflowSourceReady {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Ref
+  )
+
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    throw "git is not available in PATH."
+  }
+
+  $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+  $statusLines = @(& git -C $repoRoot status --porcelain=v1 --untracked-files=all)
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to read git status before TestFlight workflow."
+  }
+
+  $allowedDirtyPatterns = @(
+    '^\s*M\s+native-ios/project\.yml$',
+    '^\s*M\s+native-ios/AppStoreConnect/(TestFlight-what-to-test\.txt|AppStoreConnect-UI-Copy-Pack\.md)$',
+    '^\?\?\s+release/testflight/',
+    '^\s*M\s+release/testflight/'
+  )
+
+  $blockingDirtyLines = @()
+  foreach ($line in $statusLines) {
+    $isAllowed = $false
+    foreach ($pattern in $allowedDirtyPatterns) {
+      if ($line -match $pattern) {
+        $isAllowed = $true
+        break
+      }
+    }
+    if (-not $isAllowed) {
+      $blockingDirtyLines += $line
+    }
+  }
+
+  if ($blockingDirtyLines.Count -gt 0) {
+    $preview = ($blockingDirtyLines | Select-Object -First 20) -join "`n"
+    throw "Nie uruchamiam TestFlight, bo GitHub Actions buduje z origin/$Ref, a lokalnie sa niezatwierdzone zmiany aplikacji. Zrob commit i push, a potem ponow wysylke. Pliki blokujace:`n$preview"
+  }
+
+  & git -C $repoRoot fetch origin $Ref --quiet
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to fetch origin/$Ref before TestFlight workflow."
+  }
+
+  $localHead = (& git -C $repoRoot rev-parse HEAD).Trim()
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to read local HEAD before TestFlight workflow."
+  }
+  $remoteHead = (& git -C $repoRoot rev-parse "origin/$Ref").Trim()
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to read origin/$Ref before TestFlight workflow."
+  }
+
+  if ($localHead -ne $remoteHead) {
+    throw "Nie uruchamiam TestFlight, bo lokalny commit $localHead nie jest wypchniety na origin/$Ref ($remoteHead). Zrob git push i ponow wysylke."
+  }
+}
 Assert-Tooling
+Assert-RemoteWorkflowSourceReady -Ref $Ref
 
 $uploadValue = if ($NoUpload) { "false" } else { "true" }
 

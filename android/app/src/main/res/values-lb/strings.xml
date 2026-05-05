@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Keng Plazen fonnt</string>
     <string name="search_empty_results_message">Probéiert en anere Plaznumm oder gitt zréck a benotzt Är Favoritten.</string>
     <string name="place_details_title">Plaze Detailer</string>
-    <string name="place_details_status_title">Ausgewielten Destinatioun</string>
-    <string name="place_details_status_message">Préift d\'Adress an d\'Spazschätzung ier Dir d\'Streck ufänkt.</string>
     <string name="label_address">Adress</string>
     <string name="label_walking_estimate">Spadséier- Schätzung</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Websäit</string>
-    <string name="helper_map_title">Hëllef Kaart</string>
-    <string name="place_details_helper_map_message">Halt d\'Kaart sekundär. Stëmm, Text a Schwéngung bleiwen d\'Haaptleit.</string>
     <string name="place_details_show_route">Wee weisen</string>
     <string name="common_remove_from_favorites">Ewechzehuelen aus Favoritten</string>
     <string name="common_save_favorite">Retten Léifsten</string>
     <string name="route_summary_title">Route Resumé</string>
-    <string name="route_summary_status_title">Trëppeltour prett</string>
-    <string name="route_summary_status_message">Start Navigatioun wann prett. Navi Live wäert d\'Richtung automatesch bestëmmen wann Dir ufänkt ze goen.</string>
     <string name="label_travel_time">Rees Zäit</string>
     <string name="label_distance">Distanz</string>
     <string name="label_mode">Modus</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favourite gespäichert</string>
     <string name="route_summary_start_route">Start Navigatioun</string>
     <string name="route_summary_preparing_route">Route preparéieren...</string>
-    <string name="route_summary_helper_map_message">Benotzt d\'Route Virschau nëmmen als extra Kontext. De Wee bleift verständlech ouni op d\'Kaart ze kucken.</string>
     <string name="heading_title">Iwwerschrëft setzen</string>
     <string name="heading_confirmed_title">Richtung confirméiert</string>
     <string name="heading_confirmed_message">Dir sidd vis-à-vis vun der Streck. Start Spadséiergank wann prett.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Nach keng Favoritten</string>
     <string name="current_position_no_favorites_message">Späichert Plazen wéi Heem oder Aarbecht fir Strecken séier ze starten.</string>
     <string name="favorites_title">Favoritten</string>
-    <string name="favorites_status_title">Gespäichert Plaze</string>
-    <string name="favorites_status_message">Halt dës Lëscht kuerz a prévisibel sou datt d\'Strecken mat sou wéineg Effort wéi méiglech ufänken.</string>
     <string name="favorites_add_from_search">Füügt aus der Sich</string>
     <string name="favorites_empty_title">Favoritten sinn eidel</string>
     <string name="favorites_empty_message">Sich no enger Plaz fir d\'éischt a späichert se fir méi séier Strecken méi spéit.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigatioun gestoppt</string>
     <string name="navigation_status_paused_message">Fuert d\'Leedung erëm wann Dir bereet sidd weider ze goen.</string>
     <string name="navigation_status_active_title">Leedung aktiv</string>
-    <string name="navigation_status_active_message">Follegt déi aktuell Instruktioun an haalt d\'Kaart nëmmen als Hëllefskontext.</string>
     <string name="format_eta_minutes">%1$d Min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d Min</string>

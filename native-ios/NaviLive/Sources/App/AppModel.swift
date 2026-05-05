@@ -39,6 +39,7 @@ final class AppModel: ObservableObject {
   private let navigationAPI: NavigationAPIClient
   private let announcer: VoiceOverAnnouncer
   private let liveNavigationEngine = LiveNavigationEngine()
+  private let routeIssueLogger = RouteIssueDiagnosticLogger()
 
   private var knownPlaces: [String: Place] = [:]
   private var cancellables: Set<AnyCancellable> = []
@@ -163,9 +164,16 @@ final class AppModel: ObservableObject {
 
     if locationService.isUpdating {
       locationService.stopUpdates()
+      isLiveTracking = false
+      playLiveTrackingToggleSound(starting: false)
+      let stoppedMessage = L10n.text("home.location.tracking_stopped", table: .home)
+      currentLocationDescription = stoppedMessage
       statusMessage = L10n.text("home.status.live_tracking_stopped", table: .home)
     } else {
       locationService.startUpdates()
+      isLiveTracking = true
+      playLiveTrackingToggleSound(starting: true)
+      currentLocationDescription = L10n.text("home.location.waiting", table: .home)
       statusMessage = L10n.text("home.status.live_tracking_started", table: .home)
       Task { await loadCurrentAddress() }
     }
@@ -283,14 +291,28 @@ final class AppModel: ObservableObject {
   }
 
   func loadCurrentAddress() async {
+    guard locationService.isUpdating else {
+      currentLocationDescription = L10n.text("home.location.tracking_stopped", table: .home)
+      return
+    }
+
     guard let fix = locationService.latestFix else {
       currentLocationDescription = L10n.text("home.location.waiting", table: .home)
       return
     }
 
     do {
-      currentLocationDescription = try await navigationAPI.reverseGeocode(point: fix.point)
+      let address = try await navigationAPI.reverseGeocode(point: fix.point)
+      guard locationService.isUpdating else {
+        currentLocationDescription = L10n.text("home.location.tracking_stopped", table: .home)
+        return
+      }
+      currentLocationDescription = address
     } catch {
+      guard locationService.isUpdating else {
+        currentLocationDescription = L10n.text("home.location.tracking_stopped", table: .home)
+        return
+      }
       currentLocationDescription = L10n.text("home.location.fallback", table: .home)
     }
   }
@@ -402,6 +424,46 @@ final class AppModel: ObservableObject {
     announceNavigationPrompt(message)
   }
 
+  func reportRouteProblem() {
+    let steps = selectedRouteSummary?.steps ?? []
+    let currentStepIndex = activeNavigationState.currentStepIndex
+    let destination = liveNavigationEngine.currentDestination
+    let fix = locationService.latestFix
+    let snapshot = RouteIssueDiagnosticSnapshot(
+      createdAt: Date(),
+      appVersion: appVersionLabel,
+      appBuild: appBuildLabel,
+      destinationID: destination?.id,
+      destinationName: destination?.name,
+      currentStepIndex: currentStepIndex,
+      stepCount: steps.count,
+      currentInstruction: activeNavigationState.currentInstruction,
+      nextInstruction: activeNavigationState.nextInstruction,
+      distanceToNextMeters: activeNavigationState.distanceToNextMeters,
+      remainingDistanceMeters: activeNavigationState.remainingDistanceMeters,
+      isPaused: activeNavigationState.isPaused,
+      isOffRoute: activeNavigationState.isOffRoute,
+      isRecalculating: activeNavigationState.isRecalculating,
+      offRouteDistanceMeters: activeNavigationState.offRouteDistanceMeters,
+      accuracyMeters: fix?.accuracyMeters,
+      currentStep: diagnosticStepSnapshot(steps.indices.contains(currentStepIndex) ? steps[currentStepIndex] : nil),
+      nextStep: diagnosticStepSnapshot(steps.indices.contains(currentStepIndex + 1) ? steps[currentStepIndex + 1] : nil)
+    )
+
+    Task {
+      do {
+        try await routeIssueLogger.append(snapshot)
+        let message = L10n.text("active.status.problem_report_saved", table: .navigation)
+        statusMessage = message
+        announcer.announce(message, settings: settings)
+      } catch {
+        let message = L10n.text("active.status.problem_report_failed", table: .navigation)
+        statusMessage = message
+        announcer.announce(message, settings: settings)
+      }
+    }
+  }
+
   func announcePreviousInstruction() {
     announceRouteInstruction(
       offset: -1,
@@ -436,6 +498,18 @@ final class AppModel: ObservableObject {
     Task {
       await recalculateRoute(autoTriggered: false)
     }
+  }
+
+  private func diagnosticStepSnapshot(_ step: RouteStep?) -> RouteIssueStepSnapshot? {
+    guard let step else { return nil }
+    return RouteIssueStepSnapshot(
+      instruction: step.instruction,
+      distanceMeters: step.distanceMeters,
+      kind: step.kind.rawValue,
+      maneuverType: step.maneuverType,
+      maneuverModifier: step.maneuverModifier,
+      roadName: step.roadName
+    )
   }
 
   private func announceRouteInstruction(offset: Int, spokenKey: String, unavailableKey: String) {
@@ -690,16 +764,22 @@ final class AppModel: ObservableObject {
       .compactMap { $0 }
       .sink { [weak self] fix in
         guard let self else { return }
-        Task { await self.loadCurrentAddress() }
+        if self.locationService.isUpdating {
+          Task { await self.loadCurrentAddress() }
+          self.maybeRefreshNearbyPOICache(fix: fix)
+        }
         self.syncActiveNavigationWithLocation(fix)
-        self.maybeRefreshNearbyPOICache(fix: fix)
       }
       .store(in: &cancellables)
 
     locationService.$isUpdating
       .removeDuplicates()
       .sink { [weak self] isUpdating in
-        self?.isLiveTracking = isUpdating
+        guard let self else { return }
+        self.isLiveTracking = isUpdating
+        if !isUpdating {
+          self.currentLocationDescription = L10n.text("home.location.tracking_stopped", table: .home)
+        }
       }
       .store(in: &cancellables)
   }
@@ -1021,6 +1101,10 @@ final class AppModel: ObservableObject {
     if settings.vibrationEnabled {
       announcer.hapticSuccess()
     }
+  }
+
+  private func playLiveTrackingToggleSound(starting: Bool) {
+    _ = playSoundCueIfEnabled(starting ? .success : .warning)
   }
 
   private func playSoundCueIfEnabled(_ cue: NavigationSoundCue) -> TimeInterval {

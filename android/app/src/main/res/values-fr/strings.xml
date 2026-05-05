@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Aucun lieu trouvé</string>
     <string name="search_empty_results_message">Essayez un autre nom de lieu ou revenez en arrière et utilisez vos favoris.</string>
     <string name="place_details_title">Détails du lieu</string>
-    <string name="place_details_status_title">Destination sélectionnée</string>
-    <string name="place_details_status_message">Vérifiez l\'adresse et le devis de marche avant de commencer l\'itinéraire.</string>
     <string name="label_address">Adresse</string>
     <string name="label_walking_estimate">Estimation de marche</string>
     <string name="label_phone">Téléphone</string>
     <string name="label_website">Site Web</string>
-    <string name="helper_map_title">Helper map</string>
-    <string name="place_details_helper_map_message">Gardez la carte secondaire. La voix, le texte et les vibrations restent les principaux conseils.</string>
     <string name="place_details_show_route">Afficher l\'itinéraire</string>
     <string name="common_remove_from_favorites">Supprimer des favoris</string>
     <string name="common_save_favorite">Enregistrer le favori</string>
     <string name="route_summary_title">Résumé de l\'itinéraire</string>
-    <string name="route_summary_status_title">Itinéraire pédestre prêt</string>
-    <string name="route_summary_status_message">Démarrez la navigation lorsque vous êtes prêt. Navi Live déterminera automatiquement la direction lorsque vous commencerez à marcher.</string>
     <string name="label_travel_time">Temps de trajet</string>
     <string name="label_distance">Distance</string>
     <string name="label_mode">Mode</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favoris enregistré</string>
     <string name="route_summary_start_route">Démarrer la navigation</string>
     <string name="route_summary_preparing_route">Préparation de l\'itinéraire...</string>
-    <string name="route_summary_helper_map_message">Utilisez l\'aperçu de l\'itinéraire uniquement comme contexte supplémentaire. L\'itinéraire reste compréhensible sans regarder la carte.</string>
     <string name="heading_title">Fixer le cap</string>
     <string name="heading_confirmed_title">Direction confirmée</string>
     <string name="heading_confirmed_message">Vous êtes face à l\'itinéraire. Commencez à marcher lorsque vous êtes prêt.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Aucun favori pour l\'instant</string>
     <string name="current_position_no_favorites_message">Enregistrez des lieux tels que votre domicile ou votre travail pour démarrer rapidement des itinéraires.</string>
     <string name="favorites_title">Favoris</string>
-    <string name="favorites_status_title">Lieux enregistrés</string>
-    <string name="favorites_status_message">Gardez cette liste courte et prévisible afin que les itinéraires démarrent avec le moins d\'effort possible.</string>
     <string name="favorites_add_from_search">Ajouter à la recherche</string>
     <string name="favorites_empty_title">Les favoris sont vides</string>
     <string name="favorites_empty_message">Recherchez d\'abord un lieu et enregistrez-le pour des itinéraires plus rapides plus tard.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigation en pause</string>
     <string name="navigation_status_paused_message">Reprenez le guidage lorsque vous êtes prêt à continuer votre marche.</string>
     <string name="navigation_status_active_title">Guidage actif</string>
-    <string name="navigation_status_active_message">Suivez les instructions actuelles et conservez la carte comme contexte d\'assistance uniquement.</string>
     <string name="format_eta_minutes">%1$d minutes</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d minutes</string>

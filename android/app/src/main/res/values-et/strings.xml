@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ühtegi kohta ei leitud</string>
     <string name="search_empty_results_message">Proovige mõnda muud kohanime või minge tagasi ja kasutage oma lemmikuid.</string>
     <string name="place_details_title">Koha üksikasjad</string>
-    <string name="place_details_status_title">Valitud sihtkoht</string>
-    <string name="place_details_status_message">Enne marsruudi alustamist kontrollige aadressi ja kõndimise prognoosi.</string>
     <string name="label_address">Aadress</string>
     <string name="label_walking_estimate">Prognoositud kõndimine</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Veebisait</string>
-    <string name="helper_map_title">Abimeeste kaart</string>
-    <string name="place_details_helper_map_message">Hoidke kaart teisejärgulisena. Peamiseks juhiseks jäävad hääl, tekst ja vibratsioon.</string>
     <string name="place_details_show_route">Näita marsruuti</string>
     <string name="common_remove_from_favorites">Eemalda lemmikutest</string>
     <string name="common_save_favorite">Salvesta lemmik</string>
     <string name="route_summary_title">Marsruudi kokkuvõte</string>
-    <string name="route_summary_status_title">Kõndimismarsruut on valmis</string>
-    <string name="route_summary_status_message">Alustage navigeerimist, kui olete valmis. Navi Live määrab suuna automaatselt, kui hakkate kõndima.</string>
     <string name="label_travel_time">Reisiaeg</string>
     <string name="label_distance">Kaugus</string>
     <string name="label_mode">Režiim</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Lemmik salvestatud</string>
     <string name="route_summary_start_route">Alusta navigeerimist</string>
     <string name="route_summary_preparing_route">Marsruudi ettevalmistamine...</string>
-    <string name="route_summary_helper_map_message">Kasutage marsruudi eelvaadet ainult lisakontekstina. Marsruut jääb kaarti vaatamata arusaadavaks.</string>
     <string name="heading_title">Määra suund</string>
     <string name="heading_confirmed_title">Suund kinnitatud</string>
     <string name="heading_confirmed_message">Olete näoga marsruudile. Alustage kõndimist, kui olete valmis.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Lemmikuid veel pole</string>
     <string name="current_position_no_favorites_message">Marsruutide kiireks alustamiseks salvestage sellised kohad nagu Kodu või Töö.</string>
     <string name="favorites_title">Lemmikud</string>
-    <string name="favorites_status_title">Salvestatud kohad</string>
-    <string name="favorites_status_message">Hoidke see nimekiri lühike ja etteaimatav, et marsruudid algaksid võimalikult väikese pingutusega.</string>
     <string name="favorites_add_from_search">Lisa otsingust</string>
     <string name="favorites_empty_title">Lemmikud on tühjad</string>
     <string name="favorites_empty_message">Otsige esmalt koht ja salvestage see hiljem kiiremate marsruutide jaoks.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigeerimine peatatud</string>
     <string name="navigation_status_paused_message">Jätkake juhendamist, kui olete valmis kõndimist jätkama.</string>
     <string name="navigation_status_active_title">Juhendamine aktiivne</string>
-    <string name="navigation_status_active_message">Järgige kehtivaid juhiseid ja hoidke kaarti ainult abistaja kontekstina.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Eingi støð funnin</string>
     <string name="search_empty_results_message">Royn eitt annað staðarnavn ella far aftur og brúka tíni yndis.</string>
     <string name="place_details_title">Staðsupplýsingar</string>
-    <string name="place_details_status_title">Valt ferðamál</string>
-    <string name="place_details_status_message">Kanna adressuna og gongumetingina, áðrenn farið verður undir leiðina.</string>
     <string name="label_address">Bústaður</string>
     <string name="label_walking_estimate">Gongumeting</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Heimasíða</string>
-    <string name="helper_map_title">Hjálparkort</string>
-    <string name="place_details_helper_map_message">Halt kortið sekundært. Rødd, tekstur og vibratiónir eru framvegis høvuðsvegleiðingin.</string>
     <string name="place_details_show_route">Vís leið</string>
     <string name="common_remove_from_favorites">Strika úr uppáhaldum</string>
     <string name="common_save_favorite">Goym yndis</string>
     <string name="route_summary_title">Leiðsamandráttur</string>
-    <string name="route_summary_status_title">Gonguleið klár</string>
-    <string name="route_summary_status_message">Byrja navigatiónina tá tú ert klárur. Navi Live ásetur sjálvvirkandi stevnuna, tá tú byrjar at ganga.</string>
     <string name="label_travel_time">Ferðatíð</string>
     <string name="label_distance">Fjarstøða</string>
     <string name="label_mode">Mode</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Yndis goymt</string>
     <string name="route_summary_start_route">Byrja navigatiónina</string>
     <string name="route_summary_preparing_route">Fyrireika leiðina...</string>
-    <string name="route_summary_helper_map_message">Brúka leiðforskoðanina bert sum eyka samanhang. Leiðin heldur seg skillig uttan at hyggja at kortinum.</string>
     <string name="heading_title">Set yvirskrift</string>
     <string name="heading_confirmed_title">Ættin staðfest</string>
     <string name="heading_confirmed_message">Tú vendir móti leiðini. Byrja at ganga tá tú ert liðugur.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Eingin uppáhald enn</string>
     <string name="current_position_no_favorites_message">Goym støð sum Heima ella Arbeiði fyri at byrja leiðir skjótt.</string>
     <string name="favorites_title">Uppáhald</string>
-    <string name="favorites_status_title">Goymd støð</string>
-    <string name="favorites_status_message">Halt hendan listan stuttan og forútsiguligan, so leiðirnar byrja við so lítlum átaki sum gjørligt.</string>
     <string name="favorites_add_from_search">Legg til frá leitan</string>
     <string name="favorites_empty_title">Uppáhald eru tóm</string>
     <string name="favorites_empty_message">Leita fyrst eftir einum stað og goym tað til skjótari leiðir seinni.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigatión steðgað</string>
     <string name="navigation_status_paused_message">Tak vegleiðingina uppaftur, tá tú ert klárur at halda fram at ganga.</string>
     <string name="navigation_status_active_title">Vegleiðing virkin</string>
-    <string name="navigation_status_active_message">Fylg galdandi vegleiðing og halt kortið bert sum hjálparsamanhang.</string>
     <string name="format_eta_minutes">%1$d min.</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min.</string>

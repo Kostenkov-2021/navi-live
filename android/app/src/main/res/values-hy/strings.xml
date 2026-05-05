@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Ոչ մի տեղ չի գտնվել</string>
     <string name="search_empty_results_message">Փորձեք այլ վայրի անուն կամ վերադարձեք և օգտագործեք ձեր ընտրյալները:</string>
     <string name="place_details_title">Տեղի մանրամասները</string>
-    <string name="place_details_status_title">Ընտրված նպատակակետ</string>
-    <string name="place_details_status_message">Նախքան երթուղին սկսելը ստուգեք հասցեն և քայլելու նախահաշիվը:</string>
     <string name="label_address">Հասցե</string>
     <string name="label_walking_estimate">Քայլելու նախահաշիվ</string>
     <string name="label_phone">Հեռախոս</string>
     <string name="label_website">Կայք</string>
-    <string name="helper_map_title">Օգնական քարտեզ</string>
-    <string name="place_details_helper_map_message">Քարտեզը երկրորդական պահեք: Ձայնը, տեքստը և թրթռումը մնում են հիմնական ուղեցույցը:</string>
     <string name="place_details_show_route">Ցույց տալ երթուղին</string>
     <string name="common_remove_from_favorites">Հեռացնել ընտրյալներից</string>
     <string name="common_save_favorite">Պահպանել սիրելին</string>
     <string name="route_summary_title">Երթուղու ամփոփում</string>
-    <string name="route_summary_status_title">Քայլելու երթուղին պատրաստ է</string>
-    <string name="route_summary_status_message">Սկսեք նավիգացիան, երբ պատրաստ եք: Navi Live ավտոմատ կերպով կորոշի ուղղությունը, երբ դուք սկսում եք քայլել:</string>
     <string name="label_travel_time">Ճամփորդության ժամանակը</string>
     <string name="label_distance">Հեռավորությունը</string>
     <string name="label_mode">Ռեժիմ</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Սիրվածը պահվեց</string>
     <string name="route_summary_start_route">Սկսել նավարկությունը</string>
     <string name="route_summary_preparing_route">Երթուղու պատրաստում...</string>
-    <string name="route_summary_helper_map_message">Օգտագործեք երթուղու նախադիտումը միայն որպես լրացուցիչ համատեքստ: Երթուղին մնում է հասկանալի առանց քարտեզին նայելու:</string>
     <string name="heading_title">Սահմանել վերնագիր</string>
     <string name="heading_confirmed_title">Ուղղությունը հաստատված է</string>
     <string name="heading_confirmed_message">Դու կանգնած ես դեպի երթուղին։ Սկսեք քայլել, երբ պատրաստ եք:</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Դեռևս ֆավորիտներ չկան</string>
     <string name="current_position_no_favorites_message">Պահպանեք այնպիսի վայրեր, ինչպիսիք են Տունը կամ Աշխատանքը, երթուղիներն արագ սկսելու համար:</string>
     <string name="favorites_title">Ֆավորիտներ</string>
-    <string name="favorites_status_title">Պահված վայրեր</string>
-    <string name="favorites_status_message">Պահպանեք այս ցուցակը կարճ և կանխատեսելի, որպեսզի երթուղիները սկսվեն հնարավորինս քիչ ջանքերով:</string>
     <string name="favorites_add_from_search">Ավելացնել որոնումից</string>
     <string name="favorites_empty_title">Սիրվածները դատարկ են</string>
     <string name="favorites_empty_message">Սկզբում տեղ փնտրեք և ավելի ուշ պահեք այն ավելի արագ երթուղիների համար:</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Նավիգացիան դադարեցվել է</string>
     <string name="navigation_status_paused_message">Վերսկսեք ուղղորդումը, երբ պատրաստ լինեք շարունակել քայլելը:</string>
     <string name="navigation_status_active_title">Առաջնորդությունը ակտիվ է</string>
-    <string name="navigation_status_active_message">Հետևեք ընթացիկ հրահանգին և պահեք քարտեզը միայն որպես օգնական համատեքստ:</string>
     <string name="format_eta_minutes">%1$d րոպե</string>
     <string name="format_distance_meters">%1$d մ</string>
     <string name="format_walk_time_only">%1$d րոպե</string>

@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Не се пронајдени места</string>
     <string name="search_empty_results_message">Обидете се со друго име на место или вратете се назад и користете ги вашите омилени.</string>
     <string name="place_details_title">Детали за место</string>
-    <string name="place_details_status_title">Избрана дестинација</string>
-    <string name="place_details_status_message">Проверете ја адресата и проценката за пешачење пред да започнете со рутата.</string>
     <string name="label_address">Адреса</string>
     <string name="label_walking_estimate">Одење проценка</string>
     <string name="label_phone">Телефон</string>
     <string name="label_website">Веб-страница</string>
-    <string name="helper_map_title">Помошна мапа</string>
-    <string name="place_details_helper_map_message">Чувајте ја картата споредна. Гласот, текстот и вибрациите остануваат главното водство.</string>
     <string name="place_details_show_route">Прикажи маршрута</string>
     <string name="common_remove_from_favorites">Отстрани од омилените</string>
     <string name="common_save_favorite">Зачувај омилен</string>
     <string name="route_summary_title">Резиме на маршрутата</string>
-    <string name="route_summary_status_title">Пешачката рута е подготвена</string>
-    <string name="route_summary_status_message">Започнете со навигација кога сте подготвени. Navi Live автоматски ќе ја одреди насоката кога ќе почнете да одите.</string>
     <string name="label_travel_time">Време на патување</string>
     <string name="label_distance">Растојание</string>
     <string name="label_mode">Режим</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Омилената е зачувана</string>
     <string name="route_summary_start_route">Започнете со навигација</string>
     <string name="route_summary_preparing_route">Се подготвува рута...</string>
-    <string name="route_summary_helper_map_message">Користете го прегледот на маршрутата само како дополнителен контекст. Маршрутата останува разбирлива без да се гледа на картата.</string>
     <string name="heading_title">Поставете наслов</string>
     <string name="heading_confirmed_title">Насоката е потврдена</string>
     <string name="heading_confirmed_message">Вие сте свртени кон рутата. Почнете да одите кога сте подготвени.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Сè уште нема омилени</string>
     <string name="current_position_no_favorites_message">Зачувајте места како што се Дома или Работа за брзо да започнете маршрути.</string>
     <string name="favorites_title">Омилени</string>
-    <string name="favorites_status_title">Зачувани места</string>
-    <string name="favorites_status_message">Одржувајте ја оваа листа кратка и предвидлива, така што рутите започнуваат со што е можно помал напор.</string>
     <string name="favorites_add_from_search">Додај од пребарување</string>
     <string name="favorites_empty_title">Омилените се празни</string>
     <string name="favorites_empty_message">Најпрво побарајте место и зачувајте го за побрзи рути подоцна.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Навигацијата е паузирана</string>
     <string name="navigation_status_paused_message">Продолжете со насоките кога ќе бидете подготвени да продолжите да одите.</string>
     <string name="navigation_status_active_title">Упатството е активно</string>
-    <string name="navigation_status_active_message">Следете ја тековната инструкција и чувајте ја картата само како помошен контекст.</string>
     <string name="format_eta_minutes">%1$d мин</string>
     <string name="format_distance_meters">%1$d м</string>
     <string name="format_walk_time_only">%1$d мин</string>

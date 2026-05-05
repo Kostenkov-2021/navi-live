@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Inga platser hittades</string>
     <string name="search_empty_results_message">Prova ett annat platsnamn eller gå tillbaka och använd dina favoriter.</string>
     <string name="place_details_title">Platsinformation</string>
-    <string name="place_details_status_title">Vald destination</string>
-    <string name="place_details_status_message">Kontrollera adressen och promenaduppskattningen innan du startar rutten.</string>
     <string name="label_address">Adress</string>
     <string name="label_walking_estimate">Walking uppskattning</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Webbplats</string>
-    <string name="helper_map_title">Hjälpkarta</string>
-    <string name="place_details_helper_map_message">Håll kartan sekundär. Röst, text och vibration förblir den huvudsakliga vägledningen.</string>
     <string name="place_details_show_route">Visa rutt</string>
     <string name="common_remove_from_favorites">Ta bort från favoriter</string>
     <string name="common_save_favorite">Spara favorit</string>
     <string name="route_summary_title">Ruttsammanfattning</string>
-    <string name="route_summary_status_title">Vandringsvägen klar</string>
-    <string name="route_summary_status_message">Starta navigering när du är redo. Navi Live kommer att bestämma riktning automatiskt när du börjar gå.</string>
     <string name="label_travel_time">Restid</string>
     <string name="label_distance">Avstånd</string>
     <string name="label_mode">Läge</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favoriten sparad</string>
     <string name="route_summary_start_route">Starta navigering</string>
     <string name="route_summary_preparing_route">Förbereder rutt...</string>
-    <string name="route_summary_helper_map_message">Använd ruttförhandsgranskningen endast som extra sammanhang. Rutten förblir begriplig utan att titta på kartan.</string>
     <string name="heading_title">Ställ in rubrik</string>
     <string name="heading_confirmed_title">Riktningen bekräftad</string>
     <string name="heading_confirmed_message">Du är vänd mot rutten. Börja gå när du är redo.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Inga favoriter än</string>
     <string name="current_position_no_favorites_message">Spara platser som Hem eller Arbete för att starta rutter snabbt.</string>
     <string name="favorites_title">Favoriter</string>
-    <string name="favorites_status_title">Sparade platser</string>
-    <string name="favorites_status_message">Håll den här listan kort och förutsägbar så att rutter börjar med så lite ansträngning som möjligt.</string>
     <string name="favorites_add_from_search">Lägg till från sökning</string>
     <string name="favorites_empty_title">Favoriter är tomma</string>
     <string name="favorites_empty_message">Sök efter en plats först och spara den för snabbare rutter senare.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigeringen pausad</string>
     <string name="navigation_status_paused_message">Återuppta vägledningen när du är redo att fortsätta gå.</string>
     <string name="navigation_status_active_title">Vägledning aktiv</string>
-    <string name="navigation_status_active_message">Följ den aktuella instruktionen och behåll kartan endast som hjälpsammanhang.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

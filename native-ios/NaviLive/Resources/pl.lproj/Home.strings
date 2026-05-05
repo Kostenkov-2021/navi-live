@@ -7,6 +7,7 @@
 "home.location.unavailable" = "Lokalizacja nie jest jeszcze dostępna.";
 "home.location.waiting" = "Oczekiwanie na bieżącą lokalizację.";
 "home.location.fallback" = "Nie udało się rozpoznać bieżącego adresu.";
+"home.location.tracking_stopped" = "Śledzenie na żywo jest wyłączone.";
 "home.location.accuracy" = "Przybliżona dokładność: %d m";
 "home.status.ready" = "Navi Live jest gotowe.";
 "home.status.location_later" = "Możesz zezwolić na lokalizację później w Ustawieniach.";

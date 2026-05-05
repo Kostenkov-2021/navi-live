@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Hiçbir yer bulunamadı</string>
     <string name="search_empty_results_message">Farklı bir yer adı deneyin veya geri dönüp favorilerinizi kullanın.</string>
     <string name="place_details_title">Yer ayrıntıları</string>
-    <string name="place_details_status_title">Seçilen varış noktası</string>
-    <string name="place_details_status_message">Rotaya başlamadan önce adresi ve yürüyüş tahminini kontrol edin.</string>
     <string name="label_address">Adres</string>
     <string name="label_walking_estimate">Yürüyüş tahmini</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Web sitesi</string>
-    <string name="helper_map_title">Yardımcı harita</string>
-    <string name="place_details_helper_map_message">Haritayı ikincil tutun. Ses, metin ve titreşim ana rehberlik olmaya devam ediyor.</string>
     <string name="place_details_show_route">Rotayı göster</string>
     <string name="common_remove_from_favorites">Favorilerden kaldır</string>
     <string name="common_save_favorite">Favoriyi kaydet</string>
     <string name="route_summary_title">Rota özeti</string>
-    <string name="route_summary_status_title">Yürüyüş rotası hazır</string>
-    <string name="route_summary_status_message">Hazır olduğunuzda navigasyonu başlatın. Navi Live, siz yürümeye başladığınızda yönü otomatik olarak belirleyecektir.</string>
     <string name="label_travel_time">Seyahat süresi</string>
     <string name="label_distance">Mesafe</string>
     <string name="label_mode">Mod</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favori kaydedildi</string>
     <string name="route_summary_start_route">Navigasyonu başlat</string>
     <string name="route_summary_preparing_route">Rota hazırlanıyor...</string>
-    <string name="route_summary_helper_map_message">Rota önizlemesini yalnızca ekstra bağlam olarak kullanın. Haritaya bakmadan rota anlaşılır kalıyor.</string>
     <string name="heading_title">Rotayı ayarla</string>
     <string name="heading_confirmed_title">Yön onaylandı</string>
     <string name="heading_confirmed_message">Rotaya bakıyorsunuz. Hazır olduğunuzda yürümeye başlayın.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Henüz favori yok</string>
     <string name="current_position_no_favorites_message">Rotalara hızlı bir şekilde başlamak için Ev veya İş gibi yerleri kaydedin.</string>
     <string name="favorites_title">Favoriler</string>
-    <string name="favorites_status_title">Kaydedilen yerler</string>
-    <string name="favorites_status_message">Rotaların mümkün olduğunca az çabayla başlaması için bu listeyi kısa ve öngörülebilir tutun.</string>
     <string name="favorites_add_from_search">Aramadan ekle</string>
     <string name="favorites_empty_title">Favoriler boş</string>
     <string name="favorites_empty_message">Önce bir yer arayın ve daha sonra daha hızlı rotalar için kaydedin.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigasyon duraklatıldı</string>
     <string name="navigation_status_paused_message">Yürümeye devam etmeye hazır olduğunuzda rehberliğe devam edin.</string>
     <string name="navigation_status_active_title">Rehberlik aktif</string>
-    <string name="navigation_status_active_message">Mevcut talimatı takip edin ve haritayı yalnızca yardımcı içerik olarak tutun.</string>
     <string name="format_eta_minutes">%1$d dk</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d dk</string>

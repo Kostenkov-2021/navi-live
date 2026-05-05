@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Месцы не знойдзены</string>
     <string name="search_empty_results_message">Паспрабуйце іншую назву месца або вярніцеся і выкарыстоўвайце свае абраныя.</string>
     <string name="place_details_title">Падрабязнасці аб месцы</string>
-    <string name="place_details_status_title">Абраны пункт прызначэння</string>
-    <string name="place_details_status_message">Перад пачаткам маршруту праверце адрас і ацэнку хады.</string>
     <string name="label_address">Адрас</string>
     <string name="label_walking_estimate">Ацэнка хады</string>
     <string name="label_phone">Тэлефон</string>
     <string name="label_website">Вэб-сайт</string>
-    <string name="helper_map_title">Дапаможная карта</string>
-    <string name="place_details_helper_map_message">Захоўвайце карту другараднай. Голас, тэкст і вібрацыя застаюцца асноўнымі ўказаннямі.</string>
     <string name="place_details_show_route">Паказаць маршрут</string>
     <string name="common_remove_from_favorites">Выдаліць з абранага</string>
     <string name="common_save_favorite">Захаваць абранае</string>
     <string name="route_summary_title">Зводка маршруту</string>
-    <string name="route_summary_status_title">Пешаходны маршрут гатовы</string>
-    <string name="route_summary_status_message">Пачніце навігацыю, калі будзеце гатовыя. Navi Live аўтаматычна вызначыць кірунак, калі вы пачнеце хадзіць.</string>
     <string name="label_travel_time">Час у шляху</string>
     <string name="label_distance">Адлегласць</string>
     <string name="label_mode">Рэжым</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Абранае захавана</string>
     <string name="route_summary_start_route">Пачаць навігацыю</string>
     <string name="route_summary_preparing_route">Падрыхтоўка маршруту...</string>
-    <string name="route_summary_helper_map_message">Выкарыстоўвайце папярэдні прагляд маршруту толькі ў якасці дадатковага кантэксту. Маршрут застаецца зразумелым без прагляду карты.</string>
     <string name="heading_title">Задайце курс</string>
     <string name="heading_confirmed_title">Напрамак пацверджаны</string>
     <string name="heading_confirmed_message">Вы глядзіце на маршрут. Пачніце хадзіць, калі будзеце гатовыя.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Пакуль няма абраных</string>
     <string name="current_position_no_favorites_message">Захоўвайце такія месцы, як Дом або Праца, каб хутка пачаць маршрут.</string>
     <string name="favorites_title">Выбранае</string>
-    <string name="favorites_status_title">Захаваныя месцы</string>
-    <string name="favorites_status_message">Трымайце гэты спіс кароткім і прадказальным, каб маршруты пачыналіся з як мага меншымі намаганнямі.</string>
     <string name="favorites_add_from_search">Дадаць з пошуку</string>
     <string name="favorites_empty_title">Выбранае пуста</string>
     <string name="favorites_empty_message">Спачатку знайдзіце месца і захавайце яго для больш хуткіх маршрутаў пазней.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Навігацыя прыпыненая</string>
     <string name="navigation_status_paused_message">Аднавіце навядзенне, калі будзеце гатовыя працягваць ісці.</string>
     <string name="navigation_status_active_title">Інструкцыя актыўная</string>
-    <string name="navigation_status_active_message">Выконвайце бягучыя інструкцыі і захоўвайце карту толькі ў якасці дапаможнага кантэксту.</string>
     <string name="format_eta_minutes">%1$d хв</string>
     <string name="format_distance_meters">%1$d м</string>
     <string name="format_walk_time_only">%1$d хв</string>

@@ -77,8 +77,6 @@
     <string name="search_empty_results_message">Try a different place name or go back and use your favorites.</string>
 
     <string name="place_details_title">Place details</string>
-    <string name="place_details_status_title">Selected destination</string>
-    <string name="place_details_status_message">Check the address and walking estimate before starting the route.</string>
     <string name="label_address">Address</string>
     <string name="label_walking_estimate">Walking estimate</string>
     <string name="label_coordinates">Coordinates</string>
@@ -86,8 +84,6 @@
     <string name="label_saved_at">Saved at</string>
     <string name="label_phone">Phone</string>
     <string name="label_website">Website</string>
-    <string name="helper_map_title">Helper map</string>
-    <string name="place_details_helper_map_message">Keep the map secondary. Voice, text and vibration remain the main guidance.</string>
     <string name="place_details_show_route">Show route</string>
     <string name="common_remove_from_favorites">Remove from favorites</string>
     <string name="common_save_favorite">Save favorite</string>
@@ -95,8 +91,6 @@
     <string name="common_cancel">Cancel</string>
 
     <string name="route_summary_title">Route summary</string>
-    <string name="route_summary_status_title">Walking route ready</string>
-    <string name="route_summary_status_message">Start navigation when ready. Navi Live will determine direction automatically as you begin walking.</string>
     <string name="label_travel_time">Travel time</string>
     <string name="label_distance">Distance</string>
     <string name="label_mode">Mode</string>
@@ -104,8 +98,6 @@
     <string name="route_summary_favorite_saved">Favorite saved</string>
     <string name="route_summary_start_route">Start navigation</string>
     <string name="route_summary_preparing_route">Preparing route...</string>
-    <string name="route_summary_helper_map_message">Use the route preview only as extra context. The route stays understandable without looking at the map.</string>
-
     <string name="heading_title">Set heading</string>
     <string name="heading_confirmed_title">Direction confirmed</string>
     <string name="heading_confirmed_message">You are facing the route. Start walking when ready.</string>
@@ -123,6 +115,7 @@
     <string name="active_navigation_recalculating">Recalculating route...</string>
     <string name="active_navigation_recalculate">Recalculate route</string>
     <string name="active_navigation_need_new_route">Need a new route</string>
+    <string name="active_navigation_report_problem">Report route problem</string>
     <string name="common_resume">Resume</string>
     <string name="common_pause">Pause</string>
     <string name="common_repeat">Repeat</string>
@@ -142,8 +135,6 @@
     <string name="current_position_no_favorites_message">Save places such as Home or Work to start routes quickly.</string>
 
     <string name="favorites_title">Favorites</string>
-    <string name="favorites_status_title">Saved places</string>
-    <string name="favorites_status_message">Keep this list short and predictable so routes start with as little effort as possible.</string>
     <string name="favorites_add_from_search">Add from search</string>
     <string name="favorites_empty_title">Favorites are empty</string>
     <string name="favorites_empty_message">Search for a place first and save it for faster routes later.</string>
@@ -302,8 +293,6 @@
     <string name="navigation_status_paused_title">Navigation paused</string>
     <string name="navigation_status_paused_message">Resume guidance when you are ready to continue walking.</string>
     <string name="navigation_status_active_title">Guidance active</string>
-    <string name="navigation_status_active_message">Follow the current instruction and keep the map as helper context only.</string>
-
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>
@@ -405,6 +394,7 @@
     <string name="status_heading_aligned">Heading aligned.</string>
     <string name="status_active_guidance_started">Active guidance started.</string>
     <string name="status_repeating_instruction">Repeating current instruction.</string>
+    <string name="status_route_problem_reported">Route problem saved.</string>
     <string name="spoken_navigation_paused">Navigation paused.</string>
     <string name="spoken_navigation_resumed">Navigation resumed.</string>
     <string name="status_navigation_paused">Navigation paused.</string>
@@ -479,6 +469,7 @@
     <string name="diagnostics_event_heading_aligned">Heading aligned.</string>
     <string name="diagnostics_event_navigation_started">Active navigation started.</string>
     <string name="diagnostics_event_instruction_repeated">Current instruction repeated.</string>
+    <string name="diagnostics_event_route_problem_reported">Route problem reported.</string>
     <string name="diagnostics_event_navigation_paused">Navigation paused.</string>
     <string name="diagnostics_event_navigation_resumed">Navigation resumed.</string>
     <string name="diagnostics_event_auto_recalculate_started">Automatic recalculation started.</string>

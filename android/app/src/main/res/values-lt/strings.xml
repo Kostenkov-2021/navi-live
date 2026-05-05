@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Vietų nerasta</string>
     <string name="search_empty_results_message">Pabandykite kitą vietos pavadinimą arba grįžkite ir naudokite savo mėgstamiausias.</string>
     <string name="place_details_title">Informacija apie vietą</string>
-    <string name="place_details_status_title">Pasirinktas tikslas</string>
-    <string name="place_details_status_message">Prieš pradėdami maršrutą patikrinkite adresą ir pėsčiųjų sąmatą.</string>
     <string name="label_address">Adresas</string>
     <string name="label_walking_estimate">Ėjimo sąmata</string>
     <string name="label_phone">Telefonas</string>
     <string name="label_website">Tinklalapis</string>
-    <string name="helper_map_title">Pagalbinis žemėlapis</string>
-    <string name="place_details_helper_map_message">Žemėlapį laikykite antraeiliui. Balsas, tekstas ir vibracija išlieka pagrindiniais nurodymais.</string>
     <string name="place_details_show_route">Rodyti maršrutą</string>
     <string name="common_remove_from_favorites">Pašalinti iš parankinių</string>
     <string name="common_save_favorite">Išsaugoti mėgstamą</string>
     <string name="route_summary_title">Maršruto santrauka</string>
-    <string name="route_summary_status_title">Maršrutas vaikščioti paruoštas</string>
-    <string name="route_summary_status_message">Kai būsite pasiruošę, pradėkite navigaciją. Navi Live automatiškai nustatys kryptį, kai pradėsite vaikščioti.</string>
     <string name="label_travel_time">Kelionės laikas</string>
     <string name="label_distance">Atstumas</string>
     <string name="label_mode">Režimas</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Mėgstamiausia išsaugota</string>
     <string name="route_summary_start_route">Pradėti navigaciją</string>
     <string name="route_summary_preparing_route">Ruošiamas maršrutas...</string>
-    <string name="route_summary_helper_map_message">Maršruto peržiūrą naudokite tik kaip papildomą kontekstą. Maršrutas lieka suprantamas nežiūrint į žemėlapį.</string>
     <string name="heading_title">Nustatyti antraštę</string>
     <string name="heading_confirmed_title">Kryptis patvirtinta</string>
     <string name="heading_confirmed_message">Jūs žiūrite į maršrutą. Pradėkite vaikščioti, kai būsite pasiruošę.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Mėgstamiausių dar nėra</string>
     <string name="current_position_no_favorites_message">Išsaugokite vietas, pvz., Namai arba Darbas, kad greitai pradėtumėte maršrutus.</string>
     <string name="favorites_title">Mėgstamiausi</string>
-    <string name="favorites_status_title">Išsaugotos vietos</string>
-    <string name="favorites_status_message">Šis sąrašas turi būti trumpas ir nuspėjamas, kad maršrutai prasidėtų su kuo mažiau pastangų.</string>
     <string name="favorites_add_from_search">Pridėti iš paieškos</string>
     <string name="favorites_empty_title">Mėgstamiausi yra tušti</string>
     <string name="favorites_empty_message">Pirmiausia suraskite vietą, o vėliau išsaugokite ją greitesniems maršrutams.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigacija pristabdyta</string>
     <string name="navigation_status_paused_message">Tęskite nurodymus, kai būsite pasirengę toliau vaikščioti.</string>
     <string name="navigation_status_active_title">Aktyvus vadovas</string>
-    <string name="navigation_status_active_message">Vadovaukitės dabartinėmis instrukcijomis ir laikykite žemėlapį tik kaip pagalbinį kontekstą.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

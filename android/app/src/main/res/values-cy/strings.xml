@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Heb ganfod lleoedd</string>
     <string name="search_empty_results_message">Rhowch gynnig ar enw lle gwahanol neu ewch yn ôl a defnyddiwch eich ffefrynnau.</string>
     <string name="place_details_title">Manylion lle</string>
-    <string name="place_details_status_title">Cyrchfan a ddewiswyd</string>
-    <string name="place_details_status_message">Gwiriwch y cyfeiriad a\'r amcangyfrif cerdded cyn cychwyn ar y llwybr.</string>
     <string name="label_address">Cyfeiriad</string>
     <string name="label_walking_estimate">Amcangyfrif cerdded</string>
     <string name="label_phone">Ffonio</string>
     <string name="label_website">Gwefan</string>
-    <string name="helper_map_title">Map helpwr</string>
-    <string name="place_details_helper_map_message">Cadwch y map yn eilradd. Llais, testun a dirgryniad yw\'r prif ganllawiau o hyd.</string>
     <string name="place_details_show_route">Dangos y llwybr</string>
     <string name="common_remove_from_favorites">Tynnwch o\'r ffefrynnau</string>
     <string name="common_save_favorite">Arbed hoff</string>
     <string name="route_summary_title">Crynodeb o\'r llwybr</string>
-    <string name="route_summary_status_title">Llwybr cerdded yn barod</string>
-    <string name="route_summary_status_message">Dechreuwch lywio pan yn barod. Bydd Navi Live yn pennu cyfeiriad yn awtomatig wrth i chi ddechrau cerdded.</string>
     <string name="label_travel_time">Amser teithio</string>
     <string name="label_distance">Pellter</string>
     <string name="label_mode">Modd</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Hoff wedi\'i gadw</string>
     <string name="route_summary_start_route">Start navigation</string>
     <string name="route_summary_preparing_route">Wrthi\'n paratoi llwybr...</string>
-    <string name="route_summary_helper_map_message">Defnyddiwch y rhagolwg llwybr fel cyd-destun ychwanegol yn unig. Mae\'r llwybr yn parhau i fod yn ddealladwy heb edrych ar y map.</string>
     <string name="heading_title">Gosod pennawd</string>
     <string name="heading_confirmed_title">Cadarnhawyd y cyfeiriad</string>
     <string name="heading_confirmed_message">Rydych chi\'n wynebu\'r llwybr. Dechreuwch gerdded pan yn barod.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Dim ffefrynnau eto</string>
     <string name="current_position_no_favorites_message">Arbedwch leoedd fel Cartref neu Waith i gychwyn llwybrau yn gyflym.</string>
     <string name="favorites_title">Ffefrynnau</string>
-    <string name="favorites_status_title">Lleoedd wedi\'u cadw</string>
-    <string name="favorites_status_message">Cadwch y rhestr hon yn fyr ac yn rhagweladwy fel bod llwybrau\'n dechrau gyda chyn lleied o ymdrech â phosibl.</string>
     <string name="favorites_add_from_search">Ychwanegu o chwiliad</string>
     <string name="favorites_empty_title">Mae ffefrynnau yn wag</string>
     <string name="favorites_empty_message">Chwiliwch am le yn gyntaf a\'i gadw ar gyfer llwybrau cyflymach yn nes ymlaen.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Mordwyo wedi\'i seibio</string>
     <string name="navigation_status_paused_message">Ail-ddechrau arweiniad pan fyddwch yn barod i barhau i gerdded.</string>
     <string name="navigation_status_active_title">Arweiniad yn weithredol</string>
-    <string name="navigation_status_active_message">Dilynwch y cyfarwyddyd presennol a chadwch y map fel cyd-destun cynorthwyydd yn unig.</string>
     <string name="format_eta_minutes">%1$d mun</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d mun</string>

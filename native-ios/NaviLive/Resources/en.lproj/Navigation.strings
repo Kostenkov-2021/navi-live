@@ -83,6 +83,7 @@
 "active.action.pause" = "Pause guidance";
 "active.action.resume" = "Resume guidance";
 "active.action.recalculate" = "Recalculate route";
+"active.action.report_problem" = "Report route problem";
 "active.action.show_route_summary" = "Show route summary";
 "active.action.stop" = "Stop navigation";
 "active.action.arrived" = "Mark as arrived";
@@ -94,6 +95,8 @@
 "active.status.paused" = "Navigation paused.";
 "active.status.resumed" = "Navigation resumed.";
 "active.status.repeating" = "Repeating current instruction.";
+"active.status.problem_report_saved" = "Route problem saved.";
+"active.status.problem_report_failed" = "Could not save route problem.";
 "active.status.stopped" = "Navigation stopped.";
 "active.status.arrived" = "You have arrived.";
 "active.status.recalculating" = "Recalculating route.";

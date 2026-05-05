@@ -9,7 +9,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -661,11 +660,6 @@ fun PlaceDetailsScreen(
             modifier = modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            StatusCard(
-                title = stringResource(R.string.place_details_status_title),
-                message = stringResource(R.string.place_details_status_message),
-                tone = BannerTone.Info,
-            )
 
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
@@ -705,10 +699,6 @@ fun PlaceDetailsScreen(
                 onClick = onShowRoute,
             )
 
-            HelperMapCard(
-                title = stringResource(R.string.helper_map_title),
-                subtitle = stringResource(R.string.place_details_helper_map_message),
-            )
 
             SecondaryActionButton(
                 label = if (isFavorite) {
@@ -738,11 +728,6 @@ fun RouteSummaryScreen(
             modifier = modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            StatusCard(
-                title = stringResource(R.string.route_summary_status_title),
-                message = stringResource(R.string.route_summary_status_message),
-                tone = BannerTone.Success,
-            )
 
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
@@ -806,11 +791,6 @@ fun RouteSummaryScreen(
                 icon = Icons.Filled.Navigation,
                 enabled = !isLoadingRoute,
                 onClick = onStartRoute,
-            )
-
-            HelperMapCard(
-                title = stringResource(R.string.helper_map_title),
-                subtitle = stringResource(R.string.route_summary_helper_map_message),
             )
         }
     }
@@ -908,6 +888,7 @@ fun ActiveNavigationScreen(
     onPauseResume: () -> Unit,
     onRepeatInstruction: () -> Unit,
     onRecalculate: () -> Unit,
+    onReportProblem: () -> Unit,
     onArrived: () -> Unit,
     onStop: () -> Unit,
 ) {
@@ -976,6 +957,15 @@ fun ActiveNavigationScreen(
                         else -> stringResource(R.string.active_navigation_need_new_route)
                     },
                 )
+            }
+
+            OutlinedButton(
+                onClick = onReportProblem,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Filled.Info, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.active_navigation_report_problem))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -2692,7 +2682,9 @@ private fun StatusCard(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.semantics { heading() },
             )
-            Text(message, style = MaterialTheme.typography.bodyMedium)
+            if (message.isNotBlank()) {
+                Text(message, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }
@@ -2733,33 +2725,6 @@ private fun LabelValue(label: String, value: String) {
     }
 }
 
-@Composable
-private fun HelperMapCard(
-    title: String,
-    subtitle: String,
-) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            SectionHeading(title)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(124.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
-                        shape = MaterialTheme.shapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Filled.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
 
 @Composable
 private fun EmptyStateCard(
@@ -3339,7 +3304,7 @@ private fun navigationStatus(
         )
         else -> StatusPresentation(
             title = stringResource(R.string.navigation_status_active_title),
-            message = stringResource(R.string.navigation_status_active_message),
+            message = "",
             tone = BannerTone.Success,
         )
     }

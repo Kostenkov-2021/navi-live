@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Nav atrasta neviena vieta</string>
     <string name="search_empty_results_message">Izmēģiniet citu vietas nosaukumu vai dodieties atpakaļ un izmantojiet savu izlasi.</string>
     <string name="place_details_title">Vietas informācija</string>
-    <string name="place_details_status_title">Izvēlētais galamērķis</string>
-    <string name="place_details_status_message">Pirms maršruta uzsākšanas pārbaudiet adresi un pastaigu tāmi.</string>
     <string name="label_address">Adrese</string>
     <string name="label_walking_estimate">Iešanas aprēķins</string>
     <string name="label_phone">Tālrunis</string>
     <string name="label_website">Tīmekļa vietne</string>
-    <string name="helper_map_title">Palīdzības karte</string>
-    <string name="place_details_helper_map_message">Paturiet karti kā sekundāru. Balss, teksts un vibrācija joprojām ir galvenie norādījumi.</string>
     <string name="place_details_show_route">Rādīt maršrutu</string>
     <string name="common_remove_from_favorites">Noņemt no izlases</string>
     <string name="common_save_favorite">Saglabāt izlasi</string>
     <string name="route_summary_title">Maršruta kopsavilkums</string>
-    <string name="route_summary_status_title">Maršruts ešanai gatavs</string>
-    <string name="route_summary_status_message">Sāciet navigāciju, kad esat gatavs. Navi Live automātiski noteiks virzienu, kad sāksit iet.</string>
     <string name="label_travel_time">Ceļojuma laiks</string>
     <string name="label_distance">Attālums</string>
     <string name="label_mode">Režīms</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Izlase saglabāta</string>
     <string name="route_summary_start_route">Sākt navigāciju</string>
     <string name="route_summary_preparing_route">Notiek maršruta sagatavošana...</string>
-    <string name="route_summary_helper_map_message">Izmantojiet maršruta priekšskatījumu tikai kā papildu kontekstu. Maršruts paliek saprotams, neskatoties kartē.</string>
     <string name="heading_title">Iestatiet virsrakstu</string>
     <string name="heading_confirmed_title">Virziens apstiprināts</string>
     <string name="heading_confirmed_message">Jūs esat pretī maršrutam. Sāciet staigāt, kad esat gatavs.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Izlases vēl nav</string>
     <string name="current_position_no_favorites_message">Saglabājiet tādas vietas kā mājas vai darbs, lai ātri sāktu maršrutus.</string>
     <string name="favorites_title">Izlase</string>
-    <string name="favorites_status_title">Saglabātās vietas</string>
-    <string name="favorites_status_message">Saglabājiet šo sarakstu īsu un paredzamu, lai maršruti sāktos ar pēc iespējas mazāku piepūli.</string>
     <string name="favorites_add_from_search">Pievienot no meklēšanas</string>
     <string name="favorites_empty_title">Izlase ir tukša</string>
     <string name="favorites_empty_message">Vispirms meklējiet vietu un saglabājiet to ātrākiem maršrutiem vēlāk.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigācija apturēta</string>
     <string name="navigation_status_paused_message">Atsāciet norādījumus, kad esat gatavs turpināt staigāt.</string>
     <string name="navigation_status_active_title">Vadība ir aktīva</string>
-    <string name="navigation_status_active_message">Izpildiet pašreizējos norādījumus un saglabājiet karti tikai kā palīga kontekstu.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>

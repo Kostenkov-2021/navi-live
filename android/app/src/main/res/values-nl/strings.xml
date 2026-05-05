@@ -59,20 +59,14 @@
     <string name="search_empty_results_title">Geen plaatsen gevonden</string>
     <string name="search_empty_results_message">Probeer een andere plaatsnaam of ga terug en gebruik je favorieten.</string>
     <string name="place_details_title">Plaatsgegevens</string>
-    <string name="place_details_status_title">Geselecteerde bestemming</string>
-    <string name="place_details_status_message">Controleer het adres en de wandelschatting voordat u aan de route begint.</string>
     <string name="label_address">Adres</string>
     <string name="label_walking_estimate">Schatting lopen</string>
     <string name="label_phone">Telefoon</string>
     <string name="label_website">Website</string>
-    <string name="helper_map_title">Hulpkaart</string>
-    <string name="place_details_helper_map_message">Houd de kaart secundair. Stem, tekst en trillingen blijven de belangrijkste leidraad.</string>
     <string name="place_details_show_route">Route tonen</string>
     <string name="common_remove_from_favorites">Verwijderen uit favorieten</string>
     <string name="common_save_favorite">Favoriet opslaan</string>
     <string name="route_summary_title">Routeoverzicht</string>
-    <string name="route_summary_status_title">Looproute klaar</string>
-    <string name="route_summary_status_message">Start de navigatie wanneer u klaar bent. Navi Live bepaalt automatisch de richting wanneer u begint te lopen.</string>
     <string name="label_travel_time">Reistijd</string>
     <string name="label_distance">Afstand</string>
     <string name="label_mode">Modus</string>
@@ -80,7 +74,6 @@
     <string name="route_summary_favorite_saved">Favoriet opgeslagen</string>
     <string name="route_summary_start_route">Start navigatie</string>
     <string name="route_summary_preparing_route">Route voorbereiden...</string>
-    <string name="route_summary_helper_map_message">Gebruik het routevoorbeeld alleen als extra context. De route blijft begrijpelijk zonder naar de kaart te kijken.</string>
     <string name="heading_title">Stel koers in</string>
     <string name="heading_confirmed_title">Richting bevestigd</string>
     <string name="heading_confirmed_message">U kijkt naar de route. Begin met lopen als je er klaar voor bent.</string>
@@ -111,8 +104,6 @@
     <string name="current_position_no_favorites_title">Nog geen favorieten</string>
     <string name="current_position_no_favorites_message">Bewaar plaatsen zoals Thuis of Werk om routes snel te starten.</string>
     <string name="favorites_title">Favorieten</string>
-    <string name="favorites_status_title">Opgeslagen plaatsen</string>
-    <string name="favorites_status_message">Houd deze lijst kort en voorspelbaar, zodat routes met zo min mogelijk moeite beginnen.</string>
     <string name="favorites_add_from_search">Toevoegen uit zoekopdracht</string>
     <string name="favorites_empty_title">Favorieten zijn leeg</string>
     <string name="favorites_empty_message">Zoek eerst een plaats en sla deze op voor snellere routes later.</string>
@@ -230,7 +221,6 @@
     <string name="navigation_status_paused_title">Navigatie gepauzeerd</string>
     <string name="navigation_status_paused_message">Hervat de begeleiding wanneer u klaar bent om verder te lopen.</string>
     <string name="navigation_status_active_title">Begeleiding actief</string>
-    <string name="navigation_status_active_message">Volg de huidige instructie en bewaar de kaart alleen als helpercontext.</string>
     <string name="format_eta_minutes">%1$d min</string>
     <string name="format_distance_meters">%1$d m</string>
     <string name="format_walk_time_only">%1$d min</string>
