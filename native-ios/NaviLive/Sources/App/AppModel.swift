@@ -214,8 +214,16 @@ final class AppModel: ObservableObject {
       announceWarning(message: message)
       return
     }
-    let address = currentLocationDescription.isEmpty ? L10n.text("current.position.unknown", table: .home) : currentLocationDescription
-    if favorites.contains(where: { isSameSavedCurrentPosition($0, savedName: savedName, address: address, point: fix.point) }) {
+    let address = await currentAddressForFavorite(fix: fix)
+    if let existingIndex = favorites.firstIndex(where: { isSameSavedCurrentPosition($0, savedName: savedName, address: address, point: fix.point) }) {
+      favorites[existingIndex].address = address
+      if favorites[existingIndex].point == nil {
+        favorites[existingIndex].point = fix.point
+      }
+      favorites[existingIndex].savedAt = Date()
+      favorites[existingIndex].savedAccuracyMeters = fix.accuracyMeters
+      knownPlaces[favorites[existingIndex].id] = favorites[existingIndex]
+      settingsStore.setFavorites(favorites)
       let message = L10n.text("current.position.already_saved_named", table: .home, savedName)
       statusMessage = message
       currentPositionStatusMessage = message
@@ -229,7 +237,9 @@ final class AppModel: ObservableObject {
       address: address,
       walkDistanceMeters: 0,
       walkEtaMinutes: 0,
-      point: fix.point
+      point: fix.point,
+      savedAt: Date(),
+      savedAccuracyMeters: fix.accuracyMeters
     )
     favorites.append(place)
     knownPlaces[place.id] = place
@@ -252,6 +262,24 @@ final class AppModel: ObservableObject {
       return true
     }
     return !address.isEmpty && favorite.address == address
+  }
+
+  private func currentAddressForFavorite(fix: LocationFix) async -> String {
+    do {
+      let address = try await navigationAPI.reverseGeocode(point: fix.point).trimmingCharacters(in: .whitespacesAndNewlines)
+      if !address.isEmpty {
+        return address
+      }
+    } catch {
+      // Fall back to the last visible address when live reverse geocoding is unavailable.
+    }
+    let visibleAddress = currentLocationDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !visibleAddress.isEmpty,
+       visibleAddress != L10n.text("home.location.waiting", table: .home),
+       visibleAddress != L10n.text("home.location.fallback", table: .home) {
+      return visibleAddress
+    }
+    return L10n.text("current.position.unknown", table: .home)
   }
 
   func loadCurrentAddress() async {

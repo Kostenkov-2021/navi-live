@@ -333,6 +333,8 @@ class NaviLivePreferencesStore(
             }
             place.phone?.takeIf { it.isNotBlank() }?.let { item.put("phone", it) }
             place.website?.takeIf { it.isNotBlank() }?.let { item.put("website", it) }
+            place.savedAtMs?.let { item.put("savedAtMs", it) }
+            place.savedAccuracyMeters?.let { item.put("savedAccuracyMeters", it.toDouble()) }
             array.put(item)
         }
         return array.toString()
@@ -365,6 +367,10 @@ class NaviLivePreferencesStore(
                     point = point,
                     phone = item.optString("phone").takeIf { it.isNotBlank() },
                     website = item.optString("website").takeIf { it.isNotBlank() },
+                    savedAtMs = item.optLong("savedAtMs").takeIf { item.has("savedAtMs") },
+                    savedAccuracyMeters = item.optDouble("savedAccuracyMeters").takeIf {
+                        item.has("savedAccuracyMeters")
+                    }?.toFloat(),
                 )
             }
             places

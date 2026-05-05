@@ -624,7 +624,25 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             return
         }
 
-        val address = currentAddressForFavorite(fix)
+        viewModelScope.launch {
+            val address = currentAddressForFavorite(fix)
+            saveCurrentLocationFavorite(name = name, fix = fix, address = address)
+        }
+    }
+
+    private suspend fun currentAddressForFavorite(fix: LocationFix): String {
+        val coordinateLabel = formatCoordinateLabel(fix)
+        val reverseGeocoded = runCatching { routingRepository.reverseGeocode(fix.point).trim() }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() && it != coordinateLabel }
+        if (reverseGeocoded != null) return reverseGeocoded
+
+        val label = _uiState.value.currentLocationLabel.trim()
+        val waitingLabel = string(R.string.current_position_status_waiting_message)
+        return label.takeIf { it.isNotBlank() && it != waitingLabel } ?: coordinateLabel
+    }
+
+    private suspend fun saveCurrentLocationFavorite(name: String, fix: LocationFix, address: String) {
         var favoriteIds = emptySet<String>()
         var customPlaces = emptyList<Place>()
         var added = false
@@ -639,17 +657,24 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                     point = fix.point,
                 )
             }
-            val place = existing ?: Place(
+            val place = existing?.copy(
+                address = address,
+                point = existing.point ?: fix.point,
+                savedAtMs = System.currentTimeMillis(),
+                savedAccuracyMeters = fix.accuracyMeters,
+            ) ?: Place(
                 id = "$CustomFavoritePlaceIdPrefix${System.currentTimeMillis()}",
                 name = name,
                 address = address,
                 walkDistanceMeters = 0,
                 walkEtaMinutes = 0,
                 point = fix.point,
+                savedAtMs = System.currentTimeMillis(),
+                savedAccuracyMeters = fix.accuracyMeters,
             )
             added = existing == null
             savedPlaceId = place.id
-            val nextPlaces = if (added) mergeById(current.places, listOf(place)) else current.places
+            val nextPlaces = mergeById(current.places, listOf(place))
             val nextFavoriteIds = current.favoriteIds + place.id
             favoriteIds = nextFavoriteIds
             customPlaces = customFavoritePlacesToPersist(nextPlaces, nextFavoriteIds)
@@ -672,10 +697,8 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         )
         refreshDiagnosticsState()
         speakNow(message)
-        viewModelScope.launch {
-            preferencesStore.setFavoriteIds(favoriteIds)
-            preferencesStore.setCustomFavoritePlaces(customPlaces)
-        }
+        preferencesStore.setFavoriteIds(favoriteIds)
+        preferencesStore.setCustomFavoritePlaces(customPlaces)
     }
 
     fun toggleFavorite(placeId: String) {
@@ -2254,11 +2277,6 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         return address.isNotBlank() && place.address == address
     }
 
-    private fun currentAddressForFavorite(fix: LocationFix): String {
-        val label = _uiState.value.currentLocationLabel.trim()
-        val waitingLabel = string(R.string.current_position_status_waiting_message)
-        return label.takeIf { it.isNotBlank() && it != waitingLabel } ?: formatCoordinateLabel(fix)
-    }
 
     private fun mergeById(existing: List<Place>, incoming: List<Place>): List<Place> {
         val byId = linkedMapOf<String, Place>()

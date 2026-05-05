@@ -14,6 +14,8 @@ data class Place(
     val point: GeoPoint? = null,
     val phone: String? = null,
     val website: String? = null,
+    val savedAtMs: Long? = null,
+    val savedAccuracyMeters: Float? = null,
 )
 
 data class RouteSummary(

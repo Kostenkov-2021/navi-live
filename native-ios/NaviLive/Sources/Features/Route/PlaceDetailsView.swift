@@ -33,6 +33,41 @@ struct PlaceDetailsView: View {
           }
 
           Section {
+            LabeledContent(L10n.text("place.label.address", table: .home), value: place.address)
+            if let point = place.point {
+              LabeledContent(
+                L10n.text("place.label.coordinates", table: .home),
+                value: AppFormatters.coordinates(point)
+              )
+            }
+            if place.walkDistanceMeters > 0 || place.walkEtaMinutes > 0 {
+              LabeledContent(
+                L10n.text("place.label.walking_estimate", table: .home),
+                value: L10n.text(
+                  "place.meta",
+                  table: .home,
+                  AppFormatters.distance(place.walkDistanceMeters),
+                  AppFormatters.eta(minutes: place.walkEtaMinutes)
+                )
+              )
+            }
+            if let accuracy = place.savedAccuracyMeters {
+              LabeledContent(
+                L10n.text("place.label.saved_accuracy", table: .home),
+                value: AppFormatters.accuracy(accuracy)
+              )
+            }
+            if let savedAt = place.savedAt {
+              LabeledContent(
+                L10n.text("place.label.saved_at", table: .home),
+                value: AppFormatters.dateTime(savedAt)
+              )
+            }
+          } header: {
+            Text(L10n.text("place.section.location_details", table: .home))
+          }
+
+          Section {
             PrimaryActionButton(
               title: L10n.text("place.action.route", table: .home),
               systemImage: "arrow.triangle.turn.up.right.circle.fill"

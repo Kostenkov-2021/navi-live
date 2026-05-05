@@ -73,6 +73,9 @@
     <string name="place_details_status_message">Sprawdź adres i szacowany czas dojścia przed uruchomieniem trasy.</string>
     <string name="label_address">Adres</string>
     <string name="label_walking_estimate">Szacowany czas dojścia</string>
+    <string name="label_coordinates">Współrzędne</string>
+    <string name="label_saved_accuracy">Dokładność zapisu</string>
+    <string name="label_saved_at">Zapisano</string>
     <string name="label_phone">Telefon</string>
     <string name="label_website">Strona internetowa</string>
     <string name="helper_map_title">Mapa pomocnicza</string>

@@ -45,6 +45,12 @@
 "place.section.summary" = "Place";
 "place.section.actions" = "Actions";
 "place.section.contact" = "Contact";
+"place.section.location_details" = "Location details";
+"place.label.address" = "Address";
+"place.label.coordinates" = "Coordinates";
+"place.label.walking_estimate" = "Walking estimate";
+"place.label.saved_accuracy" = "Saved accuracy";
+"place.label.saved_at" = "Saved at";
 "place.meta" = "%@, %@";
 "place.action.route" = "Build walking route";
 "place.action.favorite.add" = "Save to favorites";

@@ -120,6 +120,7 @@ import com.navilive.android.model.AnnouncementCadenceMode
 import com.navilive.android.model.AppUpdatePhase
 import com.navilive.android.model.AppUpdateState
 import com.navilive.android.model.DiagnosticsState
+import com.navilive.android.model.GeoPoint
 import com.navilive.android.model.HeadingState
 import com.navilive.android.model.NearbyPoiCacheMode
 import com.navilive.android.model.NearbyPoiCacheState
@@ -134,6 +135,8 @@ import com.navilive.android.model.UpdateChannel
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.math.BigDecimal
+import java.text.DateFormat
+import java.util.Date
 import kotlin.math.roundToInt
 
 private enum class BannerTone {
@@ -676,7 +679,21 @@ fun PlaceDetailsScreen(
                         modifier = Modifier.semantics { heading() },
                     )
                     LabelValue(stringResource(R.string.label_address), place.address)
-                    LabelValue(stringResource(R.string.label_walking_estimate), placeTimingLabel(place))
+                    place.point?.let { point ->
+                        LabelValue(stringResource(R.string.label_coordinates), point.coordinatesLabel())
+                    }
+                    if (place.walkDistanceMeters > 0 || place.walkEtaMinutes > 0) {
+                        LabelValue(stringResource(R.string.label_walking_estimate), placeTimingLabel(place))
+                    }
+                    place.savedAccuracyMeters?.let { accuracy ->
+                        LabelValue(
+                            stringResource(R.string.label_saved_accuracy),
+                            stringResource(R.string.current_position_accuracy, accuracy.roundToInt()),
+                        )
+                    }
+                    place.savedAtMs?.let { savedAt ->
+                        LabelValue(stringResource(R.string.label_saved_at), formatSavedTimestamp(savedAt))
+                    }
                     place.phone?.let { LabelValue(stringResource(R.string.label_phone), it) }
                     place.website?.let { LabelValue(stringResource(R.string.label_website), it) }
                 }
@@ -3332,6 +3349,18 @@ private fun navigationStatus(
     }
 }
 
+@Composable
+private fun GeoPoint.coordinatesLabel(): String {
+    return stringResource(
+        R.string.format_coordinates_label,
+        "%.5f".format(latitude),
+        "%.5f".format(longitude),
+    )
+}
+
+private fun formatSavedTimestamp(timestampMs: Long): String {
+    return DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(timestampMs))
+}
 @Composable
 private fun placeTimingLabel(place: Place): String {
     return if (place.walkDistanceMeters > 0) {

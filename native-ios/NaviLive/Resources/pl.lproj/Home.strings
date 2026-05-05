@@ -45,6 +45,12 @@
 "place.section.summary" = "Miejsce";
 "place.section.actions" = "Akcje";
 "place.section.contact" = "Kontakt";
+"place.section.location_details" = "Dane lokalizacji";
+"place.label.address" = "Adres";
+"place.label.coordinates" = "Współrzędne";
+"place.label.walking_estimate" = "Szacowany czas dojścia";
+"place.label.saved_accuracy" = "Dokładność zapisu";
+"place.label.saved_at" = "Zapisano";
 "place.meta" = "%@, %@";
 "place.action.route" = "Wyznacz trasę pieszą";
 "place.action.favorite.add" = "Zapisz do ulubionych";

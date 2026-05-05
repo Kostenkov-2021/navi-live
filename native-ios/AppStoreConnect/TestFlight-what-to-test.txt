@@ -1,89 +1,45 @@
 POLSKI
 
-Sprawdź wyszukiwanie celu i wyniki w pobliżu.
-Popularne zapytania, np. sklep, apteka, paczkomat, restauracja lub przystanek, powinny najpierw pokazywać realnie bliskie miejsca. Wyniki mają być sortowane według bliskości i trafności, bez dalekich pozycji wypychających lokalne punkty.
-
-Sprawdź adresy w wynikach wyszukiwania.
-Przy każdym wyniku powinna być nazwa oraz możliwie pełny adres z numerem ulicy lub lokalu. Jeśli w okolicy jest kilka punktów tej samej sieci, użytkownik powinien wiedzieć, który wynik wybiera.
-
-Sprawdź ustawienia Wyszukiwanie lokalne.
-Domyślna liczba wyników to 10, a użytkownik może zmienić zakres 3-30. Zmiana powinna zapisywać się po zamknięciu aplikacji, a regulator ma być dostępny dla VoiceOvera.
-
-Sprawdź ekran wyszukiwania z VoiceOverem.
-Pole Wpisz adres / miejsce, przycisk Szukaj i klawisz Szukaj/Enter mają uruchamiać wyszukiwanie bez gubienia fokusu. Wyniki powinny być czytelne podczas przechodzenia flickami.
-
-Sprawdź ekran główny na iPhonie.
-Ustawienia mają być widoczne w prawym dolnym rogu bez przewijania. Navi Live ma być czytane jako pierwszy element, a bieżąca lokalizacja ma pokazywać przybliżoną dokładność.
-
-Sprawdź globalny dostęp do Ustawień.
-Ustawienia powinny być dostępne z każdego głównego ekranu aplikacji, także podczas aktywnego prowadzenia, zawsze w tym samym miejscu: w prawym dolnym rogu. Po wyjściu z Ustawień użytkownik powinien wrócić do poprzedniego ekranu lub trwającej nawigacji.
-
-Sprawdź prowadzenie po krótkiej pieszej trasie w znanej okolicy.
-Komunikaty mają pojawiać się same podczas ruchu. Odliczanie powinno informować przed manewrem, a przy manewrze ma pojawić się nazwa ulicy i kierunek. Aplikacja nie powinna mówić „kolejny odcinek” zamiast nazwy ulicy, gdy nazwa jest dostępna.
-
-Sprawdź podgląd i aktywną nawigację dla trasy z kilkoma skrętami.
-Podgląd trasy powinien pokazywać wszystkie kroki. Kroki powinny przechodzić dalej po minięciu manewru, a na końcu powinno pojawić się dotarcie do celu.
-
-Sprawdź alerty przejść dla pieszych.
-Przejścia dla pieszych na trasie mają być zapowiadane jako ostrożne ostrzeżenie, bez automatycznego sugerowania przejścia na drugą stronę ulicy. Alert powinien pojawiać się tylko wtedy, gdy przejście leży na trasie.
-
 Sprawdź zapisywanie bieżącej pozycji do ulubionych.
-Aplikacja ma poprosić o własną nazwę punktu, zapisać punkt pod tą nazwą i potwierdzić zapis komunikatem. Punkt powinien zostać w ulubionych po ponownym uruchomieniu aplikacji.
+Po wpisaniu własnej nazwy aplikacja powinna zapisać także aktualny adres punktu, współrzędne, przybliżoną dokładność i czas zapisu. Ponowne zapisanie tego samego punktu powinno odświeżyć dane, bez tworzenia duplikatu.
 
-Sprawdź ustawienia Prowadzenie, Mowa i Dźwięki.
-Do sprawdzenia: alerty przejść, sposób odliczania komunikatów, siła potrząśnięcia, haptyka, źródło mowy bez trybu Automatyczny, lista głosów na osobnym ekranie, Podgląd mowy na końcu, osobna kategoria Dźwięki, głośność, podgląd, dźwięk przejścia i schematy Standard, Tetris oraz Cosmic.
+Sprawdź szczegóły miejsca i ulubionego punktu.
+Ekran szczegółów powinien pokazywać nazwę, adres, współrzędne, dokładność zapisu, datę zapisu oraz szacowanie dojścia, jeśli te dane są dostępne.
 
-Sprawdź szybkie akcje i rotory VoiceOver podczas nawigacji.
-Do sprawdzenia: rotor Wskazówki trasy, rotor Alerty oraz akcje: powtórz, poprzednia/następna wskazówka, pauza/wznów, przelicz, pokaż podsumowanie i zatrzymaj.
+Sprawdź zachowanie po aktualizacji.
+Wcześniej zapisane ulubione powinny zostać po aktualizacji. Starsze punkty mogą nie mieć daty i dokładności zapisu, ale po ponownym zapisaniu tej samej lokalizacji powinny dostać uzupełnione dane.
+
+Sprawdź prowadzenie piesze po krótkiej trasie.
+Komunikaty powinny pojawiać się same podczas ruchu. Odliczanie powinno informować przed manewrem, a przy manewrze ma pojawić się nazwa ulicy i kierunek, jeśli są dostępne.
 
 Sprawdź kolejność dźwięku i mowy podczas prowadzenia.
-Dźwięk nawigacyjny powinien pojawić się pierwszy, a komunikat głosowy około pół sekundy później, bez nakładania się na początek wypowiedzi.
-Sprawdź kolejkę dźwięków nawigacji.
-Gdy kilka zdarzeń pojawi się szybko po sobie, dźwięki powinny grać po kolei, bez nakładania się, a mowa powinna nadal startować dopiero po właściwym dźwięku.
-Sprawdź zachowanie po aktualizacji.
-Ulubione, wybrany głos oraz ustawienia dźwięków, mowy, wyszukiwania i prowadzenia powinny zostać po zwykłej aktualizacji.
+Dźwięk nawigacyjny powinien pojawić się pierwszy, a komunikat głosowy około pół sekundy później. Gdy kilka zdarzeń pojawi się szybko po sobie, dźwięki powinny grać po kolei, bez nakładania się.
+
+Sprawdź globalny dostęp do Ustawień.
+Ustawienia powinny być dostępne z głównych ekranów aplikacji, także podczas aktywnego prowadzenia, zawsze w tym samym miejscu.
+
+Sprawdź wyszukiwanie celu i wyniki w pobliżu.
+Popularne zapytania, np. sklep, apteka, paczkomat, restauracja lub przystanek, powinny najpierw pokazywać realnie bliskie miejsca z czytelnymi adresami.
 
 ENGLISH
 
-Test destination search and nearby results.
-Common queries such as shop, pharmacy, parcel locker, restaurant or public transport stop should return truly nearby places first. Results should be sorted by proximity and relevance, without distant matches pushing out local places.
-
-Test addresses in search results.
-Each result should show a name and the most complete available address, including a street number or unit when available. If several places from the same chain are nearby, the user should know which result they are choosing.
-
-Test Local Search settings.
-The default result count is 10 and the user can choose 3-30 results. The setting should persist after closing the app and the adjustable control should work well with VoiceOver.
-
-Test the search screen with VoiceOver.
-The Enter address / place field, Search button and keyboard Search/Enter action should start search without losing focus. Results should be readable when moving through them with flick gestures.
-
-Test the iPhone Home screen.
-Settings should stay visible in the bottom-right corner without scrolling. Navi Live should be read first and current location should show approximate accuracy.
-
-Test global access to Settings.
-Settings should be available from every main app screen, including active guidance, always in the same place: the bottom-right corner. After leaving Settings, the user should return to the previous screen or ongoing navigation.
-
-Test guidance on a short walking route in an area you know.
-Prompts should start automatically while moving. Countdown prompts should appear before maneuvers, and final maneuver prompts should use the street name and direction. The app should not say a vague next segment when a street name is available.
-
-Test route preview and active guidance for a route with several turns.
-The route preview should show all steps. Steps should advance after passing maneuvers and arrival should be shown at the end.
-
-Test pedestrian crossing alerts.
-Crossings on the route should be announced as caution warnings, without automatically telling the user to cross to the other side of the street. The alert should appear only when the crossing lies on the route.
-
 Test saving the current position to favorites.
-The app should ask for a custom point name, save the point with that name and confirm the save. The point should remain in favorites after relaunching the app.
+After entering a custom name, the app should also save the current address, coordinates, approximate accuracy and save time. Saving the same point again should refresh the data without creating a duplicate.
 
-Test Guidance, Speech and Sounds settings.
-Check crossing alerts, prompt countdown mode, shake strength, haptics, speech source without Automatic mode, the separate searchable voice list, Speech Preview being last, the separate Sounds category, volume, preview, crossing sound and Standard, Tetris and Cosmic schemes.
+Test place and favorite details.
+The details screen should show the name, address, coordinates, saved accuracy, saved date and walking estimate when those values are available.
 
-Test VoiceOver quick actions and rotors during navigation.
-Check the Route Instructions rotor, Alerts rotor and actions: repeat, previous/next instruction, pause/resume, recalculate, show summary and stop.
+Test behavior after update.
+Previously saved favorites should remain after updating. Older points may not have a saved date or saved accuracy, but saving the same location again should fill in the new details.
+
+Test walking guidance on a short route.
+Prompts should appear automatically while moving. Countdown prompts should appear before maneuvers, and final maneuver prompts should use the street name and direction when available.
 
 Test sound and speech timing during guidance.
-The navigation sound should play first, followed by speech about half a second later, without covering the beginning of the spoken prompt.
-Test navigation sound queueing.
-When several events happen quickly, sounds should play one after another without overlap, and speech should still start only after the matching sound.
-Test behavior after update.
-Favorites, selected voice and sound, speech, search and guidance settings should be preserved after a normal update.
+The navigation sound should play first, followed by speech about half a second later. When several events happen quickly, sounds should play one after another without overlap.
+
+Test global access to Settings.
+Settings should be available from the main app screens, including active guidance, always in the same place.
+
+Test destination search and nearby results.
+Common queries such as shop, pharmacy, parcel locker, restaurant or public transport stop should return truly nearby places first, with readable addresses.

@@ -81,6 +81,9 @@
     <string name="place_details_status_message">Check the address and walking estimate before starting the route.</string>
     <string name="label_address">Address</string>
     <string name="label_walking_estimate">Walking estimate</string>
+    <string name="label_coordinates">Coordinates</string>
+    <string name="label_saved_accuracy">Saved accuracy</string>
+    <string name="label_saved_at">Saved at</string>
     <string name="label_phone">Phone</string>
     <string name="label_website">Website</string>
     <string name="helper_map_title">Helper map</string>

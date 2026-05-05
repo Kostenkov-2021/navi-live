@@ -21,4 +21,12 @@ enum AppFormatters {
     }
     return L10n.text("formatter.accuracy.value", Int(meters.rounded()))
   }
+
+  static func coordinates(_ point: GeoPoint) -> String {
+    String(format: "%.5f, %.5f", locale: Locale.current, point.latitude, point.longitude)
+  }
+
+  static func dateTime(_ date: Date) -> String {
+    date.formatted(date: .abbreviated, time: .shortened)
+  }
 }

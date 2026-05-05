@@ -28,6 +28,8 @@ struct Place: Identifiable, Codable, Hashable, Sendable {
   var point: GeoPoint?
   var phone: String?
   var website: String?
+  var savedAt: Date? = nil
+  var savedAccuracyMeters: Double? = nil
 
   var hasContactDetails: Bool {
     phone?.isEmpty == false || website?.isEmpty == false
