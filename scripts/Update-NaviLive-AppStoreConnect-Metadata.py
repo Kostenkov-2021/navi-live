@@ -154,16 +154,32 @@ class AscClient:
         if payload is not None:
             body = json.dumps(payload).encode("utf-8")
             headers["Content-Type"] = "application/json"
-        req = request.Request(url, data=body, headers=headers, method=method.upper())
-        try:
-            with request.urlopen(req) as resp:
-                raw = resp.read()
-        except error.HTTPError as exc:
-            body_text = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"ASC API {method} {path} failed: HTTP {exc.code}\n{body_text}") from exc
-        if not raw:
-            return {}
-        return json.loads(raw.decode("utf-8"))
+        last_error: Exception | None = None
+        for attempt in range(1, 4):
+            req = request.Request(url, data=body, headers=headers, method=method.upper())
+            try:
+                with request.urlopen(req, timeout=75) as resp:
+                    raw = resp.read()
+                if not raw:
+                    return {}
+                return json.loads(raw.decode("utf-8"))
+            except error.HTTPError as exc:
+                body_text = exc.read().decode("utf-8", errors="replace")
+                message = f"ASC API {method} {path} failed: HTTP {exc.code}\n{body_text}"
+                last_error = RuntimeError(message)
+                if exc.code >= 500 and attempt < 3:
+                    time.sleep(2 * attempt)
+                    continue
+                raise RuntimeError(message) from exc
+            except (TimeoutError, error.URLError) as exc:
+                last_error = exc
+                if attempt < 3:
+                    time.sleep(2 * attempt)
+                    continue
+                raise RuntimeError(f"ASC API {method} {path} failed after {attempt} attempts: {exc}") from exc
+        if last_error is not None:
+            raise RuntimeError(f"ASC API {method} {path} failed: {last_error}")
+        return {}
 
 
 def first_data(result: dict[str, Any]) -> dict[str, Any]:
