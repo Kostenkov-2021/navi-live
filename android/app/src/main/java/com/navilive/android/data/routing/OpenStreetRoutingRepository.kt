@@ -64,8 +64,9 @@ class OpenStreetRoutingRepository(
         val wantsShop: Boolean,
         val wantsParcelLocker: Boolean,
         val wantsRailStation: Boolean,
+        val wantsTransitStop: Boolean,
     ) {
-        val wantsAnyCategory: Boolean = wantsShop || wantsParcelLocker || wantsRailStation
+        val wantsAnyCategory: Boolean = wantsShop || wantsParcelLocker || wantsRailStation || wantsTransitStop
         val isCategoryOnly: Boolean = wantsAnyCategory && nameSearchTerms.isEmpty()
     }
 
@@ -133,7 +134,21 @@ class OpenStreetRoutingRepository(
         "railway",
         "station",
     )
-    private val categoryQueryTerms = shopQueryTerms + parcelLockerQueryTerms + railStationQueryTerms
+    private val transitStopQueryTerms = setOf(
+        "przystanek",
+        "przystanki",
+        "przystanku",
+        "autobus",
+        "autobusowy",
+        "autobusowa",
+        "bus",
+        "tramwaj",
+        "tramwajowy",
+        "tramwajowa",
+        "tram",
+        "stop",
+    )
+    private val categoryQueryTerms = shopQueryTerms + parcelLockerQueryTerms + railStationQueryTerms + transitStopQueryTerms
 
     private companion object {
         const val LOCAL_POI_TOTAL_TIMEOUT_MS = 3_500L
@@ -255,6 +270,7 @@ class OpenStreetRoutingRepository(
                     val expansionQueries = when {
                         intent.wantsShop -> shopCategoryExpansionQueries()
                         intent.wantsParcelLocker -> parcelLockerCategoryExpansionQueries()
+                        intent.wantsTransitStop -> transitStopCategoryExpansionQueries()
                         else -> emptyList()
                     }
                     expansionQueries.forEach { expandedQuery ->
@@ -1432,7 +1448,8 @@ class OpenStreetRoutingRepository(
             "[\"shop\"]",
             "[\"amenity\"~\"^(parcel_locker|pharmacy|bank|atm|fuel|post_office|cafe|restaurant|fast_food|toilets)$\"]",
             "[\"railway\"~\"^(station|halt|tram_stop)$\"]",
-            "[\"public_transport\"=\"station\"]",
+            "[\"highway\"=\"bus_stop\"]",
+            "[\"public_transport\"~\"^(platform|stop_position|station)$\"]",
         )
     }
 
@@ -1467,6 +1484,12 @@ class OpenStreetRoutingRepository(
                         tags["amenity"].orEmpty(),
                         tags["railway"].orEmpty(),
                         tags["public_transport"].orEmpty(),
+                        tags["highway"].orEmpty(),
+                        tags["bus"].orEmpty(),
+                        tags["tram"].orEmpty(),
+                        tags["ref"].orEmpty(),
+                        tags["local_ref"].orEmpty(),
+                        tags["network"].orEmpty(),
                     )
                 ).joinToString(" "),
         )
@@ -1494,6 +1517,7 @@ class OpenStreetRoutingRepository(
                 intent.wantsShop -> kind == PlaceKind.Shop
                 intent.wantsParcelLocker -> kind == PlaceKind.ParcelLocker
                 intent.wantsRailStation -> kind == PlaceKind.RailStation
+                intent.wantsTransitStop -> kind == PlaceKind.BusStop || kind == PlaceKind.TramStop
                 else -> false
             }
         }
@@ -1691,6 +1715,16 @@ class OpenStreetRoutingRepository(
                 priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"railway\"~\"^(station|halt)$\"]")
                 priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"public_transport\"=\"station\"]")
             }
+            if (intent.wantsTransitStop) {
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"highway\"=\"bus_stop\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"railway\"=\"tram_stop\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"public_transport\"=\"platform\"][\"bus\"=\"yes\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"public_transport\"=\"platform\"][\"tram\"=\"yes\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"public_transport\"=\"stop_position\"][\"bus\"=\"yes\"]")
+                priorityNodeSelectors += overpassNodeSelectors(radius, lat, lon, "[\"public_transport\"=\"stop_position\"][\"tram\"=\"yes\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"public_transport\"=\"platform\"][\"bus\"=\"yes\"]")
+                priorityAreaSelectors += overpassAreaSelectors(radius, lat, lon, "[\"public_transport\"=\"platform\"][\"tram\"=\"yes\"]")
+            }
 
             if (priorityNodeSelectors.isNotEmpty()) {
                 selectorGroups += priorityNodeSelectors.distinct()
@@ -1844,6 +1878,9 @@ class OpenStreetRoutingRepository(
             return true
         }
         val normalizedName = normalizeForSearch(searchableNameParts(tags).joinToString(" "))
+        if (intent.wantsTransitStop && (kind == PlaceKind.BusStop || kind == PlaceKind.TramStop)) {
+            return intent.nameSearchTerms.isEmpty() || intent.nameSearchTerms.all { normalizedName.contains(it) }
+        }
         return intent.nameSearchTerms.all { normalizedName.contains(it) }
     }
 
@@ -1854,6 +1891,10 @@ class OpenStreetRoutingRepository(
             tags["operator"],
             tags["official_name"],
             tags["alt_name"],
+            tags["short_name"],
+            tags["ref"],
+            tags["local_ref"],
+            tags["network"],
         ).map { it?.trim().orEmpty() }
     }
 
@@ -1867,8 +1908,8 @@ class OpenStreetRoutingRepository(
             amenity == "parcel_locker" -> PlaceKind.ParcelLocker
             railway == "station" || railway == "halt" -> PlaceKind.RailStation
             tags["station"] == "railway" || tags["train"] == "yes" && publicTransport == "station" -> PlaceKind.RailStation
-            tags["highway"] == "bus_stop" || tags["bus"] == "yes" && publicTransport == "platform" -> PlaceKind.BusStop
-            railway == "tram_stop" || tags["tram"] == "yes" && publicTransport == "platform" -> PlaceKind.TramStop
+            tags["highway"] == "bus_stop" || tags["bus"] == "yes" && (publicTransport == "platform" || publicTransport == "stop_position") -> PlaceKind.BusStop
+            railway == "tram_stop" || tags["tram"] == "yes" && (publicTransport == "platform" || publicTransport == "stop_position") -> PlaceKind.TramStop
             else -> PlaceKind.Other
         }
     }
@@ -2021,6 +2062,7 @@ class OpenStreetRoutingRepository(
             wantsShop = wantsShop,
             wantsParcelLocker = wantsParcelLocker,
             wantsRailStation = wantsRailStation,
+            wantsTransitStop = tokens.any { it in transitStopQueryTerms },
         )
     }
 
@@ -2038,6 +2080,10 @@ class OpenStreetRoutingRepository(
         return listOf("inpost", "orlen paczka", "dpd pickup")
     }
 
+    private fun transitStopCategoryExpansionQueries(): List<String> {
+        return listOf("przystanek", "przystanek autobusowy", "przystanek tramwajowy", "bus stop", "tram stop")
+    }
+
     private fun nominatimKind(item: JSONObject): PlaceKind {
         val category = item.optString("category")
         val type = item.optString("type")
@@ -2047,7 +2093,7 @@ class OpenStreetRoutingRepository(
             category == "railway" && (type == "station" || type == "halt") -> PlaceKind.RailStation
             category == "public_transport" && type == "station" -> PlaceKind.RailStation
             category == "highway" && type == "bus_stop" -> PlaceKind.BusStop
-            category == "public_transport" && type == "platform" -> PlaceKind.BusStop
+            category == "public_transport" && (type == "platform" || type == "stop_position") -> PlaceKind.BusStop
             category == "railway" && type == "tram_stop" -> PlaceKind.TramStop
             else -> PlaceKind.Other
         }
@@ -2059,6 +2105,9 @@ class OpenStreetRoutingRepository(
             score += SharedProductRules.Search.categoryMatchScore
         }
         if (intent.wantsParcelLocker && kind == PlaceKind.ParcelLocker) {
+            score += SharedProductRules.Search.categoryMatchScore
+        }
+        if (intent.wantsTransitStop && (kind == PlaceKind.BusStop || kind == PlaceKind.TramStop)) {
             score += SharedProductRules.Search.categoryMatchScore
         }
         if (intent.wantsRailStation) {

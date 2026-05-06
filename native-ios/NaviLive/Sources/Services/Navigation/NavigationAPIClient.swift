@@ -192,9 +192,10 @@ actor NavigationAPIClient {
     let wantsShop: Bool
     let wantsParcelLocker: Bool
     let wantsRailStation: Bool
+    let wantsTransitStop: Bool
 
     var wantsAnyCategory: Bool {
-      wantsShop || wantsParcelLocker || wantsRailStation
+      wantsShop || wantsParcelLocker || wantsRailStation || wantsTransitStop
     }
 
     var isCategoryOnly: Bool {
@@ -231,7 +232,9 @@ actor NavigationAPIClient {
   private let railStationQueryTerms: Set<String> = [
     "pkp", "kolej", "kolejowa", "kolejowy", "stacja", "dworzec", "pociag", "pociąg", "train", "railway", "station"
   ]
-
+  private let transitStopQueryTerms: Set<String> = [
+    "przystanek", "przystanki", "przystanku", "autobus", "autobusowy", "autobusowa", "bus", "tramwaj", "tramwajowy", "tramwajowa", "tram", "stop"
+  ]
   init(session: URLSession = .shared, poiCacheStore: NearbyPOICacheStore = NearbyPOICacheStore()) {
     self.session = session
     self.poiCacheStore = poiCacheStore
@@ -338,6 +341,8 @@ actor NavigationAPIClient {
           expansionQueries = shopCategoryExpansionQueries()
         } else if intent.wantsParcelLocker {
           expansionQueries = parcelLockerCategoryExpansionQueries()
+        } else if intent.wantsTransitStop {
+          expansionQueries = transitStopCategoryExpansionQueries()
         } else {
           expansionQueries = []
         }
@@ -1307,7 +1312,8 @@ actor NavigationAPIClient {
       "[\"shop\"]",
       "[\"amenity\"~\"^(parcel_locker|pharmacy|bank|atm|fuel|post_office|cafe|restaurant|fast_food|toilets)$\"]",
       "[\"railway\"~\"^(station|halt|tram_stop)$\"]",
-      "[\"public_transport\"=\"station\"]"
+      "[\"highway\"=\"bus_stop\"]",
+      "[\"public_transport\"~\"^(platform|stop_position|station)$\"]"
     ]
   }
 
@@ -1325,16 +1331,13 @@ actor NavigationAPIClient {
     let name = overpassName(tags: tags, kind: kind).trimmingCharacters(in: .whitespacesAndNewlines)
     guard !name.isEmpty else { return nil }
     let address = overpassAddress(tags: tags, fallback: name)
-    let searchableText = normalizeForSearch(
-      (searchableNameParts(tags: tags) + [
-        name,
-        address,
-        tags["shop"] ?? "",
-        tags["amenity"] ?? "",
-        tags["railway"] ?? "",
-        tags["public_transport"] ?? ""
-      ]).joined(separator: " ")
-    )
+    var searchableParts = searchableNameParts(tags: tags)
+    searchableParts.append(name)
+    searchableParts.append(address)
+    for key in ["shop", "amenity", "railway", "public_transport", "highway", "bus", "tram", "ref", "local_ref", "network"] {
+      searchableParts.append(tags[key] ?? "")
+    }
+    let searchableText = normalizeForSearch(searchableParts.joined(separator: " "))
     return NearbyPOICacheRecord(
       id: "overpass-\(item.type)-\(item.id)",
       name: name,
@@ -1353,6 +1356,7 @@ actor NavigationAPIClient {
       if intent.wantsShop { return kind == .shop }
       if intent.wantsParcelLocker { return kind == .parcelLocker }
       if intent.wantsRailStation { return kind == .railStation }
+      if intent.wantsTransitStop { return kind == .busStop || kind == .tramStop }
       return false
     }
     let terms = intent.nameSearchTerms.isEmpty ? intent.tokens : intent.nameSearchTerms
@@ -1539,6 +1543,10 @@ actor NavigationAPIClient {
         priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"railway\"~\"^(station|halt)$\"]"))
         priorityAreaSelectors.append(contentsOf: overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: "[\"public_transport\"=\"station\"]"))
       }
+      if intent.wantsTransitStop {
+        priorityNodeSelectors.append(contentsOf: overpassTransitStopNodeSelectors(radius: radius, lat: lat, lon: lon))
+        priorityAreaSelectors.append(contentsOf: overpassTransitStopAreaSelectors(radius: radius, lat: lat, lon: lon))
+      }
 
       if !priorityNodeSelectors.isEmpty {
         selectorGroups.append(Array(Set(priorityNodeSelectors)).sorted())
@@ -1595,6 +1603,29 @@ actor NavigationAPIClient {
       "way\(around)\(filter);",
       "relation\(around)\(filter);"
     ]
+  }
+  private func overpassTransitStopNodeSelectors(radius: Int, lat: String, lon: String) -> [String] {
+    let filters = [
+      "[\"highway\"=\"bus_stop\"]",
+      "[\"railway\"=\"tram_stop\"]",
+      "[\"public_transport\"=\"platform\"][\"bus\"=\"yes\"]",
+      "[\"public_transport\"=\"platform\"][\"tram\"=\"yes\"]",
+      "[\"public_transport\"=\"stop_position\"][\"bus\"=\"yes\"]",
+      "[\"public_transport\"=\"stop_position\"][\"tram\"=\"yes\"]"
+    ]
+    return filters.flatMap { filter in
+      overpassNodeSelectors(radius: radius, lat: lat, lon: lon, filter: filter)
+    }
+  }
+
+  private func overpassTransitStopAreaSelectors(radius: Int, lat: String, lon: String) -> [String] {
+    let filters = [
+      "[\"public_transport\"=\"platform\"][\"bus\"=\"yes\"]",
+      "[\"public_transport\"=\"platform\"][\"tram\"=\"yes\"]"
+    ]
+    return filters.flatMap { filter in
+      overpassAreaSelectors(radius: radius, lat: lat, lon: lon, filter: filter)
+    }
   }
 
   private func overpassNameSelectors(
@@ -1692,11 +1723,14 @@ actor NavigationAPIClient {
     if intent.wantsParcelLocker && kind == .parcelLocker { return true }
     if intent.wantsRailStation && (kind == .railStation || kind == .busStop || kind == .tramStop) { return true }
     let normalizedName = normalizeForSearch(searchableNameParts(tags: tags).joined(separator: " "))
+    if intent.wantsTransitStop && (kind == .busStop || kind == .tramStop) {
+      return intent.nameSearchTerms.isEmpty || intent.nameSearchTerms.allSatisfy { normalizedName.contains($0) }
+    }
     return !intent.nameSearchTerms.isEmpty && intent.nameSearchTerms.allSatisfy { normalizedName.contains($0) }
   }
 
   private func searchableNameParts(tags: [String: String]) -> [String] {
-    ["name", "brand", "operator", "official_name", "alt_name"].map { key in
+    ["name", "brand", "operator", "official_name", "alt_name", "short_name", "ref", "local_ref", "network"].map { key in
       tags[key]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
   }
@@ -1710,8 +1744,8 @@ actor NavigationAPIClient {
     if amenity == "parcel_locker" { return .parcelLocker }
     if railway == "station" || railway == "halt" { return .railStation }
     if tags["station"] == "railway" || (tags["train"] == "yes" && publicTransport == "station") { return .railStation }
-    if tags["highway"] == "bus_stop" || (tags["bus"] == "yes" && publicTransport == "platform") { return .busStop }
-    if railway == "tram_stop" || (tags["tram"] == "yes" && publicTransport == "platform") { return .tramStop }
+    if tags["highway"] == "bus_stop" || (tags["bus"] == "yes" && (publicTransport == "platform" || publicTransport == "stop_position")) { return .busStop }
+    if railway == "tram_stop" || (tags["tram"] == "yes" && (publicTransport == "platform" || publicTransport == "stop_position")) { return .tramStop }
     return .other
   }
 
@@ -2063,14 +2097,15 @@ actor NavigationAPIClient {
   private func searchIntent(for query: String) -> SearchIntent {
     let normalized = normalizeForSearch(query)
     let tokens = normalized.split(separator: " ").map(String.init)
-    let categoryTerms = shopQueryTerms.union(parcelLockerQueryTerms).union(railStationQueryTerms)
+    let categoryTerms = shopQueryTerms.union(parcelLockerQueryTerms).union(railStationQueryTerms).union(transitStopQueryTerms)
     return SearchIntent(
       normalizedQuery: normalized,
       tokens: tokens,
       nameSearchTerms: tokens.filter { !categoryTerms.contains($0) },
       wantsShop: tokens.contains(where: { shopQueryTerms.contains($0) }),
       wantsParcelLocker: tokens.contains(where: { parcelLockerQueryTerms.contains($0) }),
-      wantsRailStation: tokens.contains(where: { railStationQueryTerms.contains($0) })
+      wantsRailStation: tokens.contains(where: { railStationQueryTerms.contains($0) }),
+      wantsTransitStop: tokens.contains(where: { transitStopQueryTerms.contains($0) })
     )
   }
 
@@ -2088,6 +2123,10 @@ actor NavigationAPIClient {
     ["inpost", "orlen paczka", "dpd pickup"]
   }
 
+  private func transitStopCategoryExpansionQueries() -> [String] {
+    ["przystanek", "przystanek autobusowy", "przystanek tramwajowy", "bus stop", "tram stop"]
+  }
+
   private func nominatimKind(for item: SearchResultDTO) -> PlaceKind {
     let category = item.category ?? ""
     let type = item.type ?? ""
@@ -2096,7 +2135,7 @@ actor NavigationAPIClient {
     if category == "railway" && (type == "station" || type == "halt") { return .railStation }
     if category == "public_transport" && type == "station" { return .railStation }
     if category == "highway" && type == "bus_stop" { return .busStop }
-    if category == "public_transport" && type == "platform" { return .busStop }
+    if category == "public_transport" && (type == "platform" || type == "stop_position") { return .busStop }
     if category == "railway" && type == "tram_stop" { return .tramStop }
     return .other
   }
@@ -2107,6 +2146,9 @@ actor NavigationAPIClient {
       score += SharedProductRules.Search.categoryMatchScore
     }
     if intent.wantsParcelLocker && kind == .parcelLocker {
+      score += SharedProductRules.Search.categoryMatchScore
+    }
+    if intent.wantsTransitStop && (kind == .busStop || kind == .tramStop) {
       score += SharedProductRules.Search.categoryMatchScore
     }
     if intent.wantsRailStation {

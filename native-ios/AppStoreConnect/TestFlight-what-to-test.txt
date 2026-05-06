@@ -1,27 +1,21 @@
 POLSKI
 
-Sprawdź zgłaszanie problemu z trasą podczas prowadzenia.
-Na ekranie prowadzenia wybierz „Zgłoś problem z trasą”. Aplikacja powinna krótko potwierdzić zapis zgłoszenia i dalej prowadzić po trasie. To zgłoszenie ma pomóc nam później sprawdzić, jaką wskazówkę aplikacja pokazywała w chwili problemu.
+Sprawdź wyszukiwanie najbliższych przystanków.
+W znanej okolicy wpisz: przystanek, przystanek autobusowy, przystanek tramwajowy, autobus albo tramwaj. Wyniki powinny pokazywać pobliskie przystanki autobusowe i tramwajowe, a nie odległe przypadkowe miejsca. Sprawdź też, czy nazwy, numery i lokalne oznaczenia przystanków pomagają odróżnić podobne wyniki.
 
-Sprawdź włączanie i wyłączanie śledzenia na żywo.
-Po włączeniu śledzenia powinien pojawić się krótki dźwięk startu. Po wyłączeniu powinien pojawić się inny krótki dźwięk zatrzymania. Na iPhonie po wyłączeniu śledzenia ekran główny i ekran bieżącej pozycji powinny mówić, że śledzenie na żywo jest wyłączone, a nie pokazywać ostatni zapamiętany adres.
+Sprawdź sortowanie wyników po odległości.
+Po wyszukaniu przystanków najbliższe punkty powinny być wyżej na liście. Jeśli w okolicy jest kilka przystanków o podobnej nazwie, aplikacja powinna preferować te bliżej bieżącej pozycji.
 
-Sprawdź dźwięki podczas prowadzenia.
-Dźwięk powinien być odtwarzany przed komunikatem głosowym. Jeśli kilka zdarzeń pojawi się szybko po sobie, dźwięki powinny grać po kolei, bez nakładania się.
-
-Sprawdź krótsze ekrany na Androidzie z TalkBack.
-W szczegółach miejsca, podsumowaniu trasy, ulubionych i aktywnym prowadzeniu nie powinno już być długich podpowiedzi o mapie pomocniczej, krótkiej liście ulubionych ani „podążaniu za bieżącą instrukcją”. Ekrany powinny być szybsze do przechodzenia gestami.
+Sprawdź punkty okolicy po odświeżeniu w tle.
+Po odświeżeniu danych lokalnych wyszukiwanie przystanków powinno działać szybciej i korzystać z punktów zapisanych w cache okolicy.
 
 ENGLISH
 
-Test reporting a route problem during guidance.
-On the active guidance screen, choose "Report route problem". The app should briefly confirm that the report was saved and continue navigation. The report should help us later check which instruction the app was showing at the moment of the problem.
+Test searching for nearby transit stops.
+In a familiar area, search for: stop, bus stop, tram stop, bus, or tram. Results should include nearby bus and tram stops instead of distant unrelated places. Also check whether stop names, numbers, and local references help distinguish similar results.
 
-Test turning live tracking on and off.
-Starting live tracking should play a short start sound. Stopping it should play a different short stop sound. On iPhone, after tracking is stopped, the home screen and current position screen should say that live tracking is off instead of showing the last remembered address.
+Test distance-based result ordering.
+After searching for transit stops, the nearest points should appear higher in the list. If several stops have similar names, the app should prefer the ones closer to the current position.
 
-Test sounds during guidance.
-A sound should play before the spoken prompt. If several events happen close together, sounds should play one after another without overlapping.
-
-Test shorter Android screens with TalkBack.
-Place details, route summary, favorites, and active guidance should no longer include long helper hints about the helper map, keeping favorites short, or following the current instruction. The screens should be faster to move through with swipe gestures.
+Test nearby points after background refresh.
+After local data refresh, transit stop search should feel faster and use nearby points stored in the local area cache.
