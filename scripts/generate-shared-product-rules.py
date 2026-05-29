@@ -88,6 +88,9 @@ object SharedProductRules {{
         const val immediateInstructionThresholdMinMeters: Int = {navigation['immediateInstruction']['thresholdMinMeters']}
         const val immediateInstructionThresholdMaxMeters: Int = {navigation['immediateInstruction']['thresholdMaxMeters']}
 
+        const val guidanceLeadMeters: Int = {navigation['guidanceLeadMeters']}
+        const val gpsWeakAccuracyMeters: Float = {navigation['gpsWeakAccuracyMeters']}f
+
         const val autoRecalculateCooldownMs: Long = {navigation['autoRecalculateCooldownMs']}L
     }}
 
@@ -194,6 +197,9 @@ enum SharedProductRules {{
     static let immediateInstructionAccuracyMaxMeters: Double = {navigation['immediateInstruction']['accuracyMaxMeters']}
     static let immediateInstructionThresholdMinMeters: Int = {navigation['immediateInstruction']['thresholdMinMeters']}
     static let immediateInstructionThresholdMaxMeters: Int = {navigation['immediateInstruction']['thresholdMaxMeters']}
+
+    static let guidanceLeadMeters: Int = {navigation['guidanceLeadMeters']}
+    static let gpsWeakAccuracyMeters: Double = {navigation['gpsWeakAccuracyMeters']}
 
     static let autoRecalculateCooldownMs: Int = {navigation['autoRecalculateCooldownMs']}
   }}

@@ -60,6 +60,7 @@ import com.navilive.android.ui.screens.SettingsScreen
 import com.navilive.android.ui.screens.StartScreen
 import com.navilive.android.ui.screens.TutorialScreen
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.sqrt
 
 private const val ProjectRepositoryUrl = "https://github.com/kazek5p-git/navi-live"
@@ -118,14 +119,21 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
         } else {
             val listener = object : SensorEventListener {
                 private var lastShakeAtMs = 0L
+                private var lastForce = 1f
 
                 override fun onSensorChanged(event: SensorEvent) {
                     val x = event.values.getOrNull(0)?.div(SensorManager.GRAVITY_EARTH) ?: return
                     val y = event.values.getOrNull(1)?.div(SensorManager.GRAVITY_EARTH) ?: return
                     val z = event.values.getOrNull(2)?.div(SensorManager.GRAVITY_EARTH) ?: return
                     val force = sqrt(x * x + y * y + z * z)
+                    val forceDelta = abs(force - lastForce)
+                    lastForce = force
                     val now = SystemClock.elapsedRealtime()
-                    if (force >= shakeSettings.shakeStrength.thresholdG && now - lastShakeAtMs >= ShakeDebounceMs) {
+                    if (
+                        force >= shakeSettings.shakeStrength.thresholdG &&
+                        forceDelta >= shakeSettings.shakeStrength.minimumDeltaG &&
+                        now - lastShakeAtMs >= ShakeDebounceMs
+                    ) {
                         lastShakeAtMs = now
                         viewModel.onShakeGestureDetected()
                     }
@@ -730,12 +738,19 @@ private fun openExternalUrl(context: Context, url: String) {
 
 private val ShakeStrength.thresholdG: Float
     get() = when (this) {
-        ShakeStrength.Light -> 2.2f
-        ShakeStrength.Medium -> 2.8f
-        ShakeStrength.Strong -> 3.4f
+        ShakeStrength.Light -> 2.8f
+        ShakeStrength.Medium -> 3.5f
+        ShakeStrength.Strong -> 4.2f
     }
 
-private const val ShakeDebounceMs = 1_400L
+private val ShakeStrength.minimumDeltaG: Float
+    get() = when (this) {
+        ShakeStrength.Light -> 1.1f
+        ShakeStrength.Medium -> 1.4f
+        ShakeStrength.Strong -> 1.7f
+    }
+
+private const val ShakeDebounceMs = 3_000L
 
 private fun installDownloadedApk(context: Context, apkPath: String): Boolean {
     val apkFile = File(apkPath)

@@ -9,9 +9,9 @@
     },
     "offRoute": {
       "accuracyMinMeters": 10.0,
-      "accuracyMaxMeters": 20.0,
-      "multiplier": 1.2,
-      "minimumThresholdMeters": 15
+      "accuracyMaxMeters": 30.0,
+      "multiplier": 1.4,
+      "minimumThresholdMeters": 25
     },
     "immediateInstruction": {
       "accuracyMinMeters": 5.0,
@@ -19,6 +19,8 @@
       "thresholdMinMeters": 5,
       "thresholdMaxMeters": 8
     },
+    "guidanceLeadMeters": 12,
+    "gpsWeakAccuracyMeters": 75,
     "autoRecalculateCooldownMs": 6000
   },
   "search": {

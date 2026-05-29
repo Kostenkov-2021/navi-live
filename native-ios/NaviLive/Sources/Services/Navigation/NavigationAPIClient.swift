@@ -113,12 +113,14 @@ private struct RouteCrossingCandidate {
 private struct RouteProjection {
   let distanceAlongRouteMeters: Double
   let lateralDistanceMeters: Double
+  let segmentBearingDegrees: Double
 }
 
 private struct SegmentProjection {
   let ratio: Double
   let lengthMeters: Double
   let lateralDistanceMeters: Double
+  let bearingDegrees: Double
 }
 
 private struct RouteBoundingBox {
@@ -215,7 +217,10 @@ actor NavigationAPIClient {
   private let routeRoadNameRequestTimeout: TimeInterval = 8
   private let crossingRequestTimeout: TimeInterval = 2
   private let crossingDuplicateProximityMeters = 3.0
-  private let crossingTurnProximityMeters = 30.0
+  private let crossingTurnProximityMeters = 55.0
+  private let crossingNodeLateralLimitMeters = 2.5
+  private let crossingWayLateralLimitMeters = 3.5
+  private let crossingWayAlignmentToleranceDegrees = 35.0
   private let routeStartApproachThresholdMeters = 18.0
   private let minimumInferredRoadStepDistanceMeters = 45
   private let approachManeuverType = "approach"
@@ -475,7 +480,7 @@ actor NavigationAPIClient {
       )
     }
 
-    let simplifiedSteps = simplifyRouteSteps(baseSteps)
+    let simplifiedSteps = normalizePotentialStreetCrossingSteps(simplifyRouteSteps(baseSteps))
     let baseRouteSteps = routeStepsWithStartApproach(start: start, pathPoints: points, steps: simplifiedSteps)
 
     let steps = includePedestrianCrossings
@@ -736,6 +741,47 @@ actor NavigationAPIClient {
     return simplified.isEmpty ? steps : simplified
   }
 
+  private func normalizePotentialStreetCrossingSteps(_ steps: [RouteStep]) -> [RouteStep] {
+    guard steps.count >= 3 else { return steps }
+    return steps.enumerated().map { index, step in
+      let roadName = step.roadName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      guard isPotentialStreetCrossingStep(
+        step,
+        previous: index > 0 ? steps[index - 1] : nil,
+        next: index < steps.count - 1 ? steps[index + 1] : nil,
+        roadName: roadName
+      ) else {
+        return step
+      }
+      var updated = step
+      updated.instruction = L10n.text("navigation.step.cross_street", table: .navigation, roadName)
+      return updated
+    }
+  }
+
+  private func isPotentialStreetCrossingStep(
+    _ step: RouteStep,
+    previous: RouteStep?,
+    next: RouteStep?,
+    roadName: String
+  ) -> Bool {
+    guard !roadName.isEmpty else { return false }
+    guard step.kind == .instruction else { return false }
+    guard RouteStepSimplificationCore.isTurnLikeManeuver(step) else { return false }
+    guard (1...25).contains(step.distanceMeters) else { return false }
+    guard let normalizedRoad = normalizedRouteRoadName(roadName) else { return false }
+    return normalizedRouteRoadName(previous?.roadName) != normalizedRoad &&
+      normalizedRouteRoadName(next?.roadName) != normalizedRoad
+  }
+
+  private func normalizedRouteRoadName(_ value: String?) -> String? {
+    let normalized = value?
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .lowercased()
+      .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    return normalized?.isEmpty == false ? normalized : nil
+  }
+
   private func shouldSuppressRouteStep(
     _ step: RouteStep,
     previous: RouteStep?,
@@ -853,7 +899,7 @@ actor NavigationAPIClient {
             let projection = projectOntoRoute(pathPoints: pathPoints, point: point) else {
         return nil
       }
-      guard projection.lateralDistanceMeters <= 6 else { return nil }
+      guard isPedestrianCrossingOnRoute(item: item, routeProjection: projection) else { return nil }
       guard projection.distanceAlongRouteMeters >= 20 else { return nil }
       guard projection.distanceAlongRouteMeters <= routeLength - 20 else { return nil }
       return RouteCrossingCandidate(
@@ -884,7 +930,7 @@ actor NavigationAPIClient {
       "way[\"highway\"=\"crossing\"]\(bbox);" +
       "way[\"footway\"=\"crossing\"]\(bbox);" +
       "way[\"crossing\"]\(bbox);" +
-      ");out center 160;"
+      ");out geom 160;"
     return [
       "https://overpass-api.de/api/interpreter",
       "https://overpass.kumi.systems/api/interpreter",
@@ -894,6 +940,25 @@ actor NavigationAPIClient {
       components.queryItems = [.init(name: "data", value: query)]
       return components.url
     }
+  }
+
+  private func isPedestrianCrossingOnRoute(
+    item: OverpassElementDTO,
+    routeProjection: RouteProjection
+  ) -> Bool {
+    let crossingGeometry = item.geometry?.map { GeoPoint(latitude: $0.lat, longitude: $0.lon) } ?? []
+    guard crossingGeometry.count >= 2 else {
+      return routeProjection.lateralDistanceMeters <= crossingNodeLateralLimitMeters
+    }
+    guard routeProjection.lateralDistanceMeters <= crossingWayLateralLimitMeters else {
+      return false
+    }
+    let crossingBearing = bearingDegrees(from: crossingGeometry.first!, to: crossingGeometry.last!)
+    let bearingDifference = undirectedBearingDifference(
+      routeProjection.segmentBearingDegrees,
+      crossingBearing
+    )
+    return bearingDifference <= crossingWayAlignmentToleranceDegrees
   }
 
   private func stepDistancesAlongRoute(
@@ -947,7 +1012,8 @@ actor NavigationAPIClient {
       )
       let projection = RouteProjection(
         distanceAlongRouteMeters: distanceBeforeSegment + segmentProjection.lengthMeters * segmentProjection.ratio,
-        lateralDistanceMeters: segmentProjection.lateralDistanceMeters
+        lateralDistanceMeters: segmentProjection.lateralDistanceMeters,
+        segmentBearingDegrees: segmentProjection.bearingDegrees
       )
       if bestProjection == nil || projection.lateralDistanceMeters < bestProjection!.lateralDistanceMeters {
         bestProjection = projection
@@ -979,7 +1045,7 @@ actor NavigationAPIClient {
         pow(pointProjection.x - startProjection.x, 2) +
           pow(pointProjection.y - startProjection.y, 2)
       )
-      return SegmentProjection(ratio: 0, lengthMeters: 0, lateralDistanceMeters: distance)
+      return SegmentProjection(ratio: 0, lengthMeters: 0, lateralDistanceMeters: distance, bearingDegrees: 0)
     }
 
     let ratio = min(
@@ -997,8 +1063,26 @@ actor NavigationAPIClient {
     return SegmentProjection(
       ratio: ratio,
       lengthMeters: sqrt(lengthSquared),
-      lateralDistanceMeters: lateralDistance
+      lateralDistanceMeters: lateralDistance,
+      bearingDegrees: normalizedBearingDegrees(radians: atan2(dx, dy))
     )
+  }
+
+  private func bearingDegrees(from start: GeoPoint, to end: GeoPoint) -> Double {
+    let latitudeReference = ((start.latitude + end.latitude) / 2.0) * .pi / 180.0
+    let dx = (end.longitude - start.longitude) * .pi / 180.0 * cos(latitudeReference)
+    let dy = (end.latitude - start.latitude) * .pi / 180.0
+    return normalizedBearingDegrees(radians: atan2(dx, dy))
+  }
+
+  private func normalizedBearingDegrees(radians: Double) -> Double {
+    let degrees = radians * 180.0 / .pi
+    return degrees >= 0 ? degrees : degrees + 360.0
+  }
+
+  private func undirectedBearingDifference(_ left: Double, _ right: Double) -> Double {
+    let directed = abs((left - right + 540).truncatingRemainder(dividingBy: 360) - 180)
+    return min(directed, 180 - directed)
   }
 
   private func routeLengthMeters(pathPoints: [GeoPoint]) -> Double {
@@ -1667,7 +1751,8 @@ actor NavigationAPIClient {
     if let center = item.center {
       return GeoPoint(latitude: center.lat, longitude: center.lon)
     }
-    return nil
+    let geometry = item.geometry?.map { GeoPoint(latitude: $0.lat, longitude: $0.lon) } ?? []
+    return geometry.isEmpty ? nil : geometry[geometry.count / 2]
   }
 
   private func overpassName(tags: [String: String], kind: PlaceKind) -> String {

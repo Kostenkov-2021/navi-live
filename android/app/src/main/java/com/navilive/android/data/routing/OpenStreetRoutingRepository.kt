@@ -23,7 +23,9 @@ import java.net.URL
 import java.net.URLEncoder
 import java.text.Normalizer
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.asin
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -78,12 +80,14 @@ class OpenStreetRoutingRepository(
     private data class RouteProjection(
         val distanceAlongRouteMeters: Double,
         val lateralDistanceMeters: Double,
+        val segmentBearingDegrees: Double,
     )
 
     private data class SegmentProjection(
         val ratio: Double,
         val lengthMeters: Double,
         val lateralDistanceMeters: Double,
+        val bearingDegrees: Double,
     )
 
     private data class RouteBoundingBox(
@@ -162,7 +166,10 @@ class OpenStreetRoutingRepository(
         const val ROUTE_ROAD_NAME_REQUEST_TIMEOUT_MS = 8_000
         const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
         const val CROSSING_DUPLICATE_PROXIMITY_METERS = 3.0
-        const val CROSSING_TURN_PROXIMITY_METERS = 30.0
+        const val CROSSING_TURN_PROXIMITY_METERS = 55.0
+        const val CROSSING_NODE_LATERAL_LIMIT_METERS = 2.5
+        const val CROSSING_WAY_LATERAL_LIMIT_METERS = 3.5
+        const val CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES = 35.0
         const val ROUTE_START_APPROACH_THRESHOLD_METERS = 18.0
         const val MIN_INFERRED_ROAD_STEP_DISTANCE_METERS = 45
         const val APPROACH_MANEUVER_TYPE = "approach"
@@ -366,7 +373,9 @@ class OpenStreetRoutingRepository(
             val baseSteps = stepsWithStartApproach(
                 from = from,
                 pathPoints = pathPoints,
-                steps = simplifyRouteSteps(parseSteps(steps, namedRouteWays)),
+                steps = normalizePotentialStreetCrossingSteps(
+                    simplifyRouteSteps(parseSteps(steps, namedRouteWays)),
+                ),
             )
             val parsedSteps = if (includePedestrianCrossings) {
                 addPedestrianCrossingSteps(
@@ -515,6 +524,41 @@ class OpenStreetRoutingRepository(
         return simplified.ifEmpty { steps }
     }
 
+    private fun normalizePotentialStreetCrossingSteps(steps: List<RouteStep>): List<RouteStep> {
+        if (steps.size < 3) return steps
+        return steps.mapIndexed { index, step ->
+            val roadName = step.roadName?.trim().orEmpty()
+            if (!isPotentialStreetCrossingStep(step, steps.getOrNull(index - 1), steps.getOrNull(index + 1), roadName)) {
+                step
+            } else {
+                step.copy(instruction = string(R.string.route_step_cross_named_street, roadName))
+            }
+        }
+    }
+
+    private fun isPotentialStreetCrossingStep(
+        step: RouteStep,
+        previous: RouteStep?,
+        next: RouteStep?,
+        roadName: String,
+    ): Boolean {
+        if (roadName.isBlank()) return false
+        if (step.kind != RouteStepKind.Instruction) return false
+        if (!step.isTurnLikeManeuver()) return false
+        if (step.distanceMeters !in 1..25) return false
+        val normalizedRoad = normalizedRouteRoadName(roadName)
+        if (normalizedRoad == null) return false
+        val previousRoad = normalizedRouteRoadName(previous?.roadName)
+        val nextRoad = normalizedRouteRoadName(next?.roadName)
+        return previousRoad != normalizedRoad && nextRoad != normalizedRoad
+    }
+
+    private fun normalizedRouteRoadName(value: String?): String? = value
+        ?.trim()
+        ?.lowercase(Locale.ROOT)
+        ?.replace(Regex("\\s+"), " ")
+        ?.takeIf { it.isNotBlank() }
+
     private fun shouldSuppressRouteStep(
         step: RouteStep,
         previous: RouteStep?,
@@ -623,7 +667,7 @@ class OpenStreetRoutingRepository(
             val item = elements.optJSONObject(index) ?: continue
             val point = overpassPoint(item) ?: continue
             val projection = projectOntoRoute(pathPoints, point) ?: continue
-            if (projection.lateralDistanceMeters > 6.0) continue
+            if (!isPedestrianCrossingOnRoute(item, projection)) continue
             if (projection.distanceAlongRouteMeters < 20.0) continue
             if (projection.distanceAlongRouteMeters > routeLengthMeters - 20.0) continue
             candidates += RouteCrossingCandidate(
@@ -653,13 +697,32 @@ class OpenStreetRoutingRepository(
             "way[\"highway\"=\"crossing\"]$bbox;" +
             "way[\"footway\"=\"crossing\"]$bbox;" +
             "way[\"crossing\"]$bbox;" +
-            ");out center 160;"
+            ");out geom 160;"
         val encoded = URLEncoder.encode(query, Charsets.UTF_8.name())
         return listOf(
             "https://overpass-api.de/api/interpreter?data=$encoded",
             "https://overpass.kumi.systems/api/interpreter?data=$encoded",
             "https://overpass.osm.ch/api/interpreter?data=$encoded",
         )
+    }
+
+    private fun isPedestrianCrossingOnRoute(
+        item: JSONObject,
+        routeProjection: RouteProjection,
+    ): Boolean {
+        val crossingGeometry = parseOverpassGeometry(item.optJSONArray("geometry"))
+        if (crossingGeometry.size < 2) {
+            return routeProjection.lateralDistanceMeters <= CROSSING_NODE_LATERAL_LIMIT_METERS
+        }
+        if (routeProjection.lateralDistanceMeters > CROSSING_WAY_LATERAL_LIMIT_METERS) {
+            return false
+        }
+        val crossingBearing = bearingDegrees(crossingGeometry.first(), crossingGeometry.last())
+        val bearingDifference = undirectedBearingDifference(
+            routeProjection.segmentBearingDegrees,
+            crossingBearing,
+        )
+        return bearingDifference <= CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES
     }
 
     private fun queryNamedRouteWays(pathPoints: List<GeoPoint>): List<NamedRouteWay> {
@@ -826,6 +889,7 @@ class OpenStreetRoutingRepository(
                 distanceAlongRouteMeters = distanceBeforeSegment +
                     segmentProjection.lengthMeters * segmentProjection.ratio,
                 lateralDistanceMeters = segmentProjection.lateralDistanceMeters,
+                segmentBearingDegrees = segmentProjection.bearingDegrees,
             )
             val best = bestProjection
             if (best == null || projection.lateralDistanceMeters < best.lateralDistanceMeters) {
@@ -854,7 +918,12 @@ class OpenStreetRoutingRepository(
         val lengthSquared = dx * dx + dy * dy
         if (lengthSquared <= 0.0) {
             val distance = sqrt((pointX - startX).pow(2.0) + (pointY - startY).pow(2.0))
-            return SegmentProjection(ratio = 0.0, lengthMeters = 0.0, lateralDistanceMeters = distance)
+            return SegmentProjection(
+                ratio = 0.0,
+                lengthMeters = 0.0,
+                lateralDistanceMeters = distance,
+                bearingDegrees = 0.0,
+            )
         }
         val ratio = (((pointX - startX) * dx + (pointY - startY) * dy) / lengthSquared)
             .coerceIn(0.0, 1.0)
@@ -865,7 +934,25 @@ class OpenStreetRoutingRepository(
             ratio = ratio,
             lengthMeters = sqrt(lengthSquared),
             lateralDistanceMeters = lateralDistance,
+            bearingDegrees = normalizedBearingDegrees(atan2(dx, dy)),
         )
+    }
+
+    private fun bearingDegrees(start: GeoPoint, end: GeoPoint): Double {
+        val latitudeReference = Math.toRadians((start.latitude + end.latitude) / 2.0)
+        val dx = Math.toRadians(end.longitude - start.longitude) * cos(latitudeReference)
+        val dy = Math.toRadians(end.latitude - start.latitude)
+        return normalizedBearingDegrees(atan2(dx, dy))
+    }
+
+    private fun normalizedBearingDegrees(radians: Double): Double {
+        val degrees = Math.toDegrees(radians)
+        return (degrees + 360.0) % 360.0
+    }
+
+    private fun undirectedBearingDifference(left: Double, right: Double): Double {
+        val directed = abs(((left - right + 540.0) % 360.0) - 180.0)
+        return minOf(directed, 180.0 - directed)
     }
 
     private fun routeLengthMeters(pathPoints: List<GeoPoint>): Double {
@@ -1804,14 +1891,16 @@ class OpenStreetRoutingRepository(
         if (!latitude.isNaN() && !longitude.isNaN()) {
             return GeoPoint(latitude, longitude)
         }
-        val center = item.optJSONObject("center") ?: return null
-        val centerLatitude = center.optDouble("lat", Double.NaN)
-        val centerLongitude = center.optDouble("lon", Double.NaN)
-        return if (!centerLatitude.isNaN() && !centerLongitude.isNaN()) {
-            GeoPoint(centerLatitude, centerLongitude)
-        } else {
-            null
+        val center = item.optJSONObject("center")
+        if (center != null) {
+            val centerLatitude = center.optDouble("lat", Double.NaN)
+            val centerLongitude = center.optDouble("lon", Double.NaN)
+            if (!centerLatitude.isNaN() && !centerLongitude.isNaN()) {
+                return GeoPoint(centerLatitude, centerLongitude)
+            }
         }
+        val geometry = parseOverpassGeometry(item.optJSONArray("geometry"))
+        return geometry.getOrNull(geometry.size / 2)
     }
 
     private fun overpassName(tags: Map<String, String>, kind: PlaceKind): String {

@@ -52,6 +52,8 @@ data class HeadingState(
 data class ActiveNavigationState(
     val currentInstruction: String = "",
     val nextInstruction: String = "",
+    val currentStepIndex: Int = 0,
+    val routeSteps: List<RouteStep> = emptyList(),
     val distanceToNextMeters: Int = 0,
     val remainingDistanceMeters: Int = 0,
     val progressLabel: String = "",

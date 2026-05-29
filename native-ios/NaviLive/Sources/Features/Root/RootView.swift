@@ -148,6 +148,7 @@ private struct BootstrappingView: View {
 private final class ShakeGestureMonitor: ObservableObject {
   private let motionManager = CMMotionManager()
   private var lastShakeAt = Date.distantPast
+  private var lastForce = 1.0
   private var currentStrength: ShakeStrength = .medium
   private var onShake: (() -> Void)?
 
@@ -181,7 +182,9 @@ private final class ShakeGestureMonitor: ObservableObject {
       acceleration.y * acceleration.y +
       acceleration.z * acceleration.z
     )
-    guard force >= currentStrength.thresholdG else { return }
+    let forceDelta = abs(force - lastForce)
+    lastForce = force
+    guard force >= currentStrength.thresholdG, forceDelta >= currentStrength.minimumDeltaG else { return }
 
     let now = Date()
     guard now.timeIntervalSince(lastShakeAt) >= Self.debounceInterval else { return }
@@ -189,18 +192,29 @@ private final class ShakeGestureMonitor: ObservableObject {
     onShake?()
   }
 
-  private static let debounceInterval: TimeInterval = 1.4
+  private static let debounceInterval: TimeInterval = 3.0
 }
 
 private extension ShakeStrength {
   var thresholdG: Double {
     switch self {
     case .light:
-      return 2.2
-    case .medium:
       return 2.8
+    case .medium:
+      return 3.5
     case .strong:
-      return 3.4
+      return 4.2
+    }
+  }
+
+  var minimumDeltaG: Double {
+    switch self {
+    case .light:
+      return 1.1
+    case .medium:
+      return 1.4
+    case .strong:
+      return 1.7
     }
   }
 }

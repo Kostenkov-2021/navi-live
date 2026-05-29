@@ -4,24 +4,26 @@ This directory is the first step toward a shared cross-platform core without rew
 
 Current source of truth:
 
-- [product-rules.json](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/shared/product-rules.json)
-- [test-fixtures/navigation-parity-fixtures.json](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/shared/test-fixtures/navigation-parity-fixtures.json)
+- [product-rules.json](/C:/Users/Kazek/Documents/navi-live/shared/product-rules.json)
+- [test-fixtures/navigation-parity-fixtures.json](/C:/Users/Kazek/Documents/navi-live/shared/test-fixtures/navigation-parity-fixtures.json)
 
 Generator:
 
-- [generate-shared-product-rules.py](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/scripts/generate-shared-product-rules.py)
+- [generate-shared-product-rules.py](/C:/Users/Kazek/Documents/navi-live/scripts/generate-shared-product-rules.py)
 
 Generated platform files:
 
-- [SharedProductRules.kt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/android/app/src/main/java/com/navilive/android/model/SharedProductRules.kt)
-- [SharedProductRules.swift](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Sources/Core/Models/SharedProductRules.swift)
+- [SharedProductRules.kt](/C:/Users/Kazek/Documents/navi-live/android/app/src/main/java/com/navilive/android/model/SharedProductRules.kt)
+- [SharedProductRules.swift](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Sources/Core/Models/SharedProductRules.swift)
 
 Current shared scope:
 
 - countdown milestones before a maneuver
 - immediate turn instruction thresholds
+- maneuver lead distance used to speak turns before the physical maneuver point
 - maneuver advance thresholds
 - off-route thresholds
+- weak GPS accuracy threshold used to avoid noisy signal warnings
 - auto-recalculation cooldown
 - step-advance, off-route, and auto-recalculation scenario decisions
 - nearby/global search limits and radii

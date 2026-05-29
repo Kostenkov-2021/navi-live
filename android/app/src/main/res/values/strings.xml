@@ -133,6 +133,8 @@
     <string name="active_navigation_recalculate">Recalculate route</string>
     <string name="active_navigation_need_new_route">Need a new route</string>
     <string name="active_navigation_report_problem">Report route problem</string>
+    <string name="active_navigation_route_steps">Route steps</string>
+    <string name="active_navigation_current_step_format">Current: %1$s</string>
     <string name="common_resume">Resume</string>
     <string name="common_pause">Pause</string>
     <string name="common_repeat">Repeat</string>
@@ -458,6 +460,7 @@
     <string name="route_step_continue">Continue on %1$s</string>
     <string name="route_step_proceed_toward">Proceed toward %1$s</string>
     <string name="route_step_crossing">Pedestrian crossing on the route.</string>
+    <string name="route_step_cross_named_street">Cross %1$s.</string>
     <string name="route_modifier_left">left</string>
     <string name="route_modifier_right">right</string>
     <string name="route_modifier_slight_left">slight left</string>

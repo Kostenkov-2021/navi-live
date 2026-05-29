@@ -6,7 +6,7 @@ Native iPhone/iPad client for `Navi Live`, built with:
 - `NavigationStack`
 - system `List` / `Form` / `Button` / `Toggle` / `Picker` controls
 - localized `.strings` files split by feature tables
-- `XcodeGen` project generation from [project.yml](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/project.yml)
+- `XcodeGen` project generation from [project.yml](/C:/Users/Kazek/Documents/navi-live/native-ios/project.yml)
 
 ## Current state
 
@@ -20,6 +20,9 @@ Implemented and validated on GitHub Actions:
 - active navigation
 - off-route detection
 - automatic route recalculation
+- stricter pedestrian crossing alerts that avoid nearby side crossings when possible
+- named-street crossing wording for short route steps that cross a street instead of turning into it
+- less sensitive shake-to-repeat detection with a longer cooldown
 - arrival screen
 - simulator test workflow
 - unsigned IPA workflow for Sideloadly
@@ -38,17 +41,19 @@ Current accessibility-related decisions:
 - grouped status cards with combined accessibility output
 - localized announcements through `UIAccessibility` / `AVSpeechSynthesizer`
 - haptics gated by user settings
+- active navigation includes VoiceOver rotor entries for route instructions and alerts
+- route guidance announcements prefer actual maneuver steps over nearby crossing alerts
 
 ## Localization layout
 
 Strings are organized by feature:
 
-- [General.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/General.strings)
-- [Root.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Root.strings)
-- [Home.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Home.strings)
-- [Onboarding.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Onboarding.strings)
-- [Navigation.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Navigation.strings)
-- [Settings.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Settings.strings)
+- [General.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/General.strings)
+- [Root.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Root.strings)
+- [Home.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Home.strings)
+- [Onboarding.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Onboarding.strings)
+- [Navigation.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Navigation.strings)
+- [Settings.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Settings.strings)
 
 Polish and Russian mirror the same structure under `pl.lproj` and `ru.lproj`.
 
@@ -87,8 +92,8 @@ Available GitHub Actions:
 
 Publishing helper:
 
-- [Publish-NaviLive-iOS-TestFlight.ps1](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/scripts/Publish-NaviLive-iOS-TestFlight.ps1)
-- [Update-NaviLive-AppStoreConnect-Metadata.py](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/scripts/Update-NaviLive-AppStoreConnect-Metadata.py)
+- [Publish-NaviLive-iOS-TestFlight.ps1](/C:/Users/Kazek/Documents/navi-live/scripts/Publish-NaviLive-iOS-TestFlight.ps1)
+- [Update-NaviLive-AppStoreConnect-Metadata.py](/C:/Users/Kazek/Documents/navi-live/scripts/Update-NaviLive-AppStoreConnect-Metadata.py)
 
 ## Sideloadly install
 
@@ -107,20 +112,20 @@ This script:
 The signed/TestFlight workflow is already configured and has been validated successfully.
 Metadata and review material are stored in:
 
-- [native-ios/AppStoreConnect/README.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/README.md)
-- [TestFlight-beta-description.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/TestFlight-beta-description.txt)
-- [TestFlight-what-to-test.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/TestFlight-what-to-test.txt)
-- [Beta-License-Agreement.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/Beta-License-Agreement.txt)
-- [TestFlight-review-notes.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/TestFlight-review-notes.txt)
-- [TestFlight-review-notes-strict.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/TestFlight-review-notes-strict.txt)
-- [App-Privacy-draft.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/App-Privacy-draft.md)
-- [Privacy-Policy-Text.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/Privacy-Policy-Text.md)
-- [Custom-License-Agreement-Draft.txt](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/Custom-License-Agreement-Draft.txt)
-- [AppStoreConnect-UI-Copy-Pack.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/AppStoreConnect-UI-Copy-Pack.md)
-- [TestFlight-UI-Checklist.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/TestFlight-UI-Checklist.md)
-- [Release-checklist.md](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/AppStoreConnect/Release-checklist.md)
+- [native-ios/AppStoreConnect/README.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/README.md)
+- [TestFlight-beta-description.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/TestFlight-beta-description.txt)
+- [TestFlight-what-to-test.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/TestFlight-what-to-test.txt)
+- [Beta-License-Agreement.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/Beta-License-Agreement.txt)
+- [TestFlight-review-notes.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/TestFlight-review-notes.txt)
+- [TestFlight-review-notes-strict.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/TestFlight-review-notes-strict.txt)
+- [App-Privacy-draft.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/App-Privacy-draft.md)
+- [Privacy-Policy-Text.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/Privacy-Policy-Text.md)
+- [Custom-License-Agreement-Draft.txt](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/Custom-License-Agreement-Draft.txt)
+- [AppStoreConnect-UI-Copy-Pack.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/AppStoreConnect-UI-Copy-Pack.md)
+- [TestFlight-UI-Checklist.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/TestFlight-UI-Checklist.md)
+- [Release-checklist.md](/C:/Users/Kazek/Documents/navi-live/native-ios/AppStoreConnect/Release-checklist.md)
 
-The workflow uses the explicit `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` stored in [project.yml](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/project.yml), matching the `ListenSDR` release model. You can still override the build number manually for exceptional cases.
+The workflow uses the explicit `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` stored in [project.yml](/C:/Users/Kazek/Documents/navi-live/native-ios/project.yml), matching the `ListenSDR` release model. You can still override the build number manually for exceptional cases.
 
 Minimum required secrets for automatic signing/upload:
 
@@ -138,7 +143,7 @@ Optional manual-signing secrets:
 
 Helper script for populating them:
 
-- [Set-NaviLive-TestFlight-Secrets.ps1](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/scripts/Set-NaviLive-TestFlight-Secrets.ps1)
+- [Set-NaviLive-TestFlight-Secrets.ps1](/C:/Users/Kazek/Documents/navi-live/scripts/Set-NaviLive-TestFlight-Secrets.ps1)
 
 Recommended local env vars, matching the ListenSDR/TestFlight tooling:
 

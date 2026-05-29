@@ -123,6 +123,8 @@
     <string name="active_navigation_recalculate">Przelicz trasę</string>
     <string name="active_navigation_need_new_route">Potrzebna nowa trasa</string>
     <string name="active_navigation_report_problem">Zgłoś problem z trasą</string>
+    <string name="active_navigation_route_steps">Kroki trasy</string>
+    <string name="active_navigation_current_step_format">Aktualnie: %1$s</string>
     <string name="common_resume">Wznów</string>
     <string name="common_pause">Wstrzymaj</string>
     <string name="common_repeat">Powtórz</string>
@@ -436,6 +438,7 @@
     <string name="route_step_continue">Idź dalej: %1$s</string>
     <string name="route_step_proceed_toward">Kieruj się do: %1$s</string>
     <string name="route_step_crossing">Przejście dla pieszych na trasie.</string>
+    <string name="route_step_cross_named_street">Przejdź przez %1$s.</string>
     <string name="route_modifier_left">w lewo</string>
     <string name="route_modifier_right">w prawo</string>
     <string name="route_modifier_slight_left">lekko w lewo</string>

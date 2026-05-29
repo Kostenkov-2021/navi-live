@@ -16,6 +16,7 @@
 "navigation.step.continue" = "Kontynuuj";
 "navigation.step.continue.named" = "Idź dalej: %1$@";
 "navigation.step.crossing" = "Przejście dla pieszych na trasie.";
+"navigation.step.cross_street" = "Przejdź przez %1$@.";
 "navigation.modifier.left" = "w lewo";
 "navigation.modifier.right" = "w prawo";
 "navigation.modifier.slight left" = "lekko w lewo";

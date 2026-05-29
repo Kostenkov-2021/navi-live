@@ -35,8 +35,12 @@ class GitHubUpdateRepository(
     suspend fun fetchLatestRelease(channel: UpdateChannel): GitHubReleaseInfo = withContext(Dispatchers.IO) {
         if (channel == UpdateChannel.Stable) {
             val endpoint = "https://api.github.com/repos/$owner/$repo/releases/latest"
-            val payload = requestText(endpoint)
-            return@withContext parseRelease(JSONObject(payload))
+            val latest = runCatching {
+                parseRelease(JSONObject(requestText(endpoint)))
+            }.getOrNull()
+            if (latest != null) {
+                return@withContext latest
+            }
         }
 
         val endpoint = "https://api.github.com/repos/$owner/$repo/releases"
@@ -45,6 +49,7 @@ class GitHubUpdateRepository(
         for (index in 0 until releases.length()) {
             val item = releases.optJSONObject(index) ?: continue
             if (item.optBoolean("draft")) continue
+            if (channel == UpdateChannel.Stable && item.optBoolean("prerelease")) continue
             val candidate = runCatching { parseRelease(item) }.getOrNull() ?: continue
             return@withContext candidate
         }

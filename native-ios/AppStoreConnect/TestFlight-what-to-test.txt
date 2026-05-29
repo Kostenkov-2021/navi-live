@@ -1,27 +1,33 @@
 POLSKI
 
-Sprawdź rosyjską lokalizację na iPhonie.
-Ustaw język telefonu na rosyjski albo dodaj rosyjski jako preferowany język aplikacji i sprawdź ekran główny, wyszukiwanie, ustawienia, samouczek oraz komunikaty nawigacji.
+Sprawdź prowadzenie po trasie pieszej.
+Utwórz krótką trasę pieszą i sprawdź, czy komunikaty zakrętów pojawiają się wcześniej, nie dopiero po minięciu skrętu. Zwróć uwagę, czy aplikacja nie zgłasza zbyt szybko zejścia z trasy przy normalnym marszu.
 
-Sprawdź samouczek i uprawnienia.
-Wszystkie teksty samouczka, prośby o lokalizację i opisy uprawnień powinny być po rosyjsku, bez pustych pól i bez powrotu do angielskiego.
+Sprawdź komunikaty o przejściach dla pieszych.
+Podczas trasy zweryfikuj, czy aplikacja nie zapowiada bocznych przejść przez ścieżkę rowerową lub przejść obok trasy jako przejść, które trzeba wykonać. Jeśli przejście i zakręt są blisko siebie, ważniejszy powinien być realny manewr.
 
-Sprawdź komunikaty VoiceOver.
-Rosyjskie etykiety powinny być czytane poprawnie, bez mieszania kolejności elementów i bez powtarzania tekstów.
+Sprawdź krótkie przejścia przez ulicę.
+Jeśli trasa przecina ulicę, aplikacja powinna mówić, że trzeba przejść przez ulicę, zamiast sugerować skręt w tę ulicę.
 
-Sprawdź podstawową stabilność.
-Wyszukaj miejsce, otwórz szczegóły, dodaj punkt do ulubionych i przejdź do ustawień. Aplikacja nie powinna się zamykać ani tracić fokusu VoiceOver.
+Sprawdź potrząśnięcie.
+Ustaw potrząśnięcie do powtarzania komunikatu i sprawdź, czy nie uruchamia się przypadkowo podczas marszu z telefonem w kieszeni.
+
+Sprawdź VoiceOver.
+Na ekranie aktywnej nawigacji sprawdź aktualną instrukcję, następną instrukcję, rotor kroków trasy, rotor alertów oraz akcje powtarzania, przeliczania i zgłoszenia problemu.
 
 ENGLISH
 
-Check the Russian localization on iPhone.
-Set the phone language to Russian or add Russian as the preferred app language, then check the home screen, search, settings, tutorial, and navigation messages.
+Check walking route guidance.
+Create a short walking route and verify that turn announcements happen earlier, not after passing the turn. Check that the app does not report going off route too aggressively during normal walking.
 
-Check onboarding and permissions.
-All onboarding text, location permission prompts, and permission descriptions should be in Russian, with no empty fields and no fallback to English.
+Check pedestrian crossing announcements.
+During navigation, verify that side crossings, cycle-path crossings, or crossings next to the route are not announced as required route crossings. If a crossing and a turn are close together, the real maneuver should have priority.
 
-Check VoiceOver announcements.
-Russian labels should be read correctly, without mixed focus order and without repeated text.
+Check short street crossings.
+When the route crosses a street, the app should say to cross that street instead of suggesting that the user should turn into it.
 
-Check basic stability.
-Search for a place, open details, save a favorite, and open settings. The app should not close unexpectedly or lose VoiceOver focus.
+Check shake to repeat.
+Enable shake to repeat the current instruction and verify that it does not trigger accidentally while walking with the phone in a pocket.
+
+Check VoiceOver.
+On the active navigation screen, verify the current instruction, next instruction, route steps rotor, alerts rotor, and actions for repeat, recalculation, and route problem reporting.

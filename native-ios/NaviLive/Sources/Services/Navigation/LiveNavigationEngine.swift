@@ -249,7 +249,7 @@ final class LiveNavigationEngine {
         routeProgressProjection(pathPoints: session.pathPoints, point: $0.point)
     }
 
-    let distanceToNext: Int = {
+    let rawDistanceToNext: Int = {
       if currentStep.maneuverType == Self.approachManeuverType,
          let maneuverPoint = currentStep.maneuverPoint,
          let fix {
@@ -270,6 +270,9 @@ final class LiveNavigationEngine {
       }
       return max(currentStep.distanceMeters, 1)
     }()
+    let distanceToNext = currentStep.maneuverType == Self.approachManeuverType
+      ? rawDistanceToNext
+      : adjustedGuidanceDistanceToNext(rawDistanceToNext, upcomingStep: nextStep)
 
     let remainingFromSteps = session.steps.dropFirst(safeIndex).reduce(0) { $0 + $1.distanceMeters }
     let remainingFromDestination = {
@@ -291,6 +294,16 @@ final class LiveNavigationEngine {
       isRecalculating: isRecalculating,
       offRouteDistanceMeters: offRouteDistanceMeters
     )
+  }
+
+  private func adjustedGuidanceDistanceToNext(_ rawDistanceMeters: Int, upcomingStep: RouteStep?) -> Int {
+    guard shouldApplyGuidanceLead(to: upcomingStep) else { return rawDistanceMeters }
+    return max(rawDistanceMeters - SharedProductRules.Navigation.guidanceLeadMeters, 0)
+  }
+
+  private func shouldApplyGuidanceLead(to step: RouteStep?) -> Bool {
+    guard let step, step.kind != .pedestrianCrossing else { return false }
+    return step.maneuverType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() != "arrive"
   }
 
   private func routeDeviationMeters(pathPoints: [GeoPoint], point: GeoPoint) -> Int? {

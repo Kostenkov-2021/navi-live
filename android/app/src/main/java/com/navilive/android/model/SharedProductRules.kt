@@ -21,14 +21,17 @@ object SharedProductRules {
         const val maneuverAdvanceMultiplier: Double = 1.5
 
         const val offRouteAccuracyMinMeters: Float = 10.0f
-        const val offRouteAccuracyMaxMeters: Float = 20.0f
-        const val offRouteMultiplier: Float = 1.2f
-        const val offRouteMinimumThresholdMeters: Int = 15
+        const val offRouteAccuracyMaxMeters: Float = 30.0f
+        const val offRouteMultiplier: Float = 1.4f
+        const val offRouteMinimumThresholdMeters: Int = 25
 
         const val immediateInstructionAccuracyMinMeters: Float = 5.0f
         const val immediateInstructionAccuracyMaxMeters: Float = 8.0f
         const val immediateInstructionThresholdMinMeters: Int = 5
         const val immediateInstructionThresholdMaxMeters: Int = 8
+
+        const val guidanceLeadMeters: Int = 12
+        const val gpsWeakAccuracyMeters: Float = 75f
 
         const val autoRecalculateCooldownMs: Long = 6000L
     }

@@ -19,6 +19,7 @@
 5. Run a clean iOS build on the Mac before any upload.
 6. Do not start the upload unless it was explicitly requested.
 7. When prep is complete and upload was requested, launch `C:\Users\Kazek\Desktop\skrypty_ios\NaviLive TestFlight GUI.lnk` as the final step.
+8. Before using desktop TestFlight or Android scripts, confirm they point to `C:\Users\Kazek\Documents\navi-live`, not the old `Desktop\Tymczasowe\navilive` workspace.
 
 ## Workflow
 

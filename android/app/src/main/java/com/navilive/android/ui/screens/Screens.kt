@@ -128,6 +128,8 @@ import com.navilive.android.model.HeadingState
 import com.navilive.android.model.NearbyPoiCacheMode
 import com.navilive.android.model.NearbyPoiCacheState
 import com.navilive.android.model.Place
+import com.navilive.android.model.RouteStep
+import com.navilive.android.model.RouteStepKind
 import com.navilive.android.model.RouteSummary
 import com.navilive.android.model.SettingsState
 import com.navilive.android.model.ShakeStrength
@@ -964,7 +966,7 @@ fun ActiveNavigationScreen(
 
     ScreenScaffold(title = stringResource(R.string.active_navigation_title), showBack = false) { modifier ->
         Column(
-            modifier = modifier,
+            modifier = modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             StatusCard(status.title, status.message, status.tone)
@@ -1007,6 +1009,11 @@ fun ActiveNavigationScreen(
                 }
             }
 
+            ActiveNavigationRouteStepsCard(
+                steps = state.routeSteps,
+                currentStepIndex = state.currentStepIndex,
+            )
+
             FilledTonalButton(
                 onClick = onRecalculate,
                 modifier = Modifier.fillMaxWidth(),
@@ -1031,8 +1038,6 @@ fun ActiveNavigationScreen(
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.active_navigation_report_problem))
             }
-
-            Spacer(modifier = Modifier.weight(1f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1066,6 +1071,55 @@ fun ActiveNavigationScreen(
                 icon = Icons.Filled.Stop,
                 onClick = onStop,
             )
+        }
+    }
+}
+
+@Composable
+private fun ActiveNavigationRouteStepsCard(
+    steps: List<RouteStep>,
+    currentStepIndex: Int,
+) {
+    if (steps.isEmpty()) return
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CardTitle(stringResource(R.string.active_navigation_route_steps))
+            steps.forEachIndexed { index, step ->
+                val distance = if (step.distanceMeters > 0) {
+                    stringResource(R.string.format_distance_meters, step.distanceMeters)
+                } else {
+                    ""
+                }
+                val baseText = if (distance.isBlank()) {
+                    stringResource(R.string.format_step_preview, index + 1, step.instruction)
+                } else {
+                    stringResource(
+                        R.string.format_step_preview_with_distance,
+                        index + 1,
+                        step.instruction,
+                        distance,
+                    )
+                }
+                val isCurrent = index == currentStepIndex
+                val spokenText = if (isCurrent) {
+                    stringResource(R.string.active_navigation_current_step_format, baseText)
+                } else {
+                    baseText
+                }
+                Text(
+                    text = spokenText,
+                    color = when {
+                        isCurrent -> MaterialTheme.colorScheme.onSurface
+                        step.kind == RouteStepKind.PedestrianCrossing -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal,
+                )
+            }
         }
     }
 }
@@ -3337,7 +3391,7 @@ private fun locationStatus(
             message = stringResource(R.string.location_status_waiting_gps_message),
             tone = BannerTone.Warning,
         )
-        accuracyMeters > 45f -> StatusPresentation(
+        accuracyMeters > SharedProductRules.Navigation.gpsWeakAccuracyMeters -> StatusPresentation(
             title = stringResource(R.string.location_status_gps_weak_title),
             message = stringResource(R.string.location_status_gps_weak_message),
             tone = BannerTone.Warning,
@@ -3369,7 +3423,7 @@ private fun currentPositionStatus(
             message = stringResource(R.string.current_position_status_waiting_message),
             tone = BannerTone.Info,
         )
-        accuracyMeters > 45f -> StatusPresentation(
+        accuracyMeters > SharedProductRules.Navigation.gpsWeakAccuracyMeters -> StatusPresentation(
             title = stringResource(R.string.current_position_status_approximate_title),
             message = stringResource(R.string.current_position_status_approximate_message),
             tone = BannerTone.Warning,
@@ -3404,7 +3458,8 @@ private fun navigationStatus(
             message = stringResource(R.string.navigation_status_off_route_message),
             tone = BannerTone.Critical,
         )
-        accuracyMeters != null && accuracyMeters > 45f -> StatusPresentation(
+        accuracyMeters != null &&
+            accuracyMeters > SharedProductRules.Navigation.gpsWeakAccuracyMeters -> StatusPresentation(
             title = stringResource(R.string.navigation_status_gps_weak_title),
             message = stringResource(R.string.navigation_status_gps_weak_message),
             tone = BannerTone.Warning,

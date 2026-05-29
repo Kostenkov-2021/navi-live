@@ -75,8 +75,8 @@ class LocationForegroundService : Service() {
         startForeground(NOTIFICATION_ID, notification)
         LocationTrackerStore.setTracking(true)
 
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4_000L)
-            .setMinUpdateIntervalMillis(2_000L)
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1_000L)
+            .setMinUpdateIntervalMillis(500L)
             .setWaitForAccurateLocation(false)
             .build()
 

@@ -16,6 +16,7 @@
 "navigation.step.continue" = "Продолжайте движение";
 "navigation.step.continue.named" = "Продолжайте движение по  %1$@";
 "navigation.step.crossing" = "На маршруте пешеходный переход. Будьте осторожны.";
+"navigation.step.cross_street" = "Перейдите через %1$@.";
 "navigation.modifier.left" = "налево";
 "navigation.modifier.right" = "направо";
 "navigation.modifier.slight left" = "плавно налево";

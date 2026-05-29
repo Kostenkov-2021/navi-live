@@ -111,21 +111,21 @@
         "name": "minimum_accuracy_clamps_thresholds",
         "accuracyMeters": 3.0,
         "expectedManeuverAdvance": 15.0,
-        "expectedOffRoute": 15,
+        "expectedOffRoute": 25,
         "expectedImmediate": 5
       },
       {
         "name": "mid_accuracy_uses_live_values",
         "accuracyMeters": 12.0,
         "expectedManeuverAdvance": 18.0,
-        "expectedOffRoute": 15,
+        "expectedOffRoute": 25,
         "expectedImmediate": 8
       },
       {
         "name": "high_accuracy_clamps_maximums",
         "accuracyMeters": 40.0,
         "expectedManeuverAdvance": 30.0,
-        "expectedOffRoute": 24,
+        "expectedOffRoute": 42,
         "expectedImmediate": 8
       }
     ],
@@ -200,13 +200,13 @@
       },
       {
         "name": "deviation_below_threshold_does_not_trigger",
-        "deviationMeters": 14,
+        "deviationMeters": 24,
         "accuracyMeters": 5.0,
         "expectedOffRoute": false
       },
       {
         "name": "deviation_above_threshold_triggers",
-        "deviationMeters": 16,
+        "deviationMeters": 26,
         "accuracyMeters": 5.0,
         "expectedOffRoute": true
       }

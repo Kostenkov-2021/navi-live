@@ -1205,7 +1205,8 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         val detail = when {
             !state.locationState.hasPermission -> string(R.string.location_announcement_disabled)
             accuracy == null -> string(R.string.location_announcement_unavailable)
-            accuracy > 45f -> string(R.string.location_announcement_approximate)
+            accuracy > SharedProductRules.Navigation.gpsWeakAccuracyMeters ->
+                string(R.string.location_announcement_approximate)
             else -> string(R.string.location_announcement_ready)
         }
         val label = state.currentLocationLabel
@@ -2037,7 +2038,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                 ?: routeProgressProjection(session.pathPoints, it.point)
         }
         val remainingFromRoute = routeProgress?.remainingRouteMeters
-        val distanceToNext = when {
+        val rawDistanceToNext = when {
             currentStep.maneuverType == ApproachManeuverType && currentStep.maneuverPoint != null && fix != null ->
                 distanceMeters(fix.point, currentStep.maneuverPoint).roundToInt().coerceAtLeast(1)
             nextStep != null && routeProgress != null ->
@@ -2055,6 +2056,11 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                 distanceMeters(fix.point, routeEndPoint).roundToInt().coerceAtLeast(0)
             else -> currentStep.distanceMeters.coerceAtLeast(1)
         }
+        val distanceToNext = if (currentStep.maneuverType == ApproachManeuverType) {
+            rawDistanceToNext
+        } else {
+            adjustedGuidanceDistanceToNext(rawDistanceToNext, nextStep)
+        }
         val remainingFromSteps = session.steps.drop(currentIndex).sumOf { it.distanceMeters }
         val remainingFromDestination = if (fix != null && routeEndPoint != null) {
             distanceMeters(fix.point, routeEndPoint).roundToInt()
@@ -2064,6 +2070,8 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         return ActiveNavigationState(
             currentInstruction = currentStep.instruction,
             nextInstruction = nextStep?.instruction ?: string(R.string.generic_destination_ahead),
+            currentStepIndex = currentIndex,
+            routeSteps = session.steps,
             distanceToNextMeters = distanceToNext,
             remainingDistanceMeters = remainingFromRoute
                 ?.roundToInt()
@@ -2075,6 +2083,16 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             isRecalculating = isRecalculating,
             offRouteDistanceMeters = offRouteDistanceMeters,
         )
+    }
+
+    private fun adjustedGuidanceDistanceToNext(rawDistanceMeters: Int, upcomingStep: RouteStep?): Int {
+        if (!shouldApplyGuidanceLead(upcomingStep)) return rawDistanceMeters
+        return (rawDistanceMeters - SharedProductRules.Navigation.guidanceLeadMeters).coerceAtLeast(0)
+    }
+
+    private fun shouldApplyGuidanceLead(step: RouteStep?): Boolean {
+        if (step == null || step.kind == RouteStepKind.PedestrianCrossing) return false
+        return !step.maneuverType.equals("arrive", ignoreCase = true)
     }
 
     private fun announceStepChange(session: RouteSession) {

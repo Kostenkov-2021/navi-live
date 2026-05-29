@@ -47,3 +47,7 @@ Technical note:
 - Shared product tuning now starts in `shared/product-rules.json` and is generated into native Android/iOS code.
 - Shared parity fixtures now live in `shared/test-fixtures/navigation-parity-fixtures.json` and are exercised by both Android and iOS unit tests.
 - Shared cross-platform parity now also covers navigation scenario decisions such as countdown milestones, immediate turn timing, step advance, off-route detection, and auto-recalculation cooldown behavior.
+- Walking guidance now uses a small lead distance before maneuvers, a less aggressive off-route threshold, and faster Android location updates to reduce late turn announcements.
+- Pedestrian crossing alerts are filtered more strictly so side crossings and nearby cycle-path crossings are less likely to replace actual turn instructions.
+- Active navigation on Android exposes the route step list so screen reader users can review current and upcoming instructions during guidance.
+- Shake-to-repeat now requires a stronger motion spike and a longer cooldown to reduce accidental repeats from a phone carried in a pocket.

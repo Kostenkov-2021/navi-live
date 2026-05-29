@@ -13,6 +13,9 @@ This directory contains the first working Android implementation for `Navi Live`
 - Persistent favorites, settings and last route via DataStore
 - Full route steps from OSRM with live step progression
 - Automatic off-route detection with optional auto-recalculation
+- Stricter pedestrian crossing filtering so nearby side crossings do not take priority over real maneuvers
+- Active route step list during live guidance for quick review with TalkBack or another screen reader
+- Reduced accidental shake-to-repeat triggers with stronger thresholds and a longer cooldown
 - Debug telemetry buffer with export and share from Settings
 - Blueprint-aligned accessibility-first screen hierarchy
 - Automatic localization from the phone language with European locale coverage
@@ -86,6 +89,8 @@ Current Android MVP now follows the local `NAVILIVE_UX_BLUEPRINT.md` more closel
 - Online place search uses OpenStreetMap Nominatim (`OpenStreetRoutingRepository.searchPlaces`).
 - Reverse geocoding for current address also uses Nominatim (`OpenStreetRoutingRepository.reverseGeocode`).
 - Walking route summary uses OSRM public demo endpoint (`OpenStreetRoutingRepository.buildWalkingRoute`) with full step list and route geometry.
+- Very short turn-like route steps that look like crossing a named street are announced as crossing that street instead of turning into it.
+- Pedestrian crossings are fetched from Overpass with geometry and are kept only when they sit very close to the walking route and align with the route direction.
 - Foreground tracking service is `LocationForegroundService`.
 - Shared runtime location state is `LocationTrackerStore`.
 - TTS/haptic feedback is handled by `GuidanceFeedbackEngine`.
@@ -94,6 +99,7 @@ Current Android MVP now follows the local `NAVILIVE_UX_BLUEPRINT.md` more closel
 - App updates are fetched from GitHub Releases by `GitHubUpdateRepository`.
 - Navi Live now performs one silent update check on app startup after preferences finish loading.
 - Stable channel follows the latest regular GitHub release; beta channel scans the full GitHub releases list and will surface prereleases when they exist.
+- Stable update checks now fall back to the full release list if GitHub's `latest` endpoint cannot provide a usable APK release.
 - Downloaded update APKs are stored under app-internal `files/debug/updates` and persisted across app restarts until installed or superseded.
 - Installation is handed off to the Android package installer through the app `FileProvider`.
 - When the user starts an in-app `download and install` flow, Navi Live will automatically continue with APK installation after the required Android permission screen returns.

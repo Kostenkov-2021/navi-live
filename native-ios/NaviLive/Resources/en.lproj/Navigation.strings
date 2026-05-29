@@ -16,6 +16,7 @@
 "navigation.step.continue" = "Continue";
 "navigation.step.continue.named" = "Continue on %1$@";
 "navigation.step.crossing" = "Pedestrian crossing on the route.";
+"navigation.step.cross_street" = "Cross %1$@.";
 "navigation.modifier.left" = "left";
 "navigation.modifier.right" = "right";
 "navigation.modifier.slight left" = "slightly left";

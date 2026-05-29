@@ -18,14 +18,17 @@ enum SharedProductRules {
     static let maneuverAdvanceMultiplier: Double = 1.5
 
     static let offRouteAccuracyMinMeters: Double = 10.0
-    static let offRouteAccuracyMaxMeters: Double = 20.0
-    static let offRouteMultiplier: Double = 1.2
-    static let offRouteMinimumThresholdMeters: Int = 15
+    static let offRouteAccuracyMaxMeters: Double = 30.0
+    static let offRouteMultiplier: Double = 1.4
+    static let offRouteMinimumThresholdMeters: Int = 25
 
     static let immediateInstructionAccuracyMinMeters: Double = 5.0
     static let immediateInstructionAccuracyMaxMeters: Double = 8.0
     static let immediateInstructionThresholdMinMeters: Int = 5
     static let immediateInstructionThresholdMaxMeters: Int = 8
+
+    static let guidanceLeadMeters: Int = 12
+    static let gpsWeakAccuracyMeters: Double = 75
 
     static let autoRecalculateCooldownMs: Int = 6000
   }
