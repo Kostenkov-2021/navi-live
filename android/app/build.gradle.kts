@@ -14,8 +14,8 @@ android {
         applicationId = "com.navilive.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 26
-        versionName = "1.0.14"
+        versionCode = 27
+        versionName = "1.0.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
