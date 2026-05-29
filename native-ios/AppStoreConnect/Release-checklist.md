@@ -14,10 +14,11 @@
 
 1. Update `C:\Users\Kazek\Desktop\iOS\NaviLive\Scripts\TestFlight\what-to-test.pl.txt` and `what-to-test.en-US.txt`.
 2. Sync the same text into `native-ios/AppStoreConnect/TestFlight-what-to-test.txt`.
-3. Confirm `native-ios/project.yml` and `native-ios/NaviLive.xcodeproj/project.pbxproj` use the same `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`.
-4. Run a clean iOS build on the Mac before any upload.
-5. Do not start the upload unless it was explicitly requested.
-6. When prep is complete and upload was requested, launch `C:\Users\Kazek\Desktop\skrypty_ios\NaviLive TestFlight GUI.lnk` as the final step.
+3. Validate edited `.strings` files, especially contributor localization PRs with quoted VoiceOver action names.
+4. Confirm `native-ios/project.yml` and `native-ios/NaviLive.xcodeproj/project.pbxproj` use the same `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`.
+5. Run a clean iOS build on the Mac before any upload.
+6. Do not start the upload unless it was explicitly requested.
+7. When prep is complete and upload was requested, launch `C:\Users\Kazek\Desktop\skrypty_ios\NaviLive TestFlight GUI.lnk` as the final step.
 
 ## Workflow
 

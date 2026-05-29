@@ -50,7 +50,31 @@ Strings are organized by feature:
 - [Navigation.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Navigation.strings)
 - [Settings.strings](/C:/Users/Kazek/Desktop/Tymczasowe/navilive/native-ios/NaviLive/Resources/en.lproj/Settings.strings)
 
-Polish mirrors the same structure under `pl.lproj`.
+Polish and Russian mirror the same structure under `pl.lproj` and `ru.lproj`.
+
+Russian iOS localization was updated through PR #3 from `Kostenkov-2021/Ru-iOS-localization` and merged on 2026-05-29.
+The PR corrected wording in `Home.strings`, `Navigation.strings`, and `Onboarding.strings`.
+Before merging localization PRs, validate that every `.strings` line keeps escaped quotes inside values, for example `\"Quoted action\"`, because unescaped quotes break iOS resource parsing.
+
+Minimal local syntax check for a locale folder:
+
+```powershell
+@'
+import pathlib, re, sys
+root = pathlib.Path('native-ios/NaviLive/Resources/ru.lproj')
+pattern = re.compile(r'^\s*"((?:\\.|[^"\\])*)"\s*=\s*"((?:\\.|[^"\\])*)"\s*;\s*$')
+errors = []
+for path in sorted(root.glob('*.strings')):
+    for lineno, line in enumerate(path.read_text(encoding='utf-8-sig').splitlines(), 1):
+        stripped = line.strip()
+        if stripped and not stripped.startswith('//') and not pattern.match(line):
+            errors.append(f'{path}:{lineno}: {line}')
+if errors:
+    print('\n'.join(errors))
+    sys.exit(1)
+print('OK')
+'@ | python -
+```
 
 ## Workflows
 
