@@ -332,6 +332,8 @@
     <string name="format_navigation_upcoming_instruction_time">In %1$d seconds, %2$s</string>
     <string name="format_navigation_upcoming_instruction">In %1$d meters, %2$s</string>
     <string name="format_navigation_immediate_instruction">Now: %1$s</string>
+    <string name="format_navigation_repeat_following_distance">Then in %1$d meters: %2$s</string>
+    <string name="format_navigation_repeat_plan_two_steps">%1$s. %2$s</string>
     <string name="format_current_position_announcement">%1$s Current position: %2$s</string>
     <string name="format_telemetry_exported">Telemetry exported to %1$s.</string>
     <string name="format_coordinates_label">Lat %1$s, Lon %2$s</string>
@@ -416,7 +418,7 @@
     <string name="status_route_service_unavailable">Route service unavailable. Fallback route loaded.</string>
     <string name="status_heading_aligned">Heading aligned.</string>
     <string name="status_active_guidance_started">Active guidance started.</string>
-    <string name="status_repeating_instruction">Repeating current instruction.</string>
+    <string name="status_repeating_instruction">Repeating upcoming guidance.</string>
     <string name="status_route_problem_reported">Route problem saved.</string>
     <string name="spoken_navigation_paused">Navigation paused.</string>
     <string name="spoken_navigation_resumed">Navigation resumed.</string>

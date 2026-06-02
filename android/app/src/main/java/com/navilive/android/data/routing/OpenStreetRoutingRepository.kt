@@ -166,10 +166,11 @@ class OpenStreetRoutingRepository(
         const val ROUTE_ROAD_NAME_REQUEST_TIMEOUT_MS = 8_000
         const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
         const val CROSSING_DUPLICATE_PROXIMITY_METERS = 3.0
-        const val CROSSING_TURN_PROXIMITY_METERS = 55.0
-        const val CROSSING_NODE_LATERAL_LIMIT_METERS = 2.5
+        const val CROSSING_TURN_PROXIMITY_METERS = 35.0
+        const val CROSSING_NODE_LATERAL_LIMIT_METERS = 3.0
+        const val CROSSING_CLOSE_ROUTE_MATCH_METERS = 1.5
         const val CROSSING_WAY_LATERAL_LIMIT_METERS = 3.5
-        const val CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES = 35.0
+        const val CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES = 45.0
         const val ROUTE_START_APPROACH_THRESHOLD_METERS = 18.0
         const val MIN_INFERRED_ROAD_STEP_DISTANCE_METERS = 45
         const val APPROACH_MANEUVER_TYPE = "approach"
@@ -716,6 +717,9 @@ class OpenStreetRoutingRepository(
         }
         if (routeProjection.lateralDistanceMeters > CROSSING_WAY_LATERAL_LIMIT_METERS) {
             return false
+        }
+        if (routeProjection.lateralDistanceMeters <= CROSSING_CLOSE_ROUTE_MATCH_METERS) {
+            return true
         }
         val crossingBearing = bearingDegrees(crossingGeometry.first(), crossingGeometry.last())
         val bearingDifference = undirectedBearingDifference(

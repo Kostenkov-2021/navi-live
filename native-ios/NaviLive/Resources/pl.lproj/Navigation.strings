@@ -96,7 +96,7 @@
 "active.status.started" = "Aktywne prowadzenie rozpoczęte.";
 "active.status.paused" = "Nawigacja wstrzymana.";
 "active.status.resumed" = "Nawigacja wznowiona.";
-"active.status.repeating" = "Powtarzanie bieżącej wskazówki.";
+"active.status.repeating" = "Powtarzanie najbliższych wskazówek.";
 "active.status.problem_report_saved" = "Zapisano zgłoszenie problemu z trasą.";
 "active.status.problem_report_failed" = "Nie udało się zapisać zgłoszenia problemu z trasą.";
 "active.status.stopped" = "Nawigacja zatrzymana.";
@@ -113,6 +113,8 @@
 "active.spoken.next_instruction" = "Następna wskazówka: %@";
 "active.spoken.upcoming.distance" = "Za %1$d metrów: %2$@";
 "active.spoken.upcoming.time" = "Za %1$d sekund: %2$@";
+"active.spoken.repeat.following_distance" = "Potem za %1$d metrów: %2$@";
+"active.spoken.repeat.plan" = "%1$@. %2$@";
 "active.spoken.recalculated" = "Trasa została przeliczona.";
 "active.spoken.arrived" = "Dotarłeś do celu.";
 "arrival.title" = "Dotarcie";

@@ -417,11 +417,57 @@ final class AppModel: ObservableObject {
   }
 
   func repeatCurrentInstruction() {
-    let message = activeNavigationState.currentInstruction.isEmpty
-      ? L10n.text("route.follow_default", table: .navigation)
-      : activeNavigationState.currentInstruction
+    let message = navigationRepeatMessage()
     statusMessage = L10n.text("active.status.repeating", table: .navigation)
     announceNavigationPrompt(message)
+  }
+
+  private func navigationRepeatMessage() -> String {
+    let steps = selectedRouteSummary?.steps ?? []
+    let fallback = activeNavigationState.currentInstruction
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !steps.isEmpty else {
+      return fallback.isEmpty ? L10n.text("route.follow_default", table: .navigation) : fallback
+    }
+
+    let upcomingStepIndex = min(activeNavigationState.currentStepIndex + 1, steps.count - 1)
+    let firstInstruction = steps[upcomingStepIndex].instruction
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    let firstMessage = formattedNavigationInstruction(
+      distanceMeters: activeNavigationState.distanceToNextMeters,
+      instruction: firstInstruction.isEmpty
+        ? activeNavigationState.nextInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
+        : firstInstruction
+    )
+
+    let followingStepIndex = upcomingStepIndex + 1
+    guard steps.indices.contains(followingStepIndex) else {
+      return firstMessage
+    }
+    let followingStep = steps[followingStepIndex]
+    let followingInstruction = followingStep.instruction
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !followingInstruction.isEmpty else {
+      return firstMessage
+    }
+    let followingMessage = L10n.text(
+      "active.spoken.repeat.following_distance",
+      table: .navigation,
+      max(0, followingStep.distanceMeters),
+      followingInstruction
+    )
+    return L10n.text("active.spoken.repeat.plan", table: .navigation, firstMessage, followingMessage)
+  }
+
+  private func formattedNavigationInstruction(distanceMeters: Int, instruction: String) -> String {
+    let normalizedInstruction = instruction.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !normalizedInstruction.isEmpty else {
+      return L10n.text("route.follow_default", table: .navigation)
+    }
+    if distanceMeters <= 0 {
+      return L10n.text("active.spoken.now", table: .navigation, normalizedInstruction)
+    }
+    return L10n.text("active.spoken.upcoming.distance", table: .navigation, distanceMeters, normalizedInstruction)
   }
 
   func reportRouteProblem() {
@@ -621,7 +667,7 @@ final class AppModel: ObservableObject {
 
   func onShakeGestureDetected() {
     guard settings.shakeGestureEnabled else { return }
-    guard !activeNavigationState.currentInstruction.isEmpty else { return }
+    guard selectedRouteSummary != nil || !activeNavigationState.currentInstruction.isEmpty else { return }
     repeatCurrentInstruction()
   }
 

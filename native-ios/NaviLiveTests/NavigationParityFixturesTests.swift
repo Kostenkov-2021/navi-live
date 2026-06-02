@@ -50,7 +50,7 @@ final class NavigationParityFixturesTests: XCTestCase {
     )
   }
 
-  func testRouteStepSimplificationSuppressesShortUnnamedTurnConnectors() {
+  func testRouteStepSimplificationKeepsShortUnnamedTurnConnectors() {
     let previous = RouteStep(
       instruction: "Continue Main Street",
       distanceMeters: 80,
@@ -66,7 +66,7 @@ final class NavigationParityFixturesTests: XCTestCase {
       roadName: nil
     )
 
-    XCTAssertTrue(
+    XCTAssertFalse(
       RouteStepSimplificationCore.shouldSuppressRouteStep(
         shortConnector,
         previous: previous,

@@ -109,7 +109,7 @@ internal object RouteStepSimplificationCore {
         val isSameRoad = currentRoad != null && currentRoad == previousRoad
         val isShortConnector = step.distanceMeters <= SHORT_CONNECTOR_STEP_MAX_METERS
         if (isTurnLikeManeuver(step)) {
-            return isShortConnector && (currentRoad == null || isSameRoad)
+            return isShortConnector && isSameRoad
         }
         if (currentRoad == null) return isShortConnector
         if (currentRoad != previousRoad) return false

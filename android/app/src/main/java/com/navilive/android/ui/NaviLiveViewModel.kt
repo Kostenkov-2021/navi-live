@@ -975,11 +975,11 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun repeatCurrentInstruction() {
-        val instruction = _uiState.value.activeNavigationState.currentInstruction
+        val instruction = navigationRepeatMessage()
         speakNavigationNow(instruction)
         telemetryLogger.log(
             type = "instruction_repeated",
-            message = "Current instruction repeated.",
+            message = "Upcoming instruction plan repeated.",
             attributes = linkedMapOf("instruction" to instruction),
         )
         refreshDiagnosticsState()
@@ -994,8 +994,59 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
 
     fun onShakeGestureDetected() {
         if (!_uiState.value.settingsState.shakeGestureEnabled) return
-        if (_uiState.value.activeNavigationState.currentInstruction.isBlank()) return
+        if (activeRouteSession == null && _uiState.value.activeNavigationState.currentInstruction.isBlank()) return
         repeatCurrentInstruction()
+    }
+
+    private fun navigationRepeatMessage(): String {
+        val state = _uiState.value.activeNavigationState
+        val session = activeRouteSession
+        if (session == null || session.steps.isEmpty()) {
+            return state.currentInstruction.takeIf { it.isNotBlank() }
+                ?: string(R.string.generic_follow_route_guidance)
+        }
+
+        val upcomingStepIndex = (session.currentStepIndex + 1).coerceAtMost(session.steps.lastIndex)
+        val upcomingStep = session.steps.getOrNull(upcomingStepIndex)
+        val firstInstruction = upcomingStep
+            ?.instruction
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: state.nextInstruction.trim().takeIf { it.isNotBlank() }
+            ?: state.currentInstruction.trim().takeIf { it.isNotBlank() }
+            ?: string(R.string.generic_follow_route_guidance)
+        val firstMessage = formatRepeatInstructionWithDistance(
+            distanceMeters = state.distanceToNextMeters,
+            instruction = firstInstruction,
+        )
+
+        val followingStep = session.steps.getOrNull(upcomingStepIndex + 1)
+        val followingInstruction = followingStep
+            ?.instruction
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: return firstMessage
+        val followingMessage = string(
+            R.string.format_navigation_repeat_following_distance,
+            followingStep.distanceMeters.coerceAtLeast(0),
+            followingInstruction,
+        )
+        return string(R.string.format_navigation_repeat_plan_two_steps, firstMessage, followingMessage)
+    }
+
+    private fun formatRepeatInstructionWithDistance(
+        distanceMeters: Int,
+        instruction: String,
+    ): String {
+        return if (distanceMeters <= 0) {
+            string(R.string.format_navigation_immediate_instruction, instruction)
+        } else {
+            string(
+                R.string.format_navigation_upcoming_instruction_distance,
+                distanceMeters,
+                instruction,
+            )
+        }
     }
 
     fun reportRouteProblem() {

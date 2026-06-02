@@ -239,6 +239,8 @@
     <string name="format_navigation_upcoming_instruction_time">Через %1$d секунд, %2$s</string>
     <string name="format_navigation_upcoming_instruction">В %1$d метрах, %2$s.</string>
     <string name="format_navigation_immediate_instruction">Сейчас %1$s</string>
+    <string name="format_navigation_repeat_following_distance">Затем через %1$d метров, %2$s</string>
+    <string name="format_navigation_repeat_plan_two_steps">%1$s. %2$s</string>
     <string name="format_current_position_announcement">%1$s Текущая позиция: %2$s</string>
     <string name="format_telemetry_exported">Телеметрия экспортирована в %1$s.</string>
     <string name="format_coordinates_label">Lat %1$s, Lon %2$s</string>
@@ -311,7 +313,7 @@
     <string name="status_route_service_unavailable">Служба маршрутизации недоступна. Резервный маршрут загружен.</string>
     <string name="status_heading_aligned">Заголовок выровнен.</string>
     <string name="status_active_guidance_started">Активное наведение началось.</string>
-    <string name="status_repeating_instruction">Повтор текущей инструкции.</string>
+    <string name="status_repeating_instruction">Повтор ближайших подсказок.</string>
     <string name="spoken_navigation_paused">Навигация приостановлена.</string>
     <string name="spoken_navigation_resumed">Навигация возобновилась.</string>
     <string name="status_navigation_paused">Навигация приостановлена.</string>

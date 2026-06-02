@@ -217,10 +217,11 @@ actor NavigationAPIClient {
   private let routeRoadNameRequestTimeout: TimeInterval = 8
   private let crossingRequestTimeout: TimeInterval = 2
   private let crossingDuplicateProximityMeters = 3.0
-  private let crossingTurnProximityMeters = 55.0
-  private let crossingNodeLateralLimitMeters = 2.5
+  private let crossingTurnProximityMeters = 35.0
+  private let crossingNodeLateralLimitMeters = 3.0
+  private let crossingCloseRouteMatchMeters = 1.5
   private let crossingWayLateralLimitMeters = 3.5
-  private let crossingWayAlignmentToleranceDegrees = 35.0
+  private let crossingWayAlignmentToleranceDegrees = 45.0
   private let routeStartApproachThresholdMeters = 18.0
   private let minimumInferredRoadStepDistanceMeters = 45
   private let approachManeuverType = "approach"
@@ -952,6 +953,9 @@ actor NavigationAPIClient {
     }
     guard routeProjection.lateralDistanceMeters <= crossingWayLateralLimitMeters else {
       return false
+    }
+    if routeProjection.lateralDistanceMeters <= crossingCloseRouteMatchMeters {
+      return true
     }
     let crossingBearing = bearingDegrees(from: crossingGeometry.first!, to: crossingGeometry.last!)
     let bearingDifference = undirectedBearingDifference(

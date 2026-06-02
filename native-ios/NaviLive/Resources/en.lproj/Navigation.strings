@@ -96,7 +96,7 @@
 "active.status.started" = "Active guidance started.";
 "active.status.paused" = "Navigation paused.";
 "active.status.resumed" = "Navigation resumed.";
-"active.status.repeating" = "Repeating current instruction.";
+"active.status.repeating" = "Repeating upcoming guidance.";
 "active.status.problem_report_saved" = "Route problem saved.";
 "active.status.problem_report_failed" = "Could not save route problem.";
 "active.status.stopped" = "Navigation stopped.";
@@ -113,6 +113,8 @@
 "active.spoken.next_instruction" = "Next instruction: %@";
 "active.spoken.upcoming.distance" = "In %1$d meters, %2$@";
 "active.spoken.upcoming.time" = "In %1$d seconds, %2$@";
+"active.spoken.repeat.following_distance" = "Then in %1$d meters: %2$@";
+"active.spoken.repeat.plan" = "%1$@. %2$@";
 "active.spoken.recalculated" = "Route recalculated.";
 "active.spoken.arrived" = "You have arrived.";
 "arrival.title" = "Arrival";

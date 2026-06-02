@@ -96,7 +96,7 @@
 "active.status.started" = "Активная навигация запущена.";
 "active.status.paused" = "Навигация приостановлена.";
 "active.status.resumed" = "Навигация возобновлена.";
-"active.status.repeating" = "Повторение текущей подсказки.";
+"active.status.repeating" = "Повтор ближайших подсказок.";
 "active.status.problem_report_saved" = "Сообщение о проблеме на маршруте сохранено.";
 "active.status.problem_report_failed" = "Не удалось сохранить сообщение о проблеме на маршруте.";
 "active.status.stopped" = "Навигация завершена.";
@@ -113,6 +113,8 @@
 "active.spoken.next_instruction" = "Следующая подсказка: %@";
 "active.spoken.upcoming.distance" = "Через %1$d метров, %2$@";
 "active.spoken.upcoming.time" = "Через %1$d секунд, %2$@";
+"active.spoken.repeat.following_distance" = "Затем через %1$d метров, %2$@";
+"active.spoken.repeat.plan" = "%1$@. %2$@";
 "active.spoken.recalculated" = "Маршрут перестроен.";
 "active.spoken.arrived" = "Вы на месте.";
 "arrival.title" = "Прибытие";

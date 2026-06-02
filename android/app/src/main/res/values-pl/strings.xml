@@ -319,6 +319,8 @@
     <string name="format_navigation_upcoming_instruction_time">Za %1$d sekund: %2$s</string>
     <string name="format_navigation_upcoming_instruction">Za %1$d metrów: %2$s</string>
     <string name="format_navigation_immediate_instruction">Teraz: %1$s</string>
+    <string name="format_navigation_repeat_following_distance">Potem za %1$d metrów: %2$s</string>
+    <string name="format_navigation_repeat_plan_two_steps">%1$s. %2$s</string>
     <string name="format_current_position_announcement">%1$s Bieżąca pozycja: %2$s</string>
     <string name="format_telemetry_exported">Telemetria została wyeksportowana do %1$s.</string>
     <string name="format_coordinates_label">Szer. %1$s, dł. %2$s</string>
@@ -396,7 +398,7 @@
     <string name="status_route_service_unavailable">Usługa wyznaczania trasy jest niedostępna. Załadowano trasę awaryjną.</string>
     <string name="status_heading_aligned">Kierunek ustawiony.</string>
     <string name="status_active_guidance_started">Aktywne prowadzenie zostało uruchomione.</string>
-    <string name="status_repeating_instruction">Powtarzam bieżącą instrukcję.</string>
+    <string name="status_repeating_instruction">Powtarzam najbliższe wskazówki.</string>
     <string name="status_route_problem_reported">Zapisano zgłoszenie problemu z trasą.</string>
     <string name="spoken_navigation_paused">Nawigacja wstrzymana.</string>
     <string name="spoken_navigation_resumed">Nawigacja wznowiona.</string>

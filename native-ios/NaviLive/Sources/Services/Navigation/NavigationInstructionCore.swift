@@ -112,7 +112,7 @@ enum RouteStepSimplificationCore {
     let isSameRoad = currentRoad != nil && currentRoad == previousRoad
     let isShortConnector = step.distanceMeters <= shortConnectorStepMaxMeters
     if isTurnLikeManeuver(step) {
-      return isShortConnector && (currentRoad == nil || isSameRoad)
+      return isShortConnector && isSameRoad
     }
     guard let currentRoad else { return isShortConnector }
     guard currentRoad == previousRoad else { return false }

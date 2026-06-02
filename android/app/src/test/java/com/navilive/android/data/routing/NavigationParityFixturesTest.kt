@@ -69,7 +69,7 @@ class NavigationParityFixturesTest {
     }
 
     @Test
-    fun routeStepSimplificationSuppressesShortUnnamedTurnConnectors() {
+    fun routeStepSimplificationKeepsShortUnnamedTurnConnectors() {
         val previous = RouteStep(
             instruction = "Continue Main Street",
             distanceMeters = 80,
@@ -85,7 +85,7 @@ class NavigationParityFixturesTest {
             roadName = null,
         )
 
-        assertTrue(
+        assertFalse(
             RouteStepSimplificationCore.shouldSuppressRouteStep(
                 step = shortConnector,
                 previous = previous,
