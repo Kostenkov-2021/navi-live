@@ -1,16 +1,16 @@
 POLSKI
 
 Sprawdź prowadzenie po trasie pieszej.
-Utwórz krótką trasę pieszą i sprawdź, czy komunikaty zakrętów pojawiają się wcześniej, nie dopiero po minięciu skrętu. Zwróć uwagę, czy aplikacja nie zgłasza zbyt szybko zejścia z trasy przy normalnym marszu.
+Utwórz krótką trasę pieszą i sprawdź, czy aplikacja nie pomija krótkich realnych skrętów oraz czy nie mówi o skręcie dopiero po jego minięciu. Zwróć uwagę, czy komunikaty są bardziej konkretne i pomagają iść następnym odcinkiem trasy.
 
 Sprawdź komunikaty o przejściach dla pieszych.
-Podczas trasy zweryfikuj, czy aplikacja nie zapowiada bocznych przejść przez ścieżkę rowerową lub przejść obok trasy jako przejść, które trzeba wykonać. Jeśli przejście i zakręt są blisko siebie, ważniejszy powinien być realny manewr.
+Podczas trasy zweryfikuj, czy aplikacja nadal wykrywa przejścia leżące na trasie, ale nie zapowiada bocznych przejść jako wymaganych. Jeśli przejście i zakręt są blisko siebie, sprawdź, czy realny manewr nie znika z listy wskazówek.
 
-Sprawdź krótkie przejścia przez ulicę.
-Jeśli trasa przecina ulicę, aplikacja powinna mówić, że trzeba przejść przez ulicę, zamiast sugerować skręt w tę ulicę.
+Sprawdź powtarzanie wskazówek.
+Podczas aktywnego prowadzenia użyj potrząśnięcia lub akcji powtórki i sprawdź, czy aplikacja mówi najbliższy plan z odległością, na przykład najbliższy manewr oraz kolejny krok, a nie poprzednią wykonaną instrukcję.
 
-Sprawdź potrząśnięcie.
-Ustaw potrząśnięcie do powtarzania komunikatu i sprawdź, czy nie uruchamia się przypadkowo podczas marszu z telefonem w kieszeni.
+Sprawdź przycisk słuchawek.
+W ustawieniach prowadzenia włącz opcję powtarzania wskazówek przyciskiem słuchawek. Podczas aktywnej nawigacji naciśnij play/pauzę na słuchawkach i sprawdź, czy aplikacja powtarza najbliższy plan trasy. Opcja jest domyślnie wyłączona.
 
 Sprawdź VoiceOver.
 Na ekranie aktywnej nawigacji sprawdź aktualną instrukcję, następną instrukcję, rotor kroków trasy, rotor alertów oraz akcje powtarzania, przeliczania i zgłoszenia problemu.
@@ -18,16 +18,16 @@ Na ekranie aktywnej nawigacji sprawdź aktualną instrukcję, następną instruk
 ENGLISH
 
 Check walking route guidance.
-Create a short walking route and verify that turn announcements happen earlier, not after passing the turn. Check that the app does not report going off route too aggressively during normal walking.
+Create a short walking route and verify that short real turns are not skipped and that turn prompts are not announced only after passing the turn. Check whether the prompts are more specific and easier to follow for the next route segment.
 
 Check pedestrian crossing announcements.
-During navigation, verify that side crossings, cycle-path crossings, or crossings next to the route are not announced as required route crossings. If a crossing and a turn are close together, the real maneuver should have priority.
+During navigation, verify that crossings on the route are still detected, but side crossings are not announced as required route crossings. If a crossing and a turn are close together, check that the real maneuver does not disappear from the route instructions.
 
-Check short street crossings.
-When the route crosses a street, the app should say to cross that street instead of suggesting that the user should turn into it.
+Check instruction repeat.
+During active guidance, use shake or the repeat action and verify that the app speaks the nearest plan with distance, for example the next maneuver and the following step, instead of repeating a previously completed instruction.
 
-Check shake to repeat.
-Enable shake to repeat the current instruction and verify that it does not trigger accidentally while walking with the phone in a pocket.
+Check the headphone button.
+In guidance settings, enable repeating guidance with the headphone button. During active navigation, press play/pause on headphones and verify that the app repeats the nearest route plan. The option is off by default.
 
 Check VoiceOver.
 On the active navigation screen, verify the current instruction, next instruction, route steps rotor, alerts rotor, and actions for repeat, recalculation, and route problem reporting.
