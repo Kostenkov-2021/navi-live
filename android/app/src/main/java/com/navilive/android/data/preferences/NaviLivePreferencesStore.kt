@@ -132,6 +132,12 @@ class NaviLivePreferencesStore(
         }
     }
 
+    suspend fun setHeadphoneButtonRepeatEnabled(enabled: Boolean) {
+        context.naviLiveDataStore.edit { prefs ->
+            prefs[Keys.HeadphoneButtonRepeatEnabled] = enabled
+        }
+    }
+
     suspend fun setSoundCuesEnabled(enabled: Boolean) {
         context.naviLiveDataStore.edit { prefs ->
             prefs[Keys.SoundCuesEnabled] = enabled
@@ -278,6 +284,8 @@ class NaviLivePreferencesStore(
                 shakeGestureEnabled = preferences[Keys.ShakeGestureEnabled]
                     ?: SettingsState().shakeGestureEnabled,
                 shakeStrength = ShakeStrength.fromStorageValue(preferences[Keys.ShakeStrength]),
+                headphoneButtonRepeatEnabled = preferences[Keys.HeadphoneButtonRepeatEnabled]
+                    ?: SettingsState().headphoneButtonRepeatEnabled,
                 soundCuesEnabled = preferences[Keys.SoundCuesEnabled] ?: SettingsState().soundCuesEnabled,
                 soundCueVolumePercent = (preferences[Keys.SoundCueVolumePercent]
                     ?: SettingsState().soundCueVolumePercent).coerceIn(0, 100),
@@ -392,6 +400,7 @@ class NaviLivePreferencesStore(
         val VibrationEnabled = booleanPreferencesKey("vibration_enabled")
         val ShakeGestureEnabled = booleanPreferencesKey("shake_gesture_enabled")
         val ShakeStrength = stringPreferencesKey("shake_strength")
+        val HeadphoneButtonRepeatEnabled = booleanPreferencesKey("headphone_button_repeat_enabled")
         val SoundCuesEnabled = booleanPreferencesKey("sound_cues_enabled")
         val SoundCueVolumePercent = intPreferencesKey("sound_cue_volume_percent")
         val SoundCueTheme = stringPreferencesKey("sound_cue_theme")

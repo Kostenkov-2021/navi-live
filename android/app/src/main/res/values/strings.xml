@@ -223,6 +223,7 @@
     <string name="settings_shake_strength_medium_title">Medium</string>
     <string name="settings_shake_strength_strong_title">Strong</string>
     <string name="settings_shake_strength_disabled_message">Enable the shake gesture first to change shake strength.</string>
+    <string name="settings_headphone_button_repeat_title">Headphone button repeats guidance</string>
     <string name="settings_sound_cues_title">Navigation sounds</string>
     <string name="settings_sound_theme_title">Sound scheme</string>
     <string name="settings_sound_theme_standard">Standard</string>

@@ -10,6 +10,7 @@
 "settings.shake.strength.light" = "Lekka";
 "settings.shake.strength.medium" = "Średnia";
 "settings.shake.strength.strong" = "Mocna";
+"settings.toggle.headphone_button_repeat" = "Przycisk słuchawek powtarza wskazówki";
 "settings.toggle.sound_cues" = "Dźwięki nawigacji";
 "settings.sound_theme.title" = "Schemat dźwiękowy";
 "settings.sound_theme.standard" = "Standard";

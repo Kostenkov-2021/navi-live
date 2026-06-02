@@ -914,6 +914,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         _uiState.update { current ->
             current.copy(
                 isLoadingRoute = false,
+                isNavigationLive = keepNavigationLive,
                 statusMessage = statusMessage,
                 activeNavigationState = buildActiveNavigationState(
                     session = activeRouteSession!!,
@@ -961,6 +962,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         refreshDiagnosticsState()
         _uiState.update { current ->
             current.copy(
+                isNavigationLive = true,
                 statusMessage = string(R.string.status_active_guidance_started),
                 activeNavigationState = current.activeNavigationState.copy(
                     isPaused = false,
@@ -994,6 +996,12 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
 
     fun onShakeGestureDetected() {
         if (!_uiState.value.settingsState.shakeGestureEnabled) return
+        if (activeRouteSession == null && _uiState.value.activeNavigationState.currentInstruction.isBlank()) return
+        repeatCurrentInstruction()
+    }
+
+    fun onHeadphoneButtonRepeatRequested() {
+        if (!_uiState.value.settingsState.headphoneButtonRepeatEnabled) return
         if (activeRouteSession == null && _uiState.value.activeNavigationState.currentInstruction.isBlank()) return
         repeatCurrentInstruction()
     }
@@ -1135,6 +1143,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         lastTelemetryFixTimestampMs = 0L
         _uiState.update { current ->
             current.copy(
+                isNavigationLive = false,
                 activeNavigationState = ActiveNavigationState(),
                 statusMessage = string(R.string.status_navigation_stopped),
             )
@@ -1157,6 +1166,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         vibrateDoubleIfEnabled()
         _uiState.update { current ->
             current.copy(
+                isNavigationLive = false,
                 statusMessage = string(R.string.status_arrived),
                 activeNavigationState = current.activeNavigationState.copy(
                     isPaused = false,
@@ -1291,6 +1301,15 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         }
         viewModelScope.launch {
             preferencesStore.setShakeStrength(strength)
+        }
+    }
+
+    fun setHeadphoneButtonRepeatEnabled(enabled: Boolean) {
+        _uiState.update { current ->
+            current.copy(settingsState = current.settingsState.copy(headphoneButtonRepeatEnabled = enabled))
+        }
+        viewModelScope.launch {
+            preferencesStore.setHeadphoneButtonRepeatEnabled(enabled)
         }
     }
 

@@ -343,6 +343,14 @@ private struct GuidanceSettingsDetailView: View {
           }
         }
         .disabled(!model.settings.shakeGestureEnabled)
+
+        Toggle(
+          L10n.text("settings.toggle.headphone_button_repeat", table: .settings),
+          isOn: Binding(
+            get: { model.settings.headphoneButtonRepeatEnabled },
+            set: model.updateHeadphoneButtonRepeatEnabled
+          )
+        )
       }
     }
     .navigationTitle(L10n.text("settings.section.guidance", table: .settings))

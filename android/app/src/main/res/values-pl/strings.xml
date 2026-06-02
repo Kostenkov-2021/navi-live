@@ -215,6 +215,7 @@
     <string name="settings_shake_strength_medium_title">Średnia</string>
     <string name="settings_shake_strength_strong_title">Mocna</string>
     <string name="settings_shake_strength_disabled_message">Najpierw włącz gest potrząśnięcia, aby zmienić jego siłę.</string>
+    <string name="settings_headphone_button_repeat_title">Przycisk słuchawek powtarza wskazówki</string>
     <string name="settings_sound_cues_title">Dźwięki nawigacji</string>
     <string name="settings_sound_theme_title">Schemat dźwiękowy</string>
     <string name="settings_sound_theme_standard">Standard</string>

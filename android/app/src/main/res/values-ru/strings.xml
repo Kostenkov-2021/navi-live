@@ -454,6 +454,7 @@
     <string name="settings_shake_strength_medium_title">Средняя</string>
     <string name="settings_shake_strength_strong_title">Сильная</string>
     <string name="settings_shake_strength_disabled_message">Сначала включите жест встряхивания, чтобы изменить силу встряхивания.</string>
+    <string name="settings_headphone_button_repeat_title">Кнопка наушников повторяет подсказки</string>
     <string name="settings_sound_theme_title">Звуковая схема</string>
     <string name="settings_sound_theme_standard">Стандартная</string>
     <string name="settings_sound_theme_tetris">Тетрис</string>

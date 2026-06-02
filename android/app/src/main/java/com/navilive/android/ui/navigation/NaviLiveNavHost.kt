@@ -552,6 +552,7 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                 onVibrationChange = viewModel::setVibration,
                 onShakeGestureEnabledChange = viewModel::setShakeGestureEnabled,
                 onShakeStrengthChange = viewModel::setShakeStrength,
+                onHeadphoneButtonRepeatChange = viewModel::setHeadphoneButtonRepeatEnabled,
                 onSoundCuesChange = viewModel::setSoundCues,
                 onSoundCueVolumeChange = viewModel::setSoundCueVolumePercent,
                 onSoundCueThemeChange = viewModel::setSoundCueTheme,

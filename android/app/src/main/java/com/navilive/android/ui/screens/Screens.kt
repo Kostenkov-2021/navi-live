@@ -1464,6 +1464,7 @@ fun SettingsScreen(
     onVibrationChange: (Boolean) -> Unit,
     onShakeGestureEnabledChange: (Boolean) -> Unit,
     onShakeStrengthChange: (ShakeStrength) -> Unit,
+    onHeadphoneButtonRepeatChange: (Boolean) -> Unit,
     onSoundCuesChange: (Boolean) -> Unit,
     onSoundCueVolumeChange: (Int) -> Unit,
     onSoundCueThemeChange: (SoundCueTheme) -> Unit,
@@ -1603,6 +1604,11 @@ fun SettingsScreen(
                         selectedStrength = state.shakeStrength,
                         enabled = state.shakeGestureEnabled,
                         onStrengthChange = onShakeStrengthChange,
+                    )
+                    SettingsToggleCard(
+                        title = stringResource(R.string.settings_headphone_button_repeat_title),
+                        checked = state.headphoneButtonRepeatEnabled,
+                        onCheckedChange = onHeadphoneButtonRepeatChange,
                     )
                 }
                 SettingsDestination.LocalSearch -> {

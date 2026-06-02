@@ -172,6 +172,7 @@ struct AppSettings: Codable, Hashable, Sendable {
   var vibrationEnabled: Bool = true
   var shakeGestureEnabled: Bool = true
   var shakeStrength: ShakeStrength = .medium
+  var headphoneButtonRepeatEnabled: Bool = false
   var soundCuesEnabled: Bool = true
   var soundCueVolume: Double = 0.85
   var soundCueTheme: SoundCueTheme = .standard
@@ -194,6 +195,7 @@ struct AppSettings: Codable, Hashable, Sendable {
     case vibrationEnabled
     case shakeGestureEnabled
     case shakeStrength
+    case headphoneButtonRepeatEnabled
     case soundCuesEnabled
     case soundCueVolume
     case soundCueTheme
@@ -220,6 +222,7 @@ struct AppSettings: Codable, Hashable, Sendable {
     vibrationEnabled = try container.decodeIfPresent(Bool.self, forKey: .vibrationEnabled) ?? true
     shakeGestureEnabled = try container.decodeIfPresent(Bool.self, forKey: .shakeGestureEnabled) ?? true
     shakeStrength = try container.decodeIfPresent(ShakeStrength.self, forKey: .shakeStrength) ?? .medium
+    headphoneButtonRepeatEnabled = try container.decodeIfPresent(Bool.self, forKey: .headphoneButtonRepeatEnabled) ?? false
     soundCuesEnabled = try container.decodeIfPresent(Bool.self, forKey: .soundCuesEnabled) ?? true
     soundCueVolume = min(max(try container.decodeIfPresent(Double.self, forKey: .soundCueVolume) ?? 0.85, 0.0), 1.0)
     soundCueTheme = try container.decodeIfPresent(SoundCueTheme.self, forKey: .soundCueTheme) ?? .standard

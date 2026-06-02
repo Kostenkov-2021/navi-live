@@ -40,6 +40,7 @@ final class AppModel: ObservableObject {
   private let announcer: VoiceOverAnnouncer
   private let liveNavigationEngine = LiveNavigationEngine()
   private let routeIssueLogger = RouteIssueDiagnosticLogger()
+  private let headphoneRemoteControlService = HeadphoneRemoteControlService()
 
   private var knownPlaces: [String: Place] = [:]
   private var cancellables: Set<AnyCancellable> = []
@@ -401,6 +402,7 @@ final class AppModel: ObservableObject {
     guard liveNavigationEngine.currentDestination != nil else { return }
     locationService.prepareForActiveNavigation()
     isNavigationLive = true
+    updateHeadphoneRemoteControl()
     resetCountdownAnnouncementState()
     lastImmediateAnnouncementStepIndex = -1
     activeNavigationState.isPaused = false
@@ -577,6 +579,7 @@ final class AppModel: ObservableObject {
 
   func stopNavigation() {
     isNavigationLive = false
+    updateHeadphoneRemoteControl()
     resetCountdownAnnouncementState()
     lastImmediateAnnouncementStepIndex = -1
     locationService.finishActiveNavigation()
@@ -594,6 +597,7 @@ final class AppModel: ObservableObject {
   func markArrived() {
     guard let destination = liveNavigationEngine.currentDestination else { return }
     isNavigationLive = false
+    updateHeadphoneRemoteControl()
     resetCountdownAnnouncementState()
     lastImmediateAnnouncementStepIndex = -1
     locationService.finishActiveNavigation()
@@ -663,6 +667,12 @@ final class AppModel: ObservableObject {
   func updateShakeStrength(_ strength: ShakeStrength) {
     settings.shakeStrength = strength
     settingsStore.updateSettings { $0.shakeStrength = strength }
+  }
+
+  func updateHeadphoneButtonRepeatEnabled(_ enabled: Bool) {
+    settings.headphoneButtonRepeatEnabled = enabled
+    settingsStore.updateSettings { $0.headphoneButtonRepeatEnabled = enabled }
+    updateHeadphoneRemoteControl()
   }
 
   func onShakeGestureDetected() {
@@ -903,6 +913,17 @@ final class AppModel: ObservableObject {
     case .wifiOnly:
       guard let currentNetworkPath else { return false }
       return currentNetworkPath.status == .satisfied && !currentNetworkPath.isExpensive
+    }
+  }
+
+  private func updateHeadphoneRemoteControl() {
+    headphoneRemoteControlService.update(
+      isEnabled: settings.headphoneButtonRepeatEnabled,
+      isNavigationActive: isNavigationLive
+    ) { [weak self] in
+      Task { @MainActor in
+        self?.repeatCurrentInstruction()
+      }
     }
   }
 

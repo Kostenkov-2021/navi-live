@@ -10,6 +10,7 @@
 "settings.shake.strength.light" = "Лёгкая";
 "settings.shake.strength.medium" = "Средняя";
 "settings.shake.strength.strong" = "Сильная";
+"settings.toggle.headphone_button_repeat" = "Кнопка наушников повторяет подсказки";
 "settings.toggle.sound_cues" = "Звуки навигации";
 "settings.sound_theme.title" = "Звуковая схема";
 "settings.sound_theme.standard" = "Стандартная";

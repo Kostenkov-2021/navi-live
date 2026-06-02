@@ -10,6 +10,7 @@
 "settings.shake.strength.light" = "Light";
 "settings.shake.strength.medium" = "Medium";
 "settings.shake.strength.strong" = "Strong";
+"settings.toggle.headphone_button_repeat" = "Headphone button repeats guidance";
 "settings.toggle.sound_cues" = "Navigation sounds";
 "settings.sound_theme.title" = "Sound scheme";
 "settings.sound_theme.standard" = "Standard";
