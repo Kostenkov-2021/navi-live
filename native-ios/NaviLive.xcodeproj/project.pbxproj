@@ -22,6 +22,7 @@
 		4248F7B91C0D646AD5BBB6DE /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF99941A52A12594B3A5578 /* FavoritesView.swift */; };
 		44A28EDCBB964523F9477D78 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F9E848E8E12211DB1CE201 /* SearchView.swift */; };
 		4B3FEA239C2BAECDD7BDCCFA /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A490B92BF8220F63C3238BC /* LocationService.swift */; };
+		5BEF7FAC46E97DFAEF368FC6 /* HeadphoneRemoteControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3498BC7D675ED5E4BAF07E15 /* HeadphoneRemoteControlService.swift */; };
 		6092E7375B8B0A0F33C3D683 /* RouteSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59862EB3C6B4C6605F10AF6 /* RouteSummaryView.swift */; };
 		6231EDA99CB436BF1C84BB68 /* HeadingAlignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F51C1F15A4DA573A439496 /* HeadingAlignView.swift */; };
 		6384158350D4DE8FF41E3F63 /* LiveNavigationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50842925B9EA45DD9585BC90 /* LiveNavigationEngine.swift */; };
@@ -84,6 +85,7 @@
 		2EC9B2F7A8251E3D24D7E3B8 /* UnavailableStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnavailableStateView.swift; sourceTree = "<group>"; };
 		303A53D948A6CBD623AD9B0C /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		3341B7DE3B65A47A2C26AE70 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/General.strings; sourceTree = "<group>"; };
+		3498BC7D675ED5E4BAF07E15 /* HeadphoneRemoteControlService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadphoneRemoteControlService.swift; sourceTree = "<group>"; };
 		3DF99941A52A12594B3A5578 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
 		428771D881D5E1B860380050 /* NaviLiveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviLiveApp.swift; sourceTree = "<group>"; };
 		4F524B3B7EABD22927683431 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Root.strings; sourceTree = "<group>"; };
@@ -247,6 +249,7 @@
 			isa = PBXGroup;
 			children = (
 				862DCDF8A73FE50A6CB0714A /* AddressFormattingCore.swift */,
+				3498BC7D675ED5E4BAF07E15 /* HeadphoneRemoteControlService.swift */,
 				50842925B9EA45DD9585BC90 /* LiveNavigationEngine.swift */,
 				D343A44E647E9CDBA9A67965 /* NavigationAPIClient.swift */,
 				9BD060FDF03C68530A12DCAE /* NavigationInstructionCore.swift */,
@@ -497,6 +500,7 @@
 				AD6007813C51894E0F5DF7BB /* FavoritesStore.swift in Sources */,
 				4248F7B91C0D646AD5BBB6DE /* FavoritesView.swift in Sources */,
 				6231EDA99CB436BF1C84BB68 /* HeadingAlignView.swift in Sources */,
+				5BEF7FAC46E97DFAEF368FC6 /* HeadphoneRemoteControlService.swift in Sources */,
 				88018F484A3A296F4559CE44 /* HelpPrivacyView.swift in Sources */,
 				BB5F327471CC2E4EE11E8DA6 /* HomeView.swift in Sources */,
 				9C86CF87767842772836867A /* L10n.swift in Sources */,
