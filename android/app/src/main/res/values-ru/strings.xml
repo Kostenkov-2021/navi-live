@@ -312,7 +312,7 @@
     <string name="navigation_status_off_route_title">Вы отклонились от маршрута</string>
     <string name="navigation_status_off_route_message">Запросите новый маршрут и дождитесь обновлённых подсказок, прежде чем продолжать.</string>
     <string name="navigation_status_gps_weak_title">Сигнал GPS слабый</string>
-    <string name="navigation_status_gps_weak_message">Внимателно следуйте подсказкам. Текущее положение может быть приблизительным.</string>
+    <string name="navigation_status_gps_weak_message">Внимательно следуйте подсказкам. Текущее положение может быть приблизительным.</string>
     <string name="navigation_status_paused_title">Навигация приостановлена</string>
     <string name="navigation_status_paused_message">Возобновите навигацию, когда будете готовы продолжить движение.</string>
     <string name="navigation_status_active_title">Подсказки активны</string>
