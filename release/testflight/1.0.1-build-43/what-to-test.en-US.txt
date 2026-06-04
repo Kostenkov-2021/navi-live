@@ -8,4 +8,4 @@ Check new localizations.
 Added or completed languages include Arabic, Persian, Bengali, Hindi, Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, and Sorani Kurdish. iOS now has the same requested localization coverage as Android.
 
 Check stability after changing language.
-After changing the phone language, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.
+After changing the phone language or selecting a language manually, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.

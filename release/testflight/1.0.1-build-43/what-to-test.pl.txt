@@ -8,4 +8,4 @@ Sprawdź nowe lokalizacje.
 Dodane lub uzupełnione zostały między innymi: arabski, perski, bengalski, hindi, indonezyjski, wietnamski, chiński uproszczony, japoński, koreański i kurdyjski sorani. iOS ma teraz pełny zestaw lokalizacji zgodny z Androidem.
 
 Sprawdź stabilność po zmianie języka.
-Po zmianie języka telefonu sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.
+Po zmianie języka telefonu lub ręcznym wyborze języka sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.

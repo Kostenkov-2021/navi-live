@@ -10,7 +10,7 @@ Sprawdź nowe lokalizacje.
 Dodane lub uzupełnione zostały między innymi: arabski, perski, bengalski, hindi, indonezyjski, wietnamski, chiński uproszczony, japoński, koreański i kurdyjski sorani. iOS ma teraz pełny zestaw lokalizacji zgodny z Androidem.
 
 Sprawdź stabilność po zmianie języka.
-Po zmianie języka telefonu sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.
+Po zmianie języka telefonu lub ręcznym wyborze języka sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.
 
 ENGLISH
 
@@ -24,4 +24,4 @@ Check new localizations.
 Added or completed languages include Arabic, Persian, Bengali, Hindi, Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, and Sorani Kurdish. iOS now has the same requested localization coverage as Android.
 
 Check stability after changing language.
-After changing the phone language, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.
+After changing the phone language or selecting a language manually, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.

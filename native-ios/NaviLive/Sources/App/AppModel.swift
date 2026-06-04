@@ -106,7 +106,7 @@ final class AppModel: ObservableObject {
 
     let snapshot = settingsStore.snapshot
     settings = snapshot.settings
-    L10n.selectedLanguageCode = settings.languageCode
+    L10n.selectedLanguageCode = snapshot.settings.languageCode
     favorites = snapshot.favorites
     lastRoutePlaceID = snapshot.lastRoutePlaceID
     headingState = Self.localizedHeadingSequence().first ?? HeadingState()
