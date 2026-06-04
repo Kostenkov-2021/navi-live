@@ -43,7 +43,7 @@
 "route.status.missing_title" = "Маршрут не построен";
 "route.status.missing_message" = "Сначала постройте маршрут, чтобы посмотреть указания.";
 "route.unavailable.title" = "Маршрут недоступен";
-"route.unavailable.message" = "Этот пункт назначения больше не доступен.";
+"route.unavailable.message" = "Этот пункт назначения больше недоступен.";
 "route.status.cannot_recalculate" = "Маршрут пока нельзя перестроить.";
 "route.follow_default" = "Следуйте подсказкам маршрута.";
 "navigation.placeholder.destination" = "Выбранный пункт назначения";
