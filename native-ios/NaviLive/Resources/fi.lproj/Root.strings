@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Tila";
+"root.section.routes" = "Teline";
+"root.status.scaffold_ready" = "Alkuperäinen iOS-teline on valmis. Navigointi-, saavutettavuus- ja TestFlight-putkisto lisätään seuraavissa vaiheissa.";
+"root.status.scaffold_ready_hint" = "Tämä tila selittää, että iPhone-projektin luuranko luotiin onnistuneesti.";
+"root.link.onboarding" = "Käyttöönotto";
+"root.link.home" = "Etusivu";
+"root.link.settings" = "Asetukset";
+"root.placeholder.onboarding" = "Käyttöönottoprosessi toteutetaan seuraavassa vaiheessa.";
+"root.placeholder.home" = "Kävelynavigoinnin aloitusnäyttö otetaan käyttöön seuraavassa vaiheessa.";
+"root.placeholder.settings" = "Asetukset, yksityisyyden ja esteettömyyssäädöt otetaan käyttöön seuraavassa vaiheessa.";
+"root.bootstrapping" = "Valmistellaan Navi Live ensimmäistä käynnistystä varten.";

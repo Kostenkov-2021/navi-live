@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Statuss";
+"root.section.routes" = "Sastatnes";
+"root.status.scaffold_ready" = "Vietējā iOS sastatne ir gatava. Nākamajos posmos tiks pievienots navigācijas, pieejamības un TestFlight cauruļvads.";
+"root.status.scaffold_ready_hint" = "Šis statuss izskaidro, ka iPhone projekta skelets tika izveidots veiksmīgi.";
+"root.link.onboarding" = "Ieslēgšanās";
+"root.link.home" = "Sākums";
+"root.link.settings" = "Iestatījumi";
+"root.placeholder.onboarding" = "Ieslēgšanās plūsma tiks ieviesta nākamajā posmā.";
+"root.placeholder.home" = "Nākamajā posmā tiks ieviests sākuma ekrāns navigācijai kājām.";
+"root.placeholder.settings" = "Iestatījumi, konfidencialitātes un pieejamības vadīklas tiks ieviestas nākamajā posmā.";
+"root.bootstrapping" = "Navi Live sagatavošana pirmajai palaišanai.";

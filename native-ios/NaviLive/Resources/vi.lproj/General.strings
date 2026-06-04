@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Cài đặt";
+"common.cancel" = "Hủy";
+"common.save" = "Lưu";
+"common.back" = "Quay lại";
+"common.continue" = "Tiếp tục";
+"formatter.minute.one" = "1 phút";
+"formatter.minute.other" = "%d phút";
+"formatter.accuracy.unknown" = "Độ chính xác không có sẵn";
+"formatter.accuracy.value" = "%d m Độ chính xác";

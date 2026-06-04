@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Asetukset";
+"common.cancel" = "Peruuttaa";
+"common.save" = "Tallentaa";
+"common.back" = "Takaisin";
+"common.continue" = "Jatkaa";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Tarkkuus ei ole käytettävissä";
+"formatter.accuracy.value" = "%d m:n tarkkuus";

@@ -73,7 +73,10 @@
 "settings.speech.preview.sample" = "Это предпросмотр речи Navi Live с текущими настройками.";
 "settings.speech_mode.updated" = "Режим речи обновлён.";
 "settings.group.app_updates" = "Приложение";
+"settings.language.selected" = "Язык приложения";
+"settings.language.system" = "Использовать язык телефона";
 "settings.language.detected" = "Определяется по настройкам телефона";
+"settings.language.updated" = "Язык приложения обновлен.";
 "settings.about.version" = "Версия";
 "settings.about.build" = "Сборка";
 "settings.app.repository" = "Открыть репозиторий проекта";

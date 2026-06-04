@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Åbn selvstudie</string>
     <string name="settings_language_title">Sprog</string>
     <string name="settings_language_detected_label">Registreret fra telefon</string>
+    <string name="settings_language_selected_label">Appsprog</string>     <string name="settings_language_system_default">Brug telefonens sprog</string>     <string name="settings_language_changed">Appsproget er opdateret.</string>
     <string name="settings_voice_title">Stemmemeddelelser</string>
     <string name="settings_announcement_cadence_title">Meddelelseskadence</string>
     <string name="settings_announcement_cadence_distance_title">Afstandsbaseret</string>

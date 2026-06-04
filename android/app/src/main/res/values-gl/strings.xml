@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Abrir titorial</string>
     <string name="settings_language_title">Idioma</string>
     <string name="settings_language_detected_label">Detectado desde o teléfono</string>
+    <string name="settings_language_selected_label">Idioma da aplicación</string>     <string name="settings_language_system_default">Usar o idioma do teléfono</string>     <string name="settings_language_changed">Actualizouse o idioma da aplicación.</string>
     <string name="settings_voice_title">Anuncios de voz</string>
     <string name="settings_announcement_cadence_title">Cadencia do anuncio</string>
     <string name="settings_announcement_cadence_distance_title">Baseado na distancia</string>

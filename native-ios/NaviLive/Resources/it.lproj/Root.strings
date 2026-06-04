@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Stato";
+"root.section.routes" = "Impalcatura";
+"root.status.scaffold_ready" = "L'impalcatura nativa di iOS è pronta. La navigazione, l'accessibilità e la pipeline TestFlight verranno aggiunte nelle fasi successive.";
+"root.status.scaffold_ready_hint" = "Questo stato spiega che lo scheletro del progetto iPhone è stato creato con successo.";
+"root.link.onboarding" = "Onboarding";
+"root.link.home" = "Home";
+"root.link.settings" = "Impostazioni";
+"root.placeholder.onboarding" = "Il flusso di onboarding verrà implementato nella fase successiva.";
+"root.placeholder.home" = "La schermata iniziale per la navigazione a piedi verrà implementata nella fase successiva.";
+"root.placeholder.settings" = "Impostazioni, privacy e controlli di accessibilità verranno implementati nella fase successiva.";
+"root.bootstrapping" = "Preparazione Navi Live per il primo lancio.";

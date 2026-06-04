@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Nastavení";
+"common.cancel" = "Zrušit";
+"common.save" = "Uložit";
+"common.back" = "Zadní";
+"common.continue" = "Pokračovat";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Přesnost není k dispozici";
+"formatter.accuracy.value" = "%d m přesnost";

@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Отворете го упатството</string>
     <string name="settings_language_title">Јазик</string>
     <string name="settings_language_detected_label">Откриено од телефонот</string>
+    <string name="settings_language_selected_label">Јазик на апликацијата</string>     <string name="settings_language_system_default">Користи го јазикот на телефонот</string>     <string name="settings_language_changed">Јазикот на апликацијата е ажуриран.</string>
     <string name="settings_voice_title">Гласовни соопштенија</string>
     <string name="settings_announcement_cadence_title">Каденција на најава</string>
     <string name="settings_announcement_cadence_distance_title">Врз основа на растојание</string>

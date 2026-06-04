@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Postavke";
+"common.cancel" = "Odustani";
+"common.save" = "Spremi";
+"common.back" = "Natrag";
+"common.continue" = "Nastavi";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Točnost nedostupna";
+"formatter.accuracy.value" = "%d m točnost";

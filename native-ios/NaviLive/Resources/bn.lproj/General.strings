@@ -1,0 +1,10 @@
+"common.ok" = "ঠিক আছে";
+"common.settings" = "সেটিংস";
+"common.cancel" = "বাতিল করুন";
+"common.save" = "সংরক্ষণ করুন";
+"common.back" = "ফিরে";
+"common.continue" = "চালিয়ে যান";
+"formatter.minute.one" = "1 মিনিট";
+"formatter.minute.other" = "%d মিনিট";
+"formatter.accuracy.unknown" = "নির্ভুলতা অনুপলব্ধ";
+"formatter.accuracy.value" = "%d মি নির্ভুলতা";

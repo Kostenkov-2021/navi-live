@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live käyttää sijaintiasi lähellä olevien paikkojen etsimiseen ja kävelyreittien ohjaamiseen.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live voi jatkaa reitin ohjaamista, kun näyttö on himmennetty navigoinnin aikana.";
+"NSMotionUsageDescription" = "Navi Live käyttää laitteen liikettä alkuperäisen kävelysuunnan kohdistamiseen.";

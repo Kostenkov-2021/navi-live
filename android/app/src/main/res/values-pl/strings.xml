@@ -159,7 +159,10 @@
     <string name="settings_help_privacy_title">Pomoc i prywatność</string>
     <string name="settings_help_privacy_tutorial_open_button">Otwórz samouczek</string>
     <string name="settings_language_title">Język</string>
+    <string name="settings_language_selected_label">Język aplikacji</string>
+    <string name="settings_language_system_default">Użyj języka telefonu</string>
     <string name="settings_language_detected_label">Wykryto z telefonu</string>
+    <string name="settings_language_changed">Zaktualizowano język aplikacji.</string>
     <string name="settings_voice_title">Komunikaty głosowe</string>
     <string name="settings_announcement_cadence_title">Sposób odliczania komunikatów</string>
     <string name="settings_announcement_cadence_distance_title">Według odległości</string>

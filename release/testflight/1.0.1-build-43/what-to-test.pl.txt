@@ -1,0 +1,11 @@
+Sprawdź język aplikacji.
+Zmień język telefonu na jeden z nowych języków i uruchom aplikację ponownie. Następnie wejdź w Ustawienia, Aplikacja, Język aplikacji i sprawdź tryb języka telefonu oraz ręczny wybór kilku języków. Sprawdź ekran główny, wyszukiwanie, ustawienia, samouczek, ulubione i aktywną nawigację. Aplikacja powinna domyślnie dobrać język z telefonu, ale po ręcznym wyborze używać wybranego języka.
+
+Sprawdź VoiceOver i TalkBack.
+Przejdź przez najważniejsze ekrany czytnikiem ekranu i zwróć uwagę, czy teksty są zrozumiałe, nie zawierają angielskich resztek, dziwnych cyfr technicznych ani uszkodzonych wartości procentowych. Szczególnie sprawdź komunikaty trasy, ustawienia mowy, dźwięki i teksty wsparcia.
+
+Sprawdź nowe lokalizacje.
+Dodane lub uzupełnione zostały między innymi: arabski, perski, bengalski, hindi, indonezyjski, wietnamski, chiński uproszczony, japoński, koreański i kurdyjski sorani. iOS ma teraz pełny zestaw lokalizacji zgodny z Androidem.
+
+Sprawdź stabilność po zmianie języka.
+Po zmianie języka telefonu sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.

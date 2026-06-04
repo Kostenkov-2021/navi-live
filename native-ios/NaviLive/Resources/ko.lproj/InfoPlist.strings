@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live 내 위치를 사용하여 주변 장소를 검색하고 도보 경로를 안내합니다.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live은 내비게이션 중에 화면이 어두워도 경로를 계속 안내할 수 있습니다.";
+"NSMotionUsageDescription" = "Navi Live은 장치 모션을 사용하여 초기 보행 방향을 정렬하는 데 도움을 줍니다.";

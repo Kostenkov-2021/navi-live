@@ -1,0 +1,10 @@
+"common.ok" = "Labi";
+"common.settings" = "Iestatījumi";
+"common.cancel" = "Atcelt";
+"common.save" = "Saglabāt";
+"common.back" = "Atpakaļ";
+"common.continue" = "Turpināt";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Precizitāte nav pieejama";
+"formatter.accuracy.value" = "%d m precizitāte";

@@ -1,0 +1,10 @@
+"common.ok" = "باشە";
+"common.settings" = "ڕێکخستنەکان";
+"common.cancel" = "هەڵوەشاندنەوە";
+"common.save" = "پاشەکەوت بکە";
+"common.back" = "گەڕانەوە";
+"common.continue" = "بەردەوام بە";
+"formatter.minute.one" = "1 خولەک";
+"formatter.minute.other" = "%d خولەک";
+"formatter.accuracy.unknown" = "وردبینی بەردەست نییە";
+"formatter.accuracy.value" = "%d م وردی";

@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Olek";
+"root.section.routes" = "Telling";
+"root.status.scaffold_ready" = "IOS-i algne karkass on valmis. Navigeerimine, juurdepääsetavuse ja TestFlighti torujuhe lisatakse järgmistes etappides.";
+"root.status.scaffold_ready_hint" = "See olek selgitab, et iPhone'i projekti skelett loodi edukalt.";
+"root.link.onboarding" = "Sisselülitamine";
+"root.link.home" = "Avaleht";
+"root.link.settings" = "Seaded";
+"root.placeholder.onboarding" = "Sisselülitamise voog rakendatakse järgmises etapis.";
+"root.placeholder.home" = "Järgmises etapis rakendatakse jalgsi navigeerimise avakuva.";
+"root.placeholder.settings" = "Seaded, privaatsus ja juurdepääsetavuse juhtelemendid rakendatakse järgmises etapis.";
+"root.bootstrapping" = "Navi Live ettevalmistamine esmaseks käivitamiseks.";

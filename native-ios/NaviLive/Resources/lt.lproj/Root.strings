@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Būsena";
+"root.section.routes" = "Pastoliai";
+"root.status.scaffold_ready" = "Natūralūs iOS pastoliai paruošti. Navigacijos, prieinamumo ir „TestFlight“ dujotiekis bus pridėtas kituose etapuose.";
+"root.status.scaffold_ready_hint" = "Ši būsena paaiškina, kad iPhone projekto skeletas buvo sukurtas sėkmingai.";
+"root.link.onboarding" = "Prisijungimas";
+"root.link.home" = "Pagrindinis";
+"root.link.settings" = "Nustatymai";
+"root.placeholder.onboarding" = "Priėmimo srautas bus įgyvendintas kitame etape.";
+"root.placeholder.home" = "Pradinis navigacijos pėsčiomis ekranas bus įdiegtas kitame etape.";
+"root.placeholder.settings" = "Nustatymai, privatumo ir pritaikymo neįgaliesiems valdikliai bus įdiegti kitame etape.";
+"root.bootstrapping" = "Navi Live paruošimas pirmajam paleidimui.";

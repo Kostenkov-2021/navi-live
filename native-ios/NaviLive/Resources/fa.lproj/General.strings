@@ -1,0 +1,10 @@
+"common.ok" = "باشه";
+"common.settings" = "تنظیمات";
+"common.cancel" = "لغو کنید";
+"common.save" = "ذخیره کنید";
+"common.back" = "برگشت";
+"common.continue" = "ادامه دهید";
+"formatter.minute.one" = "1 دقیقه";
+"formatter.minute.other" = "%d دقیقه";
+"formatter.accuracy.unknown" = "دقت در دسترس نیست";
+"formatter.accuracy.value" = "دقت %d متر";

@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Tutorja miftuħa</string>
     <string name="settings_language_title">Lingwa</string>
     <string name="settings_language_detected_label">Individwat mit-telefon</string>
+    <string name="settings_language_selected_label">Lingwa tal-app</string>     <string name="settings_language_system_default">Uża l-lingwa tat-telefon</string>     <string name="settings_language_changed">Il-lingwa tal-app ġiet aġġornata.</string>
     <string name="settings_voice_title">Avviżi bil-vuċi</string>
     <string name="settings_announcement_cadence_title">Kadenza ta\' tħabbira</string>
     <string name="settings_announcement_cadence_distance_title">Distanza bbażata</string>
@@ -352,7 +353,7 @@
     <string name="route_modifier_sharp_left">ix-xellug qawwi</string>
     <string name="route_modifier_sharp_right">lemin li jaqtgħu</string>
     <string name="route_modifier_straight">dritta</string>
-    <string name="route_modifier_uturn">u-turn</string>
+    <string name="route_modifier_uturn">dawra U</string>
     <string name="notification_tracking">Post tat-traċċar għan-navigazzjoni</string>
     <string name="notification_channel_name">Navi Live tracking</string>
     <string name="notification_channel_description">Traċċar tal-post tat-tagħrif miksub għan-navigazzjoni</string>

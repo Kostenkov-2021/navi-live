@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">ღია სახელმძღვანელო</string>
     <string name="settings_language_title">ენა</string>
     <string name="settings_language_detected_label">აღმოჩენილია ტელეფონიდან</string>
+    <string name="settings_language_selected_label">აპის ენა</string>     <string name="settings_language_system_default">გამოიყენე ტელეფონის ენა</string>     <string name="settings_language_changed">აპის ენა განახლდა.</string>
     <string name="settings_voice_title">ხმოვანი განცხადებები</string>
     <string name="settings_announcement_cadence_title">განცხადების კადენცია</string>
     <string name="settings_announcement_cadence_distance_title">დისტანციაზე დაფუძნებული</string>
@@ -168,7 +169,7 @@
     <string name="settings_support_custom_placeholder">მაგალითად 15</string>
     <string name="settings_support_custom_button">მხარდაჭერა მორგებული ოდენობით</string>
     <string name="settings_support_other_currency_button">ბმული</string>
-    <string name="settings_support_copy_link">აირჩიეთ სხვა თანხა 9922222 ან სხვა</string>
+    <string name="settings_support_copy_link">მხარდაჭერის ბმულის კოპირება</string>
     <string name="settings_support_copy_success">PayPal-ის მხარდაჭერის ბმული ახლა ბუფერშია.</string>
     <string name="settings_support_custom_invalid">შეიყვანეთ სწორი თანხა, მაგალითად 15 ან 15.50.</string>
     <string name="settings_privacy_section_title">კონფიდენციალურობა</string>

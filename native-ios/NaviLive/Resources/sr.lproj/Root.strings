@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Статус";
+"root.section.routes" = "Скела";
+"root.status.scaffold_ready" = "Изворна иОС скела је спремна. Навигација, приступачност и цевовод ТестФлигхт биће додати у наредним фазама.";
+"root.status.scaffold_ready_hint" = "Овај статус објашњава да је скелет иПхоне пројекта успешно креиран.";
+"root.link.onboarding" = "Инбоардинг";
+"root.link.home" = "Почетна";
+"root.link.settings" = "Подешавања";
+"root.placeholder.onboarding" = "Ток укључивања ће бити имплементиран у следећој фази.";
+"root.placeholder.home" = "Почетни екран за пешачку навигацију биће имплементиран у следећој фази.";
+"root.placeholder.settings" = "Подешавања, приватност и контроле приступачности биће примењене у следећој фази.";
+"root.bootstrapping" = "Припрема Navi Live за прво лансирање.";

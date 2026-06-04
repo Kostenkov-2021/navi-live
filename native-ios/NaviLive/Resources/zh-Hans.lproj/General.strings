@@ -1,0 +1,10 @@
+"common.ok" = "确定";
+"common.settings" = "设置";
+"common.cancel" = "取消";
+"common.save" = "保存";
+"common.back" = "返回";
+"common.continue" = "继续";
+"formatter.minute.one" = "1 分钟";
+"formatter.minute.other" = "%d 分钟";
+"formatter.accuracy.unknown" = "精度不可用";
+"formatter.accuracy.value" = "%d 米精度";

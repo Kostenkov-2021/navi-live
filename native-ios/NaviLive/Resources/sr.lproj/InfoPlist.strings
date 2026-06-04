@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live користи вашу локацију за претрагу оближњих места и вођење пешачких рута.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live може да настави да води вашу руту када је екран затамњен током навигације.";
+"NSMotionUsageDescription" = "Navi Live користи кретање уређаја да би се ускладио почетни правац ходања.";

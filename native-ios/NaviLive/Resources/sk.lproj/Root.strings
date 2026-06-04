@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Stav";
+"root.section.routes" = "Lešenie";
+"root.status.scaffold_ready" = "Natívne lešenie iOS je pripravené. V ďalších fázach pribudne navigácia, dostupnosť a testFlight.";
+"root.status.scaffold_ready_hint" = "Tento stav vysvetľuje, že kostra projektu iPhone bola úspešne vytvorená.";
+"root.link.onboarding" = "Onboarding";
+"root.link.home" = "Home";
+"root.link.settings" = "Nastavenia";
+"root.placeholder.onboarding" = "Onboarding flow bude implementovaný v ďalšej fáze.";
+"root.placeholder.home" = "Domovská obrazovka pre pešiu navigáciu bude implementovaná v ďalšej fáze.";
+"root.placeholder.settings" = "Nastavenia, ochrana osobných údajov a ovládacie prvky dostupnosti budú implementované v ďalšej fáze.";
+"root.bootstrapping" = "Pripravuje sa Navi Live na prvé spustenie.";

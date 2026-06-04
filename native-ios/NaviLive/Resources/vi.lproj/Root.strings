@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Trạng thái";
+"root.section.routes" = "Giàn giáo";
+"root.status.scaffold_ready" = "Giàn giáo iOS gốc đã sẵn sàng. Điều hướng, khả năng truy cập và quy trình TestFlight sẽ được thêm vào trong các giai đoạn tiếp theo.";
+"root.status.scaffold_ready_hint" = "Trạng thái này giải thích rằng khung dự án iPhone đã được tạo thành công.";
+"root.link.onboarding" = "Giới thiệu";
+"root.link.home" = "Trang chủ";
+"root.link.settings" = "Cài đặt";
+"root.placeholder.onboarding" = "Quy trình giới thiệu sẽ được triển khai trong giai đoạn tiếp theo.";
+"root.placeholder.home" = "Màn hình chính cho điều hướng đi bộ sẽ được triển khai trong giai đoạn tiếp theo.";
+"root.placeholder.settings" = "Cài đặt, kiểm soát quyền riêng tư và khả năng truy cập sẽ được triển khai trong giai đoạn tiếp theo.";
+"root.bootstrapping" = "Đang chuẩn bị Navi Live cho lần ra mắt đầu tiên.";

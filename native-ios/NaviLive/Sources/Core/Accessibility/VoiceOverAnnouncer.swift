@@ -96,7 +96,7 @@ final class VoiceOverAnnouncer: NSObject {
        let selectedVoice = AVSpeechSynthesisVoice(identifier: voiceIdentifier) {
       utterance.voice = selectedVoice
     } else {
-      utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.identifier)
+      utterance.voice = AVSpeechSynthesisVoice(language: L10n.currentLocale.identifier)
     }
     synthesizer.stopSpeaking(at: .immediate)
     synthesizer.speak(utterance)

@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "状态";
+"root.section.routes" = "脚手架";
+"root.status.scaffold_ready" = "本机 iOS 脚手架已准备就绪。导航、可访问性和 TestFlight 管道将在下一阶段添加。";
+"root.status.scaffold_ready_hint" = "此状态说明 iPhone 项目框架已成功创建。";
+"root.link.onboarding" = "入职流程";
+"root.link.home" = "首页";
+"root.link.settings" = "设置";
+"root.placeholder.onboarding" = "入职流程将在下一阶段实施。";
+"root.placeholder.home" = "下一阶段将实现步行导航主屏。";
+"root.placeholder.settings" = "设置、隐私和可访问性控制将在下一阶段实施。";
+"root.bootstrapping" = "正在准备 Navi Live 的首次发布。";

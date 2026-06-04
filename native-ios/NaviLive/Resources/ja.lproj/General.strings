@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "設定";
+"common.cancel" = "キャンセル";
+"common.save" = "保存";
+"common.back" = "戻る";
+"common.continue" = "続行";
+"formatter.minute.one" = "1分";
+"formatter.minute.other" = "%d分";
+"formatter.accuracy.unknown" = "精度は利用できません";
+"formatter.accuracy.value" = "%d m 精度";

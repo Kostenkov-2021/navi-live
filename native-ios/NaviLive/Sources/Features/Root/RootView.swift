@@ -19,6 +19,7 @@ struct RootView: View {
         RootNavigationView(model: model)
       }
     }
+    .environment(\.locale, model.appLocale)
     .task {
       guard !didBootstrap else { return }
       didBootstrap = true

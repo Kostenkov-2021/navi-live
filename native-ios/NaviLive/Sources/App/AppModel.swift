@@ -56,23 +56,29 @@ final class AppModel: ObservableObject {
   private var lastCountdownCadenceMode: AnnouncementCadenceMode?
   private var lastImmediateAnnouncementStepIndex = -1
   private var headingIndex = 0
-  private let headingSequence = [
-    HeadingState(
-      instruction: L10n.text("heading.instruction.rotate_right", table: .navigation),
-      isAligned: false,
-      arrowRotationDegrees: 22
-    ),
-    HeadingState(
-      instruction: L10n.text("heading.instruction.almost_aligned", table: .navigation),
-      isAligned: false,
-      arrowRotationDegrees: 7
-    ),
-    HeadingState(
-      instruction: L10n.text("heading.instruction.aligned", table: .navigation),
-      isAligned: true,
-      arrowRotationDegrees: 0
-    )
-  ]
+  private static func localizedHeadingSequence() -> [HeadingState] {
+    [
+      HeadingState(
+        instruction: L10n.text("heading.instruction.rotate_right", table: .navigation),
+        isAligned: false,
+        arrowRotationDegrees: 22
+      ),
+      HeadingState(
+        instruction: L10n.text("heading.instruction.almost_aligned", table: .navigation),
+        isAligned: false,
+        arrowRotationDegrees: 7
+      ),
+      HeadingState(
+        instruction: L10n.text("heading.instruction.aligned", table: .navigation),
+        isAligned: true,
+        arrowRotationDegrees: 0
+      )
+    ]
+  }
+
+  private var headingSequence: [HeadingState] {
+    Self.localizedHeadingSequence()
+  }
   private static let nearbyPOICacheFreshInterval: TimeInterval = 24 * 60 * 60
   private static let nearbyPOICacheMoveThresholdMeters: Double = 800
   private static let nearbyPOICacheAttemptThrottle: TimeInterval = 2 * 60
@@ -100,9 +106,10 @@ final class AppModel: ObservableObject {
 
     let snapshot = settingsStore.snapshot
     settings = snapshot.settings
+    L10n.selectedLanguageCode = settings.languageCode
     favorites = snapshot.favorites
     lastRoutePlaceID = snapshot.lastRoutePlaceID
-    headingState = headingSequence.first ?? HeadingState()
+    headingState = Self.localizedHeadingSequence().first ?? HeadingState()
     activeNavigationState = ActiveNavigationState()
     hasCompletedOnboarding = snapshot.hasCompletedOnboarding
     favorites.forEach { knownPlaces[$0.id] = $0 }
@@ -118,6 +125,10 @@ final class AppModel: ObservableObject {
 
   var appBuildLabel: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
+  }
+
+  var appLocale: Locale {
+    L10n.currentLocale
   }
 
   var hasLocationPermission: Bool {
@@ -647,6 +658,21 @@ final class AppModel: ObservableObject {
 
   func openHelpPrivacy() {
     path.append(.helpPrivacy)
+  }
+
+  func updateLanguageCode(_ code: String) {
+    let normalized = AppLanguage.normalize(code)
+    guard normalized != settings.languageCode else { return }
+    settings.languageCode = normalized
+    L10n.selectedLanguageCode = normalized
+    settingsStore.updateSettings { $0.languageCode = normalized }
+    let localizedHeadingSequence = headingSequence
+    headingState = (
+      localizedHeadingSequence.indices.contains(headingIndex)
+        ? localizedHeadingSequence[headingIndex]
+        : (localizedHeadingSequence.first ?? HeadingState())
+    )
+    statusMessage = L10n.text("settings.language.updated", table: .settings)
   }
 
   func updateShowTutorialOnLaunch(_ enabled: Bool) {

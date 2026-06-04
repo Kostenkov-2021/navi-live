@@ -1,0 +1,10 @@
+"common.ok" = "ΕΝΤΑΞΕΙ";
+"common.settings" = "Ρυθμίσεις";
+"common.cancel" = "Ματαίωση";
+"common.save" = "Εκτός";
+"common.back" = "Πίσω";
+"common.continue" = "Συνεχίζω";
+"formatter.minute.one" = "1 λεπτό";
+"formatter.minute.other" = "%d λεπτά";
+"formatter.accuracy.unknown" = "Η ακρίβεια δεν είναι διαθέσιμη";
+"formatter.accuracy.value" = "%d m ακρίβεια";

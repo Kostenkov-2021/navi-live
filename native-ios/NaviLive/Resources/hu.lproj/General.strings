@@ -1,0 +1,10 @@
+"common.ok" = "RENDBEN";
+"common.settings" = "Beállítások elemre";
+"common.cancel" = "Mégse";
+"common.save" = "Megtakarítás";
+"common.back" = "Vissza";
+"common.continue" = "Folytatás";
+"formatter.minute.one" = "1 perc";
+"formatter.minute.other" = "%d perc";
+"formatter.accuracy.unknown" = "Pontosság nem elérhető";
+"formatter.accuracy.value" = "%d m pontossággal";

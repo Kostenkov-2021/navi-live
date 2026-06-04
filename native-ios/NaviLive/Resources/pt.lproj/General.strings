@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Configurações";
+"common.cancel" = "Cancelar";
+"common.save" = "Salvar";
+"common.back" = "Voltar";
+"common.continue" = "Continuar";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Precisão indisponível";
+"formatter.accuracy.value" = "%d Precisão m";

@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live naudoja jūsų vietą netoliese esančių vietų paieškai ir pėsčiųjų maršrutams vadovauti.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live gali ir toliau vadovauti jūsų maršrutui, kai navigacijos metu ekranas yra pritemdytas.";
+"NSMotionUsageDescription" = "Navi Live naudoja įrenginio judesį, kad padėtų suderinti pradinę ėjimo kryptį.";

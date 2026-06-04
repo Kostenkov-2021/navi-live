@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Tiwtorial agored</string>
     <string name="settings_language_title">Iaith</string>
     <string name="settings_language_detected_label">Wedi\'i ganfod o\'r ffôn</string>
+    <string name="settings_language_selected_label">Iaith yr ap</string>     <string name="settings_language_system_default">Defnyddio iaith y ffôn</string>     <string name="settings_language_changed">Diweddarwyd iaith yr ap.</string>
     <string name="settings_voice_title">Cyhoeddiadau llais</string>
     <string name="settings_announcement_cadence_title">Diweddeb cyhoeddiad</string>
     <string name="settings_announcement_cadence_distance_title">Yn seiliedig ar bellter</string>

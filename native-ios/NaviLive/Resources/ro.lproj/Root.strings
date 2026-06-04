@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Stare";
+"root.section.routes" = "Schela";
+"root.status.scaffold_ready" = "Schela nativă iOS este gata. Navigarea, accesibilitatea și conducta TestFlight vor fi adăugate în etapele următoare.";
+"root.status.scaffold_ready_hint" = "Această stare explică faptul că scheletul proiectului iPhone a fost creat cu succes.";
+"root.link.onboarding" = "Onboarding";
+"root.link.home" = "Acasă";
+"root.link.settings" = "Setări";
+"root.placeholder.onboarding" = "Fluxul de onboarding va fi implementat în următoarea etapă.";
+"root.placeholder.home" = "Ecranul de start pentru navigarea pe jos va fi implementat în etapa următoare.";
+"root.placeholder.settings" = "Setările, controalele de confidențialitate și accesibilitate vor fi implementate în etapa următoare.";
+"root.bootstrapping" = "Pregătesc Navi Live pentru prima lansare.";

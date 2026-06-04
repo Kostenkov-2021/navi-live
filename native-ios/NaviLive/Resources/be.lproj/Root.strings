@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Статус";
+"root.section.routes" = "Scaffold";
+"root.status.scaffold_ready" = "Уласны scaffold для iOS гатовы. Навігацыя, спецыяльныя магчымасці і канвеер TestFlight будуць дададзены на наступных этапах.";
+"root.status.scaffold_ready_hint" = "Гэты статус тлумачыць, што шкілет праекта iPhone быў паспяхова створаны.";
+"root.link.onboarding" = "Рэгістрацыя";
+"root.link.home" = "Галоўная";
+"root.link.settings" = "Налады";
+"root.placeholder.onboarding" = "Паток адаптацыі будзе рэалізаваны на наступным этапе.";
+"root.placeholder.home" = "Галоўны экран для пешаходнай навігацыі будзе рэалізаваны на наступным этапе.";
+"root.placeholder.settings" = "Налады, канфідэнцыяльнасць і кантроль даступнасці будуць рэалізаваны на наступным этапе.";
+"root.bootstrapping" = "Падрыхтоўка Navi Live да першага запуску.";

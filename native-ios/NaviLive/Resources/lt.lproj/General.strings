@@ -1,0 +1,10 @@
+"common.ok" = "Gerai";
+"common.settings" = "Nustatymai";
+"common.cancel" = "Atšaukti";
+"common.save" = "Išsaugoti";
+"common.back" = "Atgal";
+"common.continue" = "Tęsti";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Tikslumas nepasiekiamas";
+"formatter.accuracy.value" = "%d m tikslumu";

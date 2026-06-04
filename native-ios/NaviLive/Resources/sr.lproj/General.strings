@@ -1,0 +1,10 @@
+"common.ok" = "ОК";
+"common.settings" = "Подешавања";
+"common.cancel" = "Откажи";
+"common.save" = "Сачувај";
+"common.back" = "Назад";
+"common.continue" = "Настави";
+"formatter.minute.one" = "1 мин";
+"formatter.minute.other" = "%d мин";
+"formatter.accuracy.unknown" = "Тачност није доступна";
+"formatter.accuracy.value" = "%d м тачност";

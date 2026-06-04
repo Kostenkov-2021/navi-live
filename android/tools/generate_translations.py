@@ -15,10 +15,36 @@ RES_DIR = ROOT / "app" / "src" / "main" / "res"
 BASE_STRINGS = RES_DIR / "values" / "strings.xml"
 LOCALES_CONFIG = RES_DIR / "xml" / "locales_config.xml"
 BATCH_SIZE = 20
+MAX_ATTEMPTS = 6
+REQUEST_DELAY_SECONDS = 2.0
+RETRY_BASE_SECONDS = 5.0
 SPLIT_TOKEN = "992220099222"
-PLACEHOLDER_PATTERN = re.compile(r"%\d+\$[sd]")
+PLACEHOLDER_PATTERN = re.compile(r"%(?:\d+\$)?[sd]|%%")
 BRAND_NAME = "Navi Live"
 BRAND_TOKEN = "991770099177"
+REQUEST_HEADERS = {
+    "User-Agent": "NaviLiveLocalizationGenerator/1.0",
+}
+RESOURCE_QUALIFIER_OVERRIDES = {
+    "id": "b+id",
+    "zh-Hans": "b+zh+Hans",
+    "ckb": "b+ckb",
+}
+TRANSLATION_TARGET_OVERRIDES = {
+    "zh-Hans": "zh-CN",
+}
+
+
+def resource_qualifier(locale: str) -> str:
+    if locale in RESOURCE_QUALIFIER_OVERRIDES:
+        return RESOURCE_QUALIFIER_OVERRIDES[locale]
+    if "-" in locale:
+        return "b+" + locale.replace("-", "+")
+    return locale
+
+
+def translation_target(locale: str) -> str:
+    return TRANSLATION_TARGET_OVERRIDES.get(locale, locale)
 
 
 def read_strings() -> list[dict[str, str]]:
@@ -63,23 +89,26 @@ def restore_placeholders(text: str, placeholders: list[str]) -> str:
 def translate_single_text(text: str, target_locale: str) -> str:
     protected, placeholders = protect_placeholders(text)
     query = urllib.parse.quote(protected)
+    target = translation_target(target_locale)
     url = (
         "https://translate.googleapis.com/translate_a/single"
-        f"?client=gtx&sl=en&tl={urllib.parse.quote(target_locale)}&dt=t&q={query}"
+        f"?client=gtx&sl=en&tl={urllib.parse.quote(target)}&dt=t&q={query}"
     )
-    for attempt in range(4):
+    for attempt in range(MAX_ATTEMPTS):
         try:
-            with urllib.request.urlopen(url, timeout=30) as response:
+            request = urllib.request.Request(url, headers=REQUEST_HEADERS)
+            with urllib.request.urlopen(request, timeout=30) as response:
                 raw = response.read().decode("utf-8")
+            time.sleep(REQUEST_DELAY_SECONDS)
             import json
 
             data = json.loads(raw)
             translated = "".join(part[0] for part in data[0]).strip()
             return restore_placeholders(translated, placeholders)
         except Exception:
-            if attempt == 3:
+            if attempt == MAX_ATTEMPTS - 1:
                 raise
-            time.sleep(1.0 + attempt)
+            time.sleep(RETRY_BASE_SECONDS + (attempt * RETRY_BASE_SECONDS))
     raise RuntimeError(f"Translation failed for locale {target_locale}")
 
 
@@ -93,15 +122,18 @@ def translate_texts(texts: list[str], target_locale: str) -> list[str]:
 
     payload = f" {SPLIT_TOKEN} ".join(protected_items)
     query = urllib.parse.quote(payload)
+    target = translation_target(target_locale)
     url = (
         "https://translate.googleapis.com/translate_a/single"
-        f"?client=gtx&sl=en&tl={urllib.parse.quote(target_locale)}&dt=t&q={query}"
+        f"?client=gtx&sl=en&tl={urllib.parse.quote(target)}&dt=t&q={query}"
     )
 
-    for attempt in range(4):
+    for attempt in range(MAX_ATTEMPTS):
         try:
-            with urllib.request.urlopen(url, timeout=30) as response:
+            request = urllib.request.Request(url, headers=REQUEST_HEADERS)
+            with urllib.request.urlopen(request, timeout=30) as response:
                 raw = response.read().decode("utf-8")
+            time.sleep(REQUEST_DELAY_SECONDS)
             import json
 
             data = json.loads(raw)
@@ -116,9 +148,10 @@ def translate_texts(texts: list[str], target_locale: str) -> list[str]:
                 for piece, placeholders in zip(pieces, placeholders_per_item, strict=True)
             ]
         except Exception:
-            if attempt == 3:
-                raise
-            time.sleep(1.0 + attempt)
+            if attempt == MAX_ATTEMPTS - 1:
+                time.sleep(RETRY_BASE_SECONDS * 2)
+                return [translate_single_text(text, target_locale) for text in texts]
+            time.sleep(RETRY_BASE_SECONDS + (attempt * RETRY_BASE_SECONDS))
     raise RuntimeError(f"Translation failed for locale {target_locale}")
 
 
@@ -128,7 +161,7 @@ def xml_escape(text: str) -> str:
 
 
 def write_locale_file(locale: str, items: list[dict[str, str]]) -> None:
-    locale_dir = RES_DIR / f"values-{locale}"
+    locale_dir = RES_DIR / f"values-{resource_qualifier(locale)}"
     locale_dir.mkdir(parents=True, exist_ok=True)
     output = locale_dir / "strings.xml"
     lines = ['<?xml version="1.0" encoding="utf-8"?>', "<resources>"]
@@ -139,7 +172,7 @@ def write_locale_file(locale: str, items: list[dict[str, str]]) -> None:
 
 
 def read_existing_locale(locale: str) -> dict[str, str]:
-    output = RES_DIR / f"values-{locale}" / "strings.xml"
+    output = RES_DIR / f"values-{resource_qualifier(locale)}" / "strings.xml"
     if not output.exists():
         return {}
     root = ET.parse(output).getroot()

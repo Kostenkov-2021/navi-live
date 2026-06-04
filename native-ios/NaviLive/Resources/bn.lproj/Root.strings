@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "স্ট্যাটাস";
+"root.section.routes" = "স্ক্যাফোল্ড";
+"root.status.scaffold_ready" = "নেটিভ iOS স্ক্যাফোল্ড প্রস্তুত। নেভিগেশন, অ্যাক্সেসিবিলিটি এবং টেস্টফ্লাইট পাইপলাইন পরবর্তী ধাপে যোগ করা হবে।";
+"root.status.scaffold_ready_hint" = "এই স্ট্যাটাসটি ব্যাখ্যা করে যে iPhone প্রকল্পের কঙ্কাল সফলভাবে তৈরি করা হয়েছে।";
+"root.link.onboarding" = "অনবোর্ডিং";
+"root.link.home" = "হোম";
+"root.link.settings" = "সেটিংস";
+"root.placeholder.onboarding" = "অনবোর্ডিং ফ্লো পরবর্তী পর্যায়ে প্রয়োগ করা হবে।";
+"root.placeholder.home" = "হেঁটে নেভিগেশনের জন্য হোম স্ক্রীন পরবর্তী পর্যায়ে প্রয়োগ করা হবে।";
+"root.placeholder.settings" = "সেটিংস, গোপনীয়তা এবং অ্যাক্সেসিবিলিটি নিয়ন্ত্রণ পরবর্তী পর্যায়ে প্রয়োগ করা হবে।";
+"root.bootstrapping" = "প্রথম লঞ্চের জন্য Navi Live প্রস্তুত করা হচ্ছে।";

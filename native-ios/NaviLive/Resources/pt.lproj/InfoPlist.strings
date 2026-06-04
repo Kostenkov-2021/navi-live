@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live utiliza sua localização para pesquisar locais próximos e orientar percursos pedestres.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live pode continuar guiando sua rota quando a tela estiver esmaecida durante a navegação.";
+"NSMotionUsageDescription" = "Navi Live usa movimento do dispositivo para ajudar a alinhar a direção inicial da caminhada.";

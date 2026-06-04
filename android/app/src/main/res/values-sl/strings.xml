@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Odpri vadnico</string>
     <string name="settings_language_title">Jezik</string>
     <string name="settings_language_detected_label">Zaznano iz telefona</string>
+    <string name="settings_language_selected_label">Jezik aplikacije</string>     <string name="settings_language_system_default">Uporabi jezik telefona</string>     <string name="settings_language_changed">Jezik aplikacije je posodobljen.</string>
     <string name="settings_voice_title">Glasovna obvestila</string>
     <string name="settings_announcement_cadence_title">Kadenca obvestila</string>
     <string name="settings_announcement_cadence_distance_title">Na podlagi razdalje</string>

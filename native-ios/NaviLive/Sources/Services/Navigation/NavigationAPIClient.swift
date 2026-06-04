@@ -427,7 +427,7 @@ actor NavigationAPIClient {
 
     var request = URLRequest(url: url)
     request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-    request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+    request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
     let (data, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
@@ -554,7 +554,7 @@ actor NavigationAPIClient {
         var request = URLRequest(url: url)
         request.timeoutInterval = routeRoadNameRequestTimeout
         request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+        request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
@@ -878,7 +878,7 @@ actor NavigationAPIClient {
         var request = URLRequest(url: url)
         request.timeoutInterval = crossingRequestTimeout
         request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+        request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
@@ -1202,7 +1202,7 @@ actor NavigationAPIClient {
         var request = URLRequest(url: url)
         request.timeoutInterval = localPOIRequestTimeout
         request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+        request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
@@ -1339,7 +1339,7 @@ actor NavigationAPIClient {
         var request = URLRequest(url: url)
         request.timeoutInterval = poiCacheRefreshRequestTimeout
         request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-        request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+        request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
           throw NavigationAPIError.badResponse
@@ -1848,7 +1848,7 @@ actor NavigationAPIClient {
 
     var request = URLRequest(url: url)
     request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-    request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+    request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
     let (data, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
@@ -2049,7 +2049,7 @@ actor NavigationAPIClient {
       var request = URLRequest(url: url)
       request.timeoutInterval = addressLookupTimeout
       request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-      request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+      request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
       guard let (data, response) = try? await session.data(for: request),
             let http = response as? HTTPURLResponse,
             200..<300 ~= http.statusCode,
@@ -2112,7 +2112,7 @@ actor NavigationAPIClient {
     var request = URLRequest(url: url)
     request.timeoutInterval = addressLookupTimeout
     request.setValue("NaviLive/0.1 (iOS native client)", forHTTPHeaderField: "User-Agent")
-    request.setValue(Locale.current.identifier.replacingOccurrences(of: "_", with: "-"), forHTTPHeaderField: "Accept-Language")
+    request.setValue(L10n.acceptLanguageTag, forHTTPHeaderField: "Accept-Language")
 
     let (data, response) = try await session.data(for: request)
     guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {

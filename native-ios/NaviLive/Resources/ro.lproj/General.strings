@@ -1,0 +1,10 @@
+"common.ok" = "Bine";
+"common.settings" = "Setări";
+"common.cancel" = "Anula";
+"common.save" = "Salva";
+"common.back" = "Spate";
+"common.continue" = "Continua";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Precizie indisponibilă";
+"formatter.accuracy.value" = "%d m precizie";

@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live az Ön helyadatait használja a közeli helyek kereséséhez és a gyalogos útvonalak vezetéséhez.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live továbbra is irányíthatja az útvonalat, ha a képernyő elhalványul navigáció közben.";
+"NSMotionUsageDescription" = "Navi Live az eszköz mozgását használja a kezdeti járási irány beállításához.";

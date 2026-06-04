@@ -1,0 +1,10 @@
+"common.ok" = "Tamam";
+"common.settings" = "Ayarlar";
+"common.cancel" = "İptal";
+"common.save" = "Kaydet";
+"common.back" = "Geri";
+"common.continue" = "Devam";
+"formatter.minute.one" = "1 dk";
+"formatter.minute.other" = "%d dk";
+"formatter.accuracy.unknown" = "Doğruluk mevcut değil";
+"formatter.accuracy.value" = "%d m doğruluk";

@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Status";
+"root.section.routes" = "Gerüst";
+"root.status.scaffold_ready" = "Das native iOS-Gerüst ist bereit. Navigation, Barrierefreiheit und TestFlight-Pipeline werden in den nächsten Phasen hinzugefügt.";
+"root.status.scaffold_ready_hint" = "Dieser Status erklärt, dass das iPhone-Projektskelett erfolgreich erstellt wurde.";
+"root.link.onboarding" = "Onboarding";
+"root.link.home" = "Startseite";
+"root.link.settings" = "Einstellungen";
+"root.placeholder.onboarding" = "Der Onboarding-Ablauf wird in der nächsten Phase implementiert.";
+"root.placeholder.home" = "Der Startbildschirm für die Gehnavigation wird im nächsten Schritt implementiert.";
+"root.placeholder.settings" = "Einstellungen, Datenschutz und Zugänglichkeitskontrollen werden in der nächsten Phase implementiert.";
+"root.bootstrapping" = "Vorbereitung Navi Live für den ersten Start.";

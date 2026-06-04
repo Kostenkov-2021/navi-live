@@ -97,7 +97,7 @@
     <string name="active_navigation_stop">Gelditu nabigazioa</string>
     <string name="current_position_title">Uneko posizioa</string>
     <string name="current_position_current_address">Oraingo helbidea</string>
-    <string name="current_position_accuracy">Gutxi gorabeherako zehaztasuna: 9917707099220 Irakurri my location</string>
+    <string name="current_position_accuracy">Gutxi gorabeherako zehaztasuna: %1$d m</string>
     <string name="current_position_read_aloud"></string>
     <string name="current_position_search_destination">Bilatu helmuga</string>
     <string name="common_favorites">Gogokoak</string>
@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Ireki tutoriala</string>
     <string name="settings_language_title">Hizkuntza</string>
     <string name="settings_language_detected_label">Telefonotik detektatu da</string>
+    <string name="settings_language_selected_label">Aplikazioaren hizkuntza</string>     <string name="settings_language_system_default">Erabili telefonoaren hizkuntza</string>     <string name="settings_language_changed">Aplikazioaren hizkuntza eguneratu da.</string>
     <string name="settings_voice_title">Ahots-iragarkiak</string>
     <string name="settings_announcement_cadence_title">Iragarpen kadentzia</string>
     <string name="settings_announcement_cadence_distance_title">Distantzian oinarrituta</string>
@@ -303,8 +304,8 @@
     <string name="status_screen_reader_fallback_selected">Pantaila-irakurgailua hautatuta. Ez da pantaila-irakurle aktiborik hauteman; beraz, Navi Live sistemaren sintetizadorera itzuliko da.</string>
     <string name="status_tutorial_on_start_enabled">Tutoriala automatikoki irekiko da aplikazioa abiaraztean.</string>
     <string name="status_tutorial_on_start_disabled">Tutoriala ez da automatikoki irekiko aplikazioa abiaraztean.</string>
-    <string name="format_status_speech_rate_updated">Hizketa-tasa % %1$dan ezarri da.</string>
-    <string name="format_status_speech_volume_updated">Hizketaren bolumena % %1$dan ezarri da.</string>
+    <string name="format_status_speech_rate_updated">Hizketa-tasa %1$d%% ezarri da.</string>
+    <string name="format_status_speech_volume_updated">Hizketaren bolumena %1$d%% ezarri da.</string>
     <string name="status_voice_preview_played">Erreproduzitutako ahots-lagina.</string>
     <string name="status_route_service_unavailable">Ibilbide-zerbitzua ez dago erabilgarri. Ibilbidea kargatuta dago.</string>
     <string name="status_heading_aligned">Izenburua lerrokatuta.</string>

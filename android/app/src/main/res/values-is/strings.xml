@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Opna kennsluefni</string>
     <string name="settings_language_title">Tungumál</string>
     <string name="settings_language_detected_label">Greint úr síma</string>
+    <string name="settings_language_selected_label">Tungumál forrits</string>     <string name="settings_language_system_default">Nota tungumál símans</string>     <string name="settings_language_changed">Tungumál forritsins var uppfært.</string>
     <string name="settings_voice_title">Raddtilkynningar</string>
     <string name="settings_announcement_cadence_title">Hlutfall tilkynninga</string>
     <string name="settings_announcement_cadence_distance_title">Byggt á fjarlægð</string>

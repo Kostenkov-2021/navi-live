@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Tutorial opmaachen</string>
     <string name="settings_language_title">Sprooch</string>
     <string name="settings_language_detected_label">Vun Telefon entdeckt</string>
+    <string name="settings_language_selected_label">App-Sprooch</string>     <string name="settings_language_system_default">Telefonsprooch benotzen</string>     <string name="settings_language_changed">App-Sprooch gouf aktualiséiert.</string>
     <string name="settings_voice_title">Stëmm Ukënnegung</string>
     <string name="settings_announcement_cadence_title">Ukënnegung Kadens</string>
     <string name="settings_announcement_cadence_distance_title">Distanz baséiert</string>
@@ -352,7 +353,7 @@
     <string name="route_modifier_sharp_left">schaarf lénks</string>
     <string name="route_modifier_sharp_right">schaarf riets</string>
     <string name="route_modifier_straight">riichtaus</string>
-    <string name="route_modifier_uturn">u-turn</string>
+    <string name="route_modifier_uturn">U-Kéier</string>
     <string name="notification_tracking">Tracking Location fir Navigatioun</string>
     <string name="notification_channel_name">Navi Live Tracking</string>
     <string name="notification_channel_description">Virdergrond Location Tracking fir Navigatioun</string>

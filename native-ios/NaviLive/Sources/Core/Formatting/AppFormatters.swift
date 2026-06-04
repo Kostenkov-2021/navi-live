@@ -3,7 +3,7 @@ import Foundation
 enum AppFormatters {
   static func distance(_ meters: Int) -> String {
     if meters >= 1000 {
-      return String(format: "%.1f km", locale: Locale.current, Double(meters) / 1000.0)
+      return String(format: "%.1f km", locale: L10n.currentLocale, Double(meters) / 1000.0)
     }
     return "\(meters) m"
   }
@@ -23,7 +23,7 @@ enum AppFormatters {
   }
 
   static func coordinates(_ point: GeoPoint) -> String {
-    String(format: "%.5f, %.5f", locale: Locale.current, point.latitude, point.longitude)
+    String(format: "%.5f, %.5f", locale: L10n.currentLocale, point.latitude, point.longitude)
   }
 
   static func dateTime(_ date: Date) -> String {

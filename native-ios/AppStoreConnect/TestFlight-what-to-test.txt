@@ -1,33 +1,27 @@
 POLSKI
 
-Sprawdź prowadzenie po trasie pieszej.
-Utwórz krótką trasę pieszą i sprawdź, czy aplikacja nie pomija krótkich realnych skrętów oraz czy nie mówi o skręcie dopiero po jego minięciu. Zwróć uwagę, czy komunikaty są bardziej konkretne i pomagają iść następnym odcinkiem trasy.
+Sprawdź język aplikacji.
+Zmień język telefonu na jeden z nowych języków i uruchom aplikację ponownie. Następnie wejdź w Ustawienia, Aplikacja, Język aplikacji i sprawdź tryb języka telefonu oraz ręczny wybór kilku języków. Sprawdź ekran główny, wyszukiwanie, ustawienia, samouczek, ulubione i aktywną nawigację. Aplikacja powinna domyślnie dobrać język z telefonu, ale po ręcznym wyborze używać wybranego języka.
 
-Sprawdź komunikaty o przejściach dla pieszych.
-Podczas trasy zweryfikuj, czy aplikacja nadal wykrywa przejścia leżące na trasie, ale nie zapowiada bocznych przejść jako wymaganych. Jeśli przejście i zakręt są blisko siebie, sprawdź, czy realny manewr nie znika z listy wskazówek.
+Sprawdź VoiceOver i TalkBack.
+Przejdź przez najważniejsze ekrany czytnikiem ekranu i zwróć uwagę, czy teksty są zrozumiałe, nie zawierają angielskich resztek, dziwnych cyfr technicznych ani uszkodzonych wartości procentowych. Szczególnie sprawdź komunikaty trasy, ustawienia mowy, dźwięki i teksty wsparcia.
 
-Sprawdź powtarzanie wskazówek.
-Podczas aktywnego prowadzenia użyj potrząśnięcia lub akcji powtórki i sprawdź, czy aplikacja mówi najbliższy plan z odległością, na przykład najbliższy manewr oraz kolejny krok, a nie poprzednią wykonaną instrukcję.
+Sprawdź nowe lokalizacje.
+Dodane lub uzupełnione zostały między innymi: arabski, perski, bengalski, hindi, indonezyjski, wietnamski, chiński uproszczony, japoński, koreański i kurdyjski sorani. iOS ma teraz pełny zestaw lokalizacji zgodny z Androidem.
 
-Sprawdź przycisk słuchawek.
-W ustawieniach prowadzenia włącz opcję powtarzania wskazówek przyciskiem słuchawek. Podczas aktywnej nawigacji naciśnij play/pauzę na słuchawkach i sprawdź, czy aplikacja powtarza najbliższy plan trasy. Opcja jest domyślnie wyłączona.
-
-Sprawdź VoiceOver.
-Na ekranie aktywnej nawigacji sprawdź aktualną instrukcję, następną instrukcję, rotor kroków trasy, rotor alertów oraz akcje powtarzania, przeliczania i zgłoszenia problemu.
+Sprawdź stabilność po zmianie języka.
+Po zmianie języka telefonu sprawdź, czy aplikacja nadal uruchamia się poprawnie, zapisuje ulubione, pokazuje wyniki wyszukiwania i potrafi rozpocząć trasę.
 
 ENGLISH
 
-Check walking route guidance.
-Create a short walking route and verify that short real turns are not skipped and that turn prompts are not announced only after passing the turn. Check whether the prompts are more specific and easier to follow for the next route segment.
+Check app language selection.
+Change the phone language to one of the newly added languages and relaunch the app. Then open Settings, App, App language and verify both the phone-language mode and manual selection of several languages. Check the home screen, search, settings, tutorial, favorites, and active navigation. The app should follow the phone language by default, but use the selected language after a manual override.
 
-Check pedestrian crossing announcements.
-During navigation, verify that crossings on the route are still detected, but side crossings are not announced as required route crossings. If a crossing and a turn are close together, check that the real maneuver does not disappear from the route instructions.
+Check VoiceOver and TalkBack text.
+Move through the main screens with a screen reader and verify that labels are understandable, without leftover English, technical number artifacts, or broken percent values. Pay special attention to route instructions, speech settings, sound settings, and support text.
 
-Check instruction repeat.
-During active guidance, use shake or the repeat action and verify that the app speaks the nearest plan with distance, for example the next maneuver and the following step, instead of repeating a previously completed instruction.
+Check new localizations.
+Added or completed languages include Arabic, Persian, Bengali, Hindi, Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, and Sorani Kurdish. iOS now has the same requested localization coverage as Android.
 
-Check the headphone button.
-In guidance settings, enable repeating guidance with the headphone button. During active navigation, press play/pause on headphones and verify that the app repeats the nearest route plan. The option is off by default.
-
-Check VoiceOver.
-On the active navigation screen, verify the current instruction, next instruction, route steps rotor, alerts rotor, and actions for repeat, recalculation, and route problem reporting.
+Check stability after changing language.
+After changing the phone language, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.

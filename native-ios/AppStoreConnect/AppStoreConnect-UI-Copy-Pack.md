@@ -19,7 +19,7 @@ Settings include speech, vibration, tutorial, help, and privacy options. The app
 ### What to Test
 
 ```text
-Test reporting a route problem during guidance, turning live tracking on and off, and guidance with sound plus speech. The route problem action should confirm that the report was saved without stopping navigation. Live tracking should play distinct start and stop sounds, and after stopping on iPhone the home screen and current position screen should say that tracking is off instead of showing the last remembered address. Navigation sounds should play before spoken prompts and should not overlap. On Android, place details, route summary, favorites, and active guidance should be shorter with TalkBack and should no longer include long helper hints.
+Check app language selection after changing the phone language and through Settings > App > App language. Verify the phone-language mode, manual language overrides, the home screen, search, settings, tutorial, favorites, active navigation, VoiceOver labels, and spoken route instructions in the newly added localizations. Added or completed languages include Arabic, Persian, Bengali, Hindi, Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, and Sorani Kurdish. Report leftover English, technical number artifacts, broken percent values, or unclear route/navigation text.
 ```
 
 ### Beta App Review Notes

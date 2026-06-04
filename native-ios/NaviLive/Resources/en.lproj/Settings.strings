@@ -73,7 +73,10 @@
 "settings.speech.preview.sample" = "This is a Navi Live speech preview using the current speech settings.";
 "settings.speech_mode.updated" = "Speech mode updated.";
 "settings.group.app_updates" = "App";
+"settings.language.selected" = "App language";
+"settings.language.system" = "Use phone language";
 "settings.language.detected" = "Detected from phone";
+"settings.language.updated" = "App language updated.";
 "settings.about.version" = "Version";
 "settings.about.build" = "Build";
 "settings.app.repository" = "Open project repository";

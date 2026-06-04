@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Status";
+"root.section.routes" = "Scaffold";
+"root.status.scaffold_ready" = "داربست بومی iOS آماده است. ناوبری، دسترسی و خط لوله TestFlight در مراحل بعدی اضافه خواهد شد.";
+"root.status.scaffold_ready_hint" = "این وضعیت توضیح می دهد که اسکلت پروژه آیفون با موفقیت ایجاد شد.";
+"root.link.onboarding" = "Onboarding";
+"root.link.home" = "Home";
+"root.link.settings" = "تنظیمات";
+"root.placeholder.onboarding" = "جریان Onboarding در مرحله بعد اجرا می شود.";
+"root.placeholder.home" = "صفحه اصلی برای پیمایش پیاده روی در مرحله بعد اجرا می شود.";
+"root.placeholder.settings" = "تنظیمات، حریم خصوصی و کنترل های دسترسی در مرحله بعد اجرا می شود.";
+"root.bootstrapping" = "آماده سازی Navi Live برای اولین پرتاب.";

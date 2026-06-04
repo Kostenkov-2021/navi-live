@@ -172,6 +172,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Открыть обучение</string>
     <string name="settings_language_title">Язык</string>
     <string name="settings_language_detected_label">Определяется по настройкам телефона</string>
+    <string name="settings_language_selected_label">Язык приложения</string>     <string name="settings_language_system_default">Использовать язык телефона</string>     <string name="settings_language_changed">Язык приложения обновлен.</string>
     <string name="settings_voice_title">Голосовые подсказки</string>
     <string name="settings_announcement_cadence_title">Частота объявлений</string>
     <string name="settings_announcement_cadence_distance_title">По расстоянию</string>

@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live কাছাকাছি স্থানগুলি অনুসন্ধান করতে এবং হাঁটার পথ নির্দেশ করতে আপনার অবস্থান ব্যবহার করে৷";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live ন্যাভিগেশন চলাকালীন স্ক্রীনটি ম্লান হয়ে গেলে আপনার পথ নির্দেশনা চালিয়ে যেতে পারে৷";
+"NSMotionUsageDescription" = "Navi Live প্রাথমিক হাঁটার দিক সারিবদ্ধ করতে সাহায্য করার জন্য ডিভাইসের গতি ব্যবহার করে।";

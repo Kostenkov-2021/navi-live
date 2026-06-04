@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Navi Live";
+"NSLocationWhenInUseUsageDescription" = "Navi Live شوێنەکەت بەکاردەهێنێت بۆ گەڕان بە شوێنە نزیکەکان و ڕێنماییکردنی ڕێگاکانی ڕۆیشتن.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Navi Live دەتوانێت بەردەوام بێت لە ڕێنماییکردنی ڕێگاکەت کاتێک شاشەکە لە کاتی گەشتکردندا کاڵ دەبێتەوە.";
+"NSMotionUsageDescription" = "Navi Live جووڵەی ئامێر بەکاردەهێنێت بۆ یارمەتیدانی ڕێکخستنی ئاراستەی سەرەتایی ڕۆیشتن.";

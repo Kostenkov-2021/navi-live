@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Állapot";
+"root.section.routes" = "Állvány";
+"root.status.scaffold_ready" = "A natív iOS állvány készen áll. A navigáció, a kisegítő lehetőségek és a TestFlight folyamat a következő szakaszokban kerül hozzáadásra.";
+"root.status.scaffold_ready_hint" = "Ez az állapot azt magyarázza, hogy az iPhone projektvázat sikeresen létrehozták.";
+"root.link.onboarding" = "Bevezetés";
+"root.link.home" = "Kezdőlap";
+"root.link.settings" = "Beállítások";
+"root.placeholder.onboarding" = "A bevezető folyamat a következő szakaszban kerül megvalósításra.";
+"root.placeholder.home" = "A gyalogos navigáció kezdőképernyője a következő szakaszban kerül megvalósításra.";
+"root.placeholder.settings" = "A beállításokat, az adatvédelmi és a kisegítő lehetőségeket a következő szakaszban hajtják végre.";
+"root.bootstrapping" = "Navi Live előkészítése az első indításra.";

@@ -1,0 +1,10 @@
+"common.ok" = "ठीक है";
+"common.settings" = "सेटिंग्स";
+"common.cancel" = "रद्द करें";
+"common.save" = "सहेजें";
+"common.back" = "वापस";
+"common.continue" = "जारी रखें";
+"formatter.minute.one" = "1 मिनट";
+"formatter.minute.other" = "%d मिनट";
+"formatter.accuracy.unknown" = "सटीकता अनुपलब्ध";
+"formatter.accuracy.value" = "%d मीटर सटीकता";

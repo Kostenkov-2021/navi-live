@@ -73,7 +73,10 @@
 "settings.speech.preview.sample" = "To jest próbka głosu Navi Live z bieżącymi ustawieniami mowy.";
 "settings.speech_mode.updated" = "Zaktualizowano tryb mowy.";
 "settings.group.app_updates" = "Aplikacja";
+"settings.language.selected" = "Język aplikacji";
+"settings.language.system" = "Użyj języka telefonu";
 "settings.language.detected" = "Wykryto z telefonu";
+"settings.language.updated" = "Zaktualizowano język aplikacji.";
 "settings.about.version" = "Wersja";
 "settings.about.build" = "Build";
 "settings.app.repository" = "Otwórz repozytorium projektu";

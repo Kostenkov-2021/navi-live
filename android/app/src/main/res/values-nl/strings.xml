@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Open tutorial</string>
     <string name="settings_language_title">Taal</string>
     <string name="settings_language_detected_label">Gedetecteerd vanaf telefoon</string>
+    <string name="settings_language_selected_label">App-taal</string>     <string name="settings_language_system_default">Telefoontaal gebruiken</string>     <string name="settings_language_changed">App-taal bijgewerkt.</string>
     <string name="settings_voice_title">Gesproken mededelingen</string>
     <string name="settings_announcement_cadence_title">Aankondiging cadans</string>
     <string name="settings_announcement_cadence_distance_title">Op afstand gebaseerd</string>

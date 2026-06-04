@@ -568,6 +568,7 @@ fun NaviLiveNavHost(viewModel: NaviLiveViewModel) {
                 onRefreshNearbyPoiCache = viewModel::refreshNearbyPoiCacheNow,
                 onClearNearbyPoiCache = viewModel::clearNearbyPoiCache,
                 onPedestrianCrossingAlertsChange = viewModel::setPedestrianCrossingAlerts,
+                onLanguageChange = viewModel::setLanguage,
                 onUpdateChannelChange = viewModel::setUpdateChannel,
                 onSpeechOutputModeChange = viewModel::setSpeechOutputMode,
                 onSystemTtsEngineChange = viewModel::setSystemTtsEnginePackage,

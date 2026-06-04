@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Status";
+"root.section.routes" = "Scaffold";
+"root.status.scaffold_ready" = "Scaffold iOS asli sudah siap. Navigasi, aksesibilitas, dan jalur TestFlight akan ditambahkan pada tahap berikutnya.";
+"root.status.scaffold_ready_hint" = "Status ini menjelaskan bahwa kerangka proyek iPhone berhasil dibuat.";
+"root.link.onboarding" = "Orientasi";
+"root.link.home" = "Beranda";
+"root.link.settings" = "Pengaturan";
+"root.placeholder.onboarding" = "Alur orientasi akan diterapkan pada tahap berikutnya.";
+"root.placeholder.home" = "Layar beranda untuk navigasi berjalan kaki akan diimplementasikan pada tahap berikutnya.";
+"root.placeholder.settings" = "Pengaturan, privasi, dan kontrol aksesibilitas akan diterapkan pada tahap berikutnya.";
+"root.bootstrapping" = "Mempersiapkan Navi Live untuk peluncuran pertama.";

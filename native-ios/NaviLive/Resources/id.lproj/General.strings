@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Pengaturan";
+"common.cancel" = "Batal";
+"common.save" = "Simpan";
+"common.back" = "Kembali";
+"common.continue" = "Lanjutkan";
+"formatter.minute.one" = "1 menit";
+"formatter.minute.other" = "%d menit";
+"formatter.accuracy.unknown" = "Akurasi tidak tersedia";
+"formatter.accuracy.value" = "Akurasi %d m";

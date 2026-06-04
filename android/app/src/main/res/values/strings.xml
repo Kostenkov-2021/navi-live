@@ -172,7 +172,10 @@
     <string name="settings_help_privacy_title">Help and privacy</string>
     <string name="settings_help_privacy_tutorial_open_button">Open tutorial</string>
     <string name="settings_language_title">Language</string>
+    <string name="settings_language_selected_label">App language</string>
+    <string name="settings_language_system_default">Use phone language</string>
     <string name="settings_language_detected_label">Detected from phone</string>
+    <string name="settings_language_changed">App language updated.</string>
     <string name="settings_voice_title">Voice announcements</string>
     <string name="settings_announcement_cadence_title">Announcement cadence</string>
     <string name="settings_announcement_cadence_distance_title">Distance based</string>

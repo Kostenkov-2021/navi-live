@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Durum";
+"root.section.routes" = "İskele";
+"root.status.scaffold_ready" = "Yerel iOS iskelesi hazır. Sonraki aşamalarda navigasyon, erişilebilirlik ve TestFlight hattı eklenecektir.";
+"root.status.scaffold_ready_hint" = "Bu durum, iPhone projesi iskeletinin başarıyla oluşturulduğunu açıklar.";
+"root.link.onboarding" = "Ekleme";
+"root.link.home" = "Ana Sayfa";
+"root.link.settings" = "Ayarlar";
+"root.placeholder.onboarding" = "Ekleme akışı bir sonraki aşamada uygulanacaktır.";
+"root.placeholder.home" = "Yaya navigasyonunun ana ekranı bir sonraki aşamada uygulanacaktır.";
+"root.placeholder.settings" = "Ayarlar, gizlilik ve erişilebilirlik kontrolleri bir sonraki aşamada uygulanacaktır.";
+"root.bootstrapping" = "Navi Live ilk fırlatma için hazırlanıyor.";

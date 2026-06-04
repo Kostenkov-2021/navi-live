@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "دۆخ";
+"root.section.routes" = "داسەپاو";
+"root.status.scaffold_ready" = "داسەپاوەکەی ڕەسەنی iOS ئامادەیە. لە قۆناغەکانی داهاتوودا گەشتکردن و دەستڕاگەیشتن و بۆری TestFlight زیاد دەکرێت.";
+"root.status.scaffold_ready_hint" = "ئەم دۆخە ڕوونی دەکاتەوە کە ئێسکەپەیکەری پڕۆژەی ئایفۆن بە سەرکەوتوویی دروست کراوە.";
+"root.link.onboarding" = "ئۆنبۆردکردن";
+"root.link.home" = "ماڵەوە";
+"root.link.settings" = "ڕێکخستنەکان";
+"root.placeholder.onboarding" = "ڕەوتی ئۆنبۆردکردن لە قۆناغی داهاتوودا جێبەجێ دەکرێت.";
+"root.placeholder.home" = "شاشەی سەرەکی بۆ گەشتکردن بە پێ لە قۆناغی داهاتوودا جێبەجێ دەکرێت.";
+"root.placeholder.settings" = "ڕێکخستنەکان، نهێنی و کۆنترۆڵەکانی دەستڕاگەیشتن لە قۆناغی داهاتوودا جێبەجێ دەکرێن.";
+"root.bootstrapping" = "ئامادەکاری Navi Live بۆ یەکەم هەڵدانی.";

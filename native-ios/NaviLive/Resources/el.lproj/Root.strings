@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "Κατάσταση";
+"root.section.routes" = "Scaffold";
+"root.status.scaffold_ready" = "Το εγγενές ικρίωμα iOS είναι έτοιμο. Η πλοήγηση, η προσβασιμότητα και ο αγωγός TestFlight θα προστεθούν στα επόμενα στάδια.";
+"root.status.scaffold_ready_hint" = "Αυτή η κατάσταση εξηγεί ότι ο σκελετός του έργου iPhone δημιουργήθηκε με επιτυχία.";
+"root.link.onboarding" = "Ενσωμάτωση";
+"root.link.home" = "Αρχική σελίδα";
+"root.link.settings" = "Ρυθμίσεις";
+"root.placeholder.onboarding" = "Η ροή ενσωμάτωσης θα εφαρμοστεί στο επόμενο στάδιο.";
+"root.placeholder.home" = "Η αρχική οθόνη για πλοήγηση με τα πόδια θα υλοποιηθεί στο επόμενο στάδιο.";
+"root.placeholder.settings" = "Οι ρυθμίσεις, το απόρρητο και οι έλεγχοι προσβασιμότητας θα εφαρμοστούν στο επόμενο στάδιο.";
+"root.bootstrapping" = "Προετοιμασία Navi Live για την πρώτη κυκλοφορία.";

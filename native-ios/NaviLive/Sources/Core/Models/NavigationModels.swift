@@ -168,6 +168,7 @@ struct NearbyPOICacheState: Codable, Hashable, Sendable {
 }
 
 struct AppSettings: Codable, Hashable, Sendable {
+  var languageCode: String = ""
   var showTutorialOnLaunch: Bool = true
   var vibrationEnabled: Bool = true
   var shakeGestureEnabled: Bool = true
@@ -191,6 +192,7 @@ struct AppSettings: Codable, Hashable, Sendable {
   var speechVolume: Double = 1.0
 
   enum CodingKeys: String, CodingKey {
+    case languageCode
     case showTutorialOnLaunch
     case vibrationEnabled
     case shakeGestureEnabled
@@ -218,6 +220,7 @@ struct AppSettings: Codable, Hashable, Sendable {
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
+    languageCode = AppLanguage.normalize(try container.decodeIfPresent(String.self, forKey: .languageCode))
     showTutorialOnLaunch = try container.decodeIfPresent(Bool.self, forKey: .showTutorialOnLaunch) ?? true
     vibrationEnabled = try container.decodeIfPresent(Bool.self, forKey: .vibrationEnabled) ?? true
     shakeGestureEnabled = try container.decodeIfPresent(Bool.self, forKey: .shakeGestureEnabled) ?? true

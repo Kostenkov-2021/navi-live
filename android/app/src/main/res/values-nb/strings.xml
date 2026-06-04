@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Åpne opplæringen</string>
     <string name="settings_language_title">Språk</string>
     <string name="settings_language_detected_label">Oppdaget fra telefon</string>
+    <string name="settings_language_selected_label">Appspråk</string>     <string name="settings_language_system_default">Bruk telefonens språk</string>     <string name="settings_language_changed">Appspråket er oppdatert.</string>
     <string name="settings_voice_title">Talekunngjøringer</string>
     <string name="settings_announcement_cadence_title">Kunngjøringskadens</string>
     <string name="settings_announcement_cadence_distance_title">Avstandsbasert</string>

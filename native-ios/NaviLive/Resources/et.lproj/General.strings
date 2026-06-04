@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Seaded";
+"common.cancel" = "Tühista";
+"common.save" = "Salvesta";
+"common.back" = "Tagasi";
+"common.continue" = "Jätka";
+"formatter.minute.one" = "1 min";
+"formatter.minute.other" = "%d min";
+"formatter.accuracy.unknown" = "Täpsus pole saadaval";
+"formatter.accuracy.value" = "%d m täpsusega";

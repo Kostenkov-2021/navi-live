@@ -95,6 +95,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -118,6 +119,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.navilive.android.R
+import com.navilive.android.i18n.AppLanguages
+import com.navilive.android.i18n.currentAppLocale
+import com.navilive.android.i18n.localizedLanguageDisplayName
 import com.navilive.android.model.ActiveNavigationState
 import com.navilive.android.model.AnnouncementCadenceMode
 import com.navilive.android.model.AppUpdatePhase
@@ -1480,6 +1484,7 @@ fun SettingsScreen(
     onRefreshNearbyPoiCache: () -> Unit,
     onClearNearbyPoiCache: () -> Unit,
     onPedestrianCrossingAlertsChange: (Boolean) -> Unit,
+    onLanguageChange: (String) -> Unit,
     onUpdateChannelChange: (UpdateChannel) -> Unit,
     onSpeechOutputModeChange: (SpeechOutputMode) -> Unit,
     onSystemTtsEngineChange: (String?) -> Unit,
@@ -1706,7 +1711,10 @@ fun SettingsScreen(
                     }
                 }
                 SettingsDestination.App -> {
-                    LanguageSettingsCard(language = state.language)
+                    LanguageSettingsCard(
+                        language = state.language,
+                        onLanguageChange = onLanguageChange,
+                    )
                     AppUpdateCard(
                         settingsState = state,
                         updateState = updateState,
@@ -1783,19 +1791,99 @@ private fun SettingsNavigationCard(
 }
 
 @Composable
-private fun LanguageSettingsCard(language: String) {
+private fun LanguageSettingsCard(
+    language: String,
+    onLanguageChange: (String) -> Unit,
+) {
+    val configuration = LocalConfiguration.current
+    val displayLocale = currentAppLocale(configuration)
+    val selectedLanguageTag = AppLanguages.normalize(language)
+    val languagePickerLabel = stringResource(R.string.settings_language_selected_label)
+    val systemLanguageLabel = stringResource(R.string.settings_language_system_default)
+    val selectedLanguageLabel = if (selectedLanguageTag.isBlank()) {
+        systemLanguageLabel
+    } else {
+        AppLanguages.displayName(selectedLanguageTag, displayLocale)
+    }
+    val detectedLanguageLabel = localizedLanguageDisplayName(configuration)
+    val languageOptions = remember(displayLocale) {
+        AppLanguages.supportedLanguageTags.sortedBy { tag ->
+            AppLanguages.displayName(tag, displayLocale)
+        }
+    }
+    var isExpanded by remember { mutableStateOf(false) }
+
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CardTitle(stringResource(R.string.settings_language_title))
+            Box {
+                OutlinedButton(
+                    onClick = { isExpanded = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "$languagePickerLabel, $selectedLanguageLabel"
+                        },
+                ) {
+                    Text(selectedLanguageLabel)
+                }
+                DropdownMenu(
+                    expanded = isExpanded,
+                    onDismissRequest = { isExpanded = false },
+                ) {
+                    LanguageDropdownItem(
+                        label = systemLanguageLabel,
+                        isSelected = selectedLanguageTag.isBlank(),
+                        onClick = {
+                            isExpanded = false
+                            onLanguageChange(AppLanguages.SystemLanguageTag)
+                        },
+                    )
+                    HorizontalDivider()
+                    languageOptions.forEach { tag ->
+                        LanguageDropdownItem(
+                            label = AppLanguages.displayName(tag, displayLocale),
+                            isSelected = selectedLanguageTag == tag,
+                            onClick = {
+                                isExpanded = false
+                                onLanguageChange(tag)
+                            },
+                        )
+                    }
+                }
+            }
             LabelValue(
                 stringResource(R.string.settings_language_detected_label),
-                value = language,
+                value = detectedLanguageLabel,
             )
         }
     }
+}
+
+@Composable
+private fun LanguageDropdownItem(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(
+                    selected = isSelected,
+                    onClick = null,
+                )
+                Text(label)
+            }
+        },
+        onClick = onClick,
+    )
 }
 
 @Composable

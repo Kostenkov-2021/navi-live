@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Բացել ձեռնարկը</string>
     <string name="settings_language_title">Լեզուն</string>
     <string name="settings_language_detected_label">Հայտնաբերվել է հեռախոսից</string>
+    <string name="settings_language_selected_label">Հավելվածի լեզու</string>     <string name="settings_language_system_default">Օգտագործել հեռախոսի լեզուն</string>     <string name="settings_language_changed">Հավելվածի լեզուն թարմացվեց։</string>
     <string name="settings_voice_title">Ձայնային հայտարարություններ</string>
     <string name="settings_announcement_cadence_title">Հայտարարության կադենս</string>
     <string name="settings_announcement_cadence_distance_title">Հեռավորության վրա հիմնված</string>
@@ -381,7 +382,7 @@
     <string name="diagnostics_event_recalculate_failed">Երթուղու վերահաշվարկը ձախողվեց:</string>
     <string name="diagnostics_event_export_requested">Հեռուստաչափության արտահանում է պահանջվում:</string>
     <string name="diagnostics_event_off_route_detected">Հայտնաբերվել է երթուղուց դուրս՝ երթուղուց %1$d մ:</string>
-    <string name="diagnostics_event_step_advanced">Տեղափոխվել է %2$d-ի %2$d քայլ:</string>
+    <string name="diagnostics_event_step_advanced">Անցում կատարվեց %1$d-րդ քայլին %2$d-ից։</string>
     <string name="diagnostics_event_tracking_started">Առաջնային պլանի հետագծումը սկսվել է:</string>
     <string name="diagnostics_event_tracking_stopped">Առաջին պլանի հետագծումը դադարեցվել է:</string>
     <string name="diagnostics_event_navigation_fix">GPS նմուշը պահվել է %1$d քայլի համար %2$d.</string>

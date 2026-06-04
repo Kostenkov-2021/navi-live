@@ -1,0 +1,10 @@
+"common.ok" = "OK";
+"common.settings" = "Налады";
+"common.cancel" = "Адмена";
+"common.save" = "Захаваць";
+"common.back" = "Назад";
+"common.continue" = "Працягнуць";
+"formatter.minute.one" = "1 хвіліна";
+"formatter.minute.other" = "%d хвіліна";
+"formatter.accuracy.unknown" = "Дакладнасць недаступная";
+"formatter.accuracy.value" = "%d м дакладнасць";

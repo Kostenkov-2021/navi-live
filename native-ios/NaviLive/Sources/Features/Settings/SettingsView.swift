@@ -753,7 +753,7 @@ private enum SpeechVoiceCatalog {
   }
 
   static func languageName(for voice: AVSpeechSynthesisVoice) -> String {
-    Locale.current.localizedString(forIdentifier: voice.language) ?? voice.language
+    L10n.currentLocale.localizedString(forIdentifier: voice.language) ?? voice.language
   }
 
   private static func voiceSortKey(_ voice: AVSpeechSynthesisVoice) -> String {
@@ -794,6 +794,21 @@ private struct AppSettingsDetailView: View {
   var body: some View {
     Form {
       Section {
+        Picker(
+          L10n.text("settings.language.selected", table: .settings),
+          selection: Binding(
+            get: { model.settings.languageCode },
+            set: model.updateLanguageCode
+          )
+        ) {
+          Text(L10n.text("settings.language.system", table: .settings))
+            .tag(AppLanguage.systemLanguageCode)
+          ForEach(languageOptions, id: \.self) { code in
+            Text(AppLanguage.displayName(for: code, in: L10n.currentLocale))
+              .tag(code)
+          }
+        }
+
         LabeledContent(
           L10n.text("settings.language.detected", table: .settings),
           value: currentLanguageLabel
@@ -815,6 +830,13 @@ private struct AppSettingsDetailView: View {
   private var currentLanguageLabel: String {
     let locale = Locale.autoupdatingCurrent
     return locale.localizedString(forIdentifier: locale.identifier) ?? locale.identifier
+  }
+
+  private var languageOptions: [String] {
+    AppLanguage.supportedCodes.sorted {
+      AppLanguage.displayName(for: $0, in: L10n.currentLocale)
+        .localizedCaseInsensitiveCompare(AppLanguage.displayName(for: $1, in: L10n.currentLocale)) == .orderedAscending
+    }
   }
 }
 

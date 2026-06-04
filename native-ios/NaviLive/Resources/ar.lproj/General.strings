@@ -1,0 +1,10 @@
+"common.ok" = "موافق";
+"common.settings" = "الإعدادات";
+"common.cancel" = "إلغاء";
+"common.save" = "حفظ";
+"common.back" = "رجوع";
+"common.continue" = "متابعة";
+"formatter.minute.one" = "دقيقة واحدة";
+"formatter.minute.other" = "%d دقيقة";
+"formatter.accuracy.unknown" = "دقة غير متوفرة";
+"formatter.accuracy.value" = "%d م دقة";

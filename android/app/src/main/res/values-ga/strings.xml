@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Teagaisc a oscailt</string>
     <string name="settings_language_title">Teanga</string>
     <string name="settings_language_detected_label">Braitheadh ​​ó fón</string>
+    <string name="settings_language_selected_label">Teanga na haipe</string>     <string name="settings_language_system_default">Úsáid teanga an ghutháin</string>     <string name="settings_language_changed">Nuashonraíodh teanga na haipe.</string>
     <string name="settings_voice_title">Fógraí gutha</string>
     <string name="settings_announcement_cadence_title">Deireadh fógra</string>
     <string name="settings_announcement_cadence_distance_title">Cianbhunaithe</string>
@@ -276,7 +277,7 @@
     <string name="format_update_available">Tá nuashonrú %1$s ar fáil.</string>
     <string name="format_update_up_to_date">Navi Live %1$s cothrom le dáta.</string>
     <string name="format_update_check_failed">Theip ar sheiceáil nuashonraithe: %1$s</string>
-    <string name="format_update_downloading">Íoslódáil an nuashonrú 9917077199. .</string>
+    <string name="format_update_downloading">Nuashonrú %1$s á íoslódáil...</string>
     <string name="format_update_downloading_progress">Nuashonrú á íosluchtú: %1$d%%</string>
     <string name="format_update_download_failed">Theip ar íosluchtú an nuashonrú: %1$s</string>
     <string name="format_update_install_started">Suiteálaí Android a oscailt le haghaidh %1$s.</string>

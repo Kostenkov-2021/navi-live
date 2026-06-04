@@ -55,7 +55,11 @@ Strings are organized by feature:
 - [Navigation.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Navigation.strings)
 - [Settings.strings](/C:/Users/Kazek/Documents/navi-live/native-ios/NaviLive/Resources/en.lproj/Settings.strings)
 
-Polish and Russian mirror the same structure under `pl.lproj` and `ru.lproj`.
+Supported localization folders mirror the same structure for `en`, `pl`, `ru`, `uk`, `ar`, `fa`, `tr`, `de`, `fr`, `es`, `it`, `pt`, `ro`, `cs`, `sk`, `be`, `lt`, `lv`, `et`, `hu`, `fi`, `hr`, `sr`, `el`, `bn`, `hi`, `id`, `vi`, `zh-Hans`, `ja`, `ko`, and `ckb`.
+
+Missing iOS locale tables can be generated with `python native-ios/tools/generate_translations.py`. The generator preserves `Navi Live` and formatting placeholders such as `%@`, `%d`, and `%1$@`.
+
+Cross-platform locale coverage can be checked with `python scripts/Validate-NaviLive-Locales.py` from the repository root.
 
 Russian iOS localization was updated through PR #3 from `Kostenkov-2021/Ru-iOS-localization` and merged on 2026-05-29.
 The PR corrected wording in `Home.strings`, `Navigation.strings`, and `Onboarding.strings`.

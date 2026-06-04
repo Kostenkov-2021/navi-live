@@ -120,6 +120,7 @@
     <string name="settings_help_privacy_tutorial_open_button">Opna vegleiðing</string>
     <string name="settings_language_title">Mál</string>
     <string name="settings_language_detected_label">Uppdagað frá telefon</string>
+    <string name="settings_language_selected_label">App-mál</string>     <string name="settings_language_system_default">Brúka telefonmálið</string>     <string name="settings_language_changed">App-málið er dagført.</string>
     <string name="settings_voice_title">Røddarfráboðanir</string>
     <string name="settings_announcement_cadence_title">Kunngerðarkadensur</string>
     <string name="settings_announcement_cadence_distance_title">Fjarstøðugrundað</string>
@@ -226,7 +227,7 @@
     <string name="format_walk_time_only">%1$d min.</string>
     <string name="format_walk_time_and_distance">%1$d min, %2$d m</string>
     <string name="format_step_preview">%1$d. %2$s</string>
-    <string name="format_step_preview_with_distance">%1$d.</string>
+    <string name="format_step_preview_with_distance">%1$d. %2$s, %3$s</string>
     <string name="format_progress_step">Stig %1$d av %2$d</string>
     <string name="format_found_matching_places">Funnið %1$d samsvarandi pláss.</string>
     <string name="format_preparing_route">Fyrireika leið til %1$s...</string>

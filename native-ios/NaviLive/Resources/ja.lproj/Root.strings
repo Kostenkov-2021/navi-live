@@ -1,0 +1,12 @@
+"root.title" = "Navi Live";
+"root.section.status" = "ステータス";
+"root.section.routes" = "スキャフォールド";
+"root.status.scaffold_ready" = "ネイティブ iOS スキャフォールドの準備ができました。ナビゲーション、アクセシビリティ、TestFlight パイプラインは次の段階で追加されます。";
+"root.status.scaffold_ready_hint" = "このステータスは、iPhone プロジェクトのスケルトンが正常に作成されたことを示しています。";
+"root.link.onboarding" = "オンボーディング";
+"root.link.home" = "ホーム";
+"root.link.settings" = "設定";
+"root.placeholder.onboarding" = "オンボーディングのフローは次の段階で実装されます。";
+"root.placeholder.home" = "徒歩ナビのホーム画面は次の段階で実装予定です。";
+"root.placeholder.settings" = "設定、プライバシー、アクセシビリティの制御は次の段階で実装されます。";
+"root.bootstrapping" = "Navi Live の最初の起動を準備しています。";

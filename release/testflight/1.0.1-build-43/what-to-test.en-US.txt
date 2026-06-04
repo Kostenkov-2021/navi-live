@@ -1,0 +1,11 @@
+Check app language selection.
+Change the phone language to one of the newly added languages and relaunch the app. Then open Settings, App, App language and verify both the phone-language mode and manual selection of several languages. Check the home screen, search, settings, tutorial, favorites, and active navigation. The app should follow the phone language by default, but use the selected language after a manual override.
+
+Check VoiceOver and TalkBack text.
+Move through the main screens with a screen reader and verify that labels are understandable, without leftover English, technical number artifacts, or broken percent values. Pay special attention to route instructions, speech settings, sound settings, and support text.
+
+Check new localizations.
+Added or completed languages include Arabic, Persian, Bengali, Hindi, Indonesian, Vietnamese, Simplified Chinese, Japanese, Korean, and Sorani Kurdish. iOS now has the same requested localization coverage as Android.
+
+Check stability after changing language.
+After changing the phone language, verify that the app still launches correctly, keeps favorites, shows search results, and can start a route.

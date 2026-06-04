@@ -18,7 +18,7 @@ import com.navilive.android.data.telemetry.NavigationTelemetryLogger
 import com.navilive.android.data.update.GitHubUpdateRepository
 import com.navilive.android.guidance.GuidanceFeedbackEngine
 import com.navilive.android.guidance.NavigationSoundCue
-import com.navilive.android.i18n.localizedLanguageDisplayName
+import com.navilive.android.i18n.AppLanguages
 import com.navilive.android.model.ActiveNavigationState
 import com.navilive.android.model.AnnouncementCadenceMode
 import com.navilive.android.model.AppUpdatePhase
@@ -149,9 +149,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             searchResults = seedPlaces,
             favoriteIds = defaultFavoriteIds,
             lastRoutePlaceId = defaultLastRoutePlaceId,
-            settingsState = synchronizeSpeechSettings(
-                SettingsState(language = systemLanguageDisplayName()),
-            ),
+            settingsState = synchronizeSpeechSettings(SettingsState()),
             diagnosticsState = telemetryLogger.snapshotState(),
             appUpdateState = initialAppUpdateState(),
             statusMessage = string(R.string.location_status_ready_title),
@@ -268,9 +266,6 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun string(@StringRes resId: Int, vararg args: Any): String = appContext.getString(resId, *args)
-
-    private fun systemLanguageDisplayName(): String =
-        localizedLanguageDisplayName(appContext.resources.configuration)
 
     private fun initialAppUpdateState(): AppUpdateState {
         return AppUpdateState(
@@ -1352,6 +1347,19 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
         feedbackEngine.previewSoundCue(cue, settings.soundCueVolumePercent, settings.soundCueTheme)
     }
 
+    fun setLanguage(languageTag: String) {
+        val normalized = AppLanguages.normalize(languageTag)
+        _uiState.update { current ->
+            current.copy(
+                settingsState = current.settingsState.copy(language = normalized),
+                statusMessage = string(R.string.settings_language_changed),
+            )
+        }
+        viewModelScope.launch {
+            preferencesStore.setLanguage(normalized)
+        }
+    }
+
     fun setAutoRecalculate(enabled: Boolean) {
         _uiState.update { current ->
             current.copy(settingsState = current.settingsState.copy(autoRecalculate = enabled))
@@ -2393,7 +2401,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
 
     private fun synchronizeSpeechSettings(settings: SettingsState): SettingsState {
         val normalized = settings.copy(
-            language = systemLanguageDisplayName(),
+            language = AppLanguages.normalize(settings.language),
             speechRatePercent = settings.speechRatePercent.coerceIn(50, 200),
             speechVolumePercent = settings.speechVolumePercent.coerceIn(0, 100),
         )

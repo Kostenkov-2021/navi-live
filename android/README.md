@@ -18,7 +18,7 @@ This directory contains the first working Android implementation for `Navi Live`
 - Reduced accidental shake-to-repeat triggers with stronger thresholds and a longer cooldown
 - Debug telemetry buffer with export and share from Settings
 - Blueprint-aligned accessibility-first screen hierarchy
-- Automatic localization from the phone language with European locale coverage
+- Automatic localization from the phone language with configured multilingual locale coverage
 - GitHub Releases updater with automatic startup checks, in-app check, APK download and installer handoff
 - One primary updater action that can run `download -> allow installs -> install` as a single flow
 - Stable/beta update channels
@@ -78,6 +78,9 @@ Current Android MVP now follows the local `NAVILIVE_UX_BLUEPRINT.md` more closel
 - Legacy London demo IDs are removed from defaults and cleaned from saved preferences on startup.
 - App UI, spoken guidance, route fallback text, notifications and share flows now use Android string resources instead of hardcoded English text.
 - Android locale selection follows the system language automatically via `localeConfig`; no separate in-app language picker is required.
+- Requested app locales are configured for `en`, `pl`, `ru`, `uk`, `ar`, `fa`, `tr`, `de`, `fr`, `es`, `it`, `pt`, `ro`, `cs`, `sk`, `be`, `lt`, `lv`, `et`, `hu`, `fi`, `hr`, `sr`, `el`, `bn`, `hi`, `id`, `vi`, `zh-Hans`, `ja`, `ko`, and `ckb`.
+- Android translations can be updated with `python android/tools/generate_translations.py`; the generator maps Android BCP-47 resource folders for `id`, `zh-Hans`, and `ckb`.
+- Cross-platform locale coverage can be checked with `python scripts/Validate-NaviLive-Locales.py` from the repository root.
 - The project includes generated resource sets for supported European locales under `app/src/main/res/values-*`.
 - Polish (`values-pl`) was additionally reviewed and refined manually after generation.
 - The translation generator is in `tools/generate_translations.py`.
