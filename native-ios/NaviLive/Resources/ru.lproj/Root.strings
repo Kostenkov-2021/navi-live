@@ -1,5 +1,5 @@
 "root.title" = "Navi Live";
-"root.section.status" = "Состояние";
+"root.section.status" = "Статус";
 "root.section.routes" = "Каркас проекта";
 "root.status.scaffold_ready" = "Нативный каркас iOS готов. Навигация, доступность (специальные возможности) и конвейер TestFlight будут добавлены на следующих этапах.";
 "root.status.scaffold_ready_hint" = "Этот статус означает, что каркас проекта для iPhone успешно создан.";

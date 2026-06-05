@@ -1,4 +1,4 @@
-"navigation.step.depart" = "Начать движение";
+"navigation.step.depart" = "Начинайте движение";
 "navigation.step.depart.named" = "Начинайте движение. Двигайтесь по %1$@";
 "navigation.step.reach_route_start" = "Пройдите к началу маршрута.";
 "navigation.step.arrive" = "Вы на месте";
@@ -6,8 +6,8 @@
 "navigation.step.turn.right" = "Поверните направо";
 "navigation.step.turn.slight left" = "Плавно поверните налево";
 "navigation.step.turn.slight right" = "Плавно поверните направо";
-"navigation.step.turn.sharp left" = "Резко поверните налево";
-"navigation.step.turn.sharp right" = "Резко поверните направо";
+"navigation.step.turn.sharp left" = "Круто поверните налево";
+"navigation.step.turn.sharp right" = "Круто поверните направо";
 "navigation.step.turn.straight" = "Двигайтесь прямо";
 "navigation.step.turn.default" = "Продолжайте движение по маршруту";
 "navigation.step.turn.named" = "Поверните %2$@ на %1$@";
@@ -21,8 +21,8 @@
 "navigation.modifier.right" = "направо";
 "navigation.modifier.slight left" = "плавно налево";
 "navigation.modifier.slight right" = "плавно направо";
-"navigation.modifier.sharp left" = "резко налево";
-"navigation.modifier.sharp right" = "резко направо";
+"navigation.modifier.sharp left" = "круто налево";
+"navigation.modifier.sharp right" = "круто направо";
 "navigation.modifier.straight" = "прямо";
 "route.title" = "Сводка маршрута";
 "route.section.destination" = "Место прибытия";
@@ -88,7 +88,7 @@
 "active.action.visual_assistance" = "Визуальная помощь";
 "active.action.show_route_summary" = "Показать сводку маршрута";
 "active.action.stop" = "Завершить навигацию";
-"active.action.arrived" = "Отметить прибытие";
+"active.action.arrived" = "Я на месте";
 "active.rotor.instructions" = "Подсказки маршрута";
 "active.rotor.alerts" = "Оповещения";
 "active.route_step.title" = "Шаг %1$d из %2$d";
