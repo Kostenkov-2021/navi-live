@@ -100,7 +100,7 @@
     <string name="label_saved_at">Сохранено</string>
     <string name="label_phone">Телефон</string>
     <string name="label_website">Сайт</string>
-    <string name="place_details_show_route">Показать маршрут</string>
+    <string name="place_details_show_route">Построить маршрут</string>
     <string name="common_remove_from_favorites">Удалить из избранного</string>
     <string name="common_save_favorite">Сохранить в избранное</string>
     <string name="common_save">Сохранить</string>
@@ -113,7 +113,7 @@
     <string name="route_summary_guidance_preview">Предварительный просмотр маршрута</string>
     <string name="route_summary_favorite_saved">Сохранено в избранном</string>
     <string name="route_summary_start_route">Начать навигацию</string>
-    <string name="route_summary_preparing_route">Подготовка маршрута...</string>
+    <string name="route_summary_preparing_route">Построение маршрута...</string>
     <string name="heading_title">Установить направление</string>
     <string name="heading_confirmed_title">Направление подтверждено</string>
     <string name="heading_confirmed_message">Вы смотрите вдоль маршрута. Начинайте движение, когда будете готовы.</string>
@@ -130,7 +130,7 @@
     <string name="active_navigation_distance_from_route">Отклонение от маршрута</string>
     <string name="active_navigation_recalculating">Перестроение маршрута...</string>
     <string name="active_navigation_recalculate">Перестроить маршрут</string>
-    <string name="active_navigation_need_new_route">Нужен новый маршрут</string>
+    <string name="active_navigation_need_new_route">Обновить маршрут</string>
     <string name="active_navigation_report_problem">Сообщить о проблеме на маршруте</string>
     <string name="active_navigation_route_steps">Шаги маршрута</string>
     <string name="active_navigation_current_step_format">Текущий: %1$s</string>
@@ -196,12 +196,12 @@
     <string name="settings_nearby_poi_cache_clear">Очистить сохранённые</string>
     <string name="settings_speech_source_title">Источник речи</string>
     <string name="settings_speech_source_system_title">Системный синтезатор речи</string>
-    <string name="settings_speech_source_screen_reader_title">Средство чтения с экрана</string>
-    <string name="format_settings_speech_source_screen_reader_title_with_name">Средство чтения с экрана (%1$s)</string>
+    <string name="settings_speech_source_screen_reader_title">Программа экранного доступа</string>
+    <string name="format_settings_speech_source_screen_reader_title_with_name">Программа экранного доступа (%1$s)</string>
     <string name="settings_speech_source_active_label">Текущий источник голоса</string>
     <string name="settings_speech_source_system_status">Используется системный синтезатор Android.</string>
-    <string name="format_settings_speech_source_screen_reader_active">Используется активное средство чтения с экрана: %1$s.</string>
-    <string name="settings_speech_source_screen_reader_fallback">Активное средство чтения с экрана не обнаружено. Navi Live вернётся к системному синтезатору.</string>
+    <string name="format_settings_speech_source_screen_reader_active">Используется запущенная программа экранного доступа: %1$s.</string>
+    <string name="settings_speech_source_screen_reader_fallback">Запущенная программа экранного доступа не обнаружено. Navi Live будет использовать системный синтезатор.</string>
     <string name="settings_speech_preview_button">Воспроизвести образец голоса</string>
     <string name="settings_voice_preview_sample">Это образец голоса Navi Live для текущих настроек речи.</string>
     <string name="settings_system_tts_title">Системный синтезатор речи</string>
@@ -289,13 +289,13 @@
 
     <string name="location_status_permission_needed_title">Требуется разрешение на доступ к местоположению</string>
     <string name="location_status_permission_needed_message">Разрешите доступ к местоположению, чтобы Navi Live мог озвучивать ваше текущее положение и вести вас по маршруту.</string>
-    <string name="location_status_tracking_off_title">Отслеживание в реальном времени выключено</string>
+    <string name="location_status_tracking_off_title">Отслеживание в реальном времени отключено</string>
     <string name="location_status_tracking_off_message">Включите отслеживание в реальном времени перед навигацией, чтобы подсказки были актуальными.</string>
     <string name="location_status_waiting_gps_title">Ожидание GPS</string>
-    <string name="location_status_waiting_gps_message">Приложение отслеживает, но стабильное положение ещё не готово.</string>
+    <string name="location_status_waiting_gps_message">Отслеживание в реальном времени включено, но стабильное положение ещё не определено.</string>
     <string name="location_status_gps_weak_title">Сигнал GPS слабый</string>
     <string name="location_status_gps_weak_message">Текущее местоположение приблизительное. По возможности переместитесь на открытое пространство.</string>
-    <string name="location_status_ready_title">Местоположение готово</string>
+    <string name="location_status_ready_title">Местоположение определено</string>
 
     <string name="current_position_status_blocked_title">Доступ к местоположению заблокирован</string>
     <string name="current_position_status_blocked_message">Включите определение местоположения, чтобы услышать ваш текущий адрес и начать маршрут.</string>
@@ -303,7 +303,7 @@
     <string name="current_position_status_waiting_message">Оставьте отслеживание активным на некоторое время, чтобы приложение могло определить ваше местоположение.</string>
     <string name="current_position_status_approximate_title">Текущее местоположение может быть приблизительным</string>
     <string name="current_position_status_approximate_message">Приложение может определить ваше местоположение, но точность GPS в настоящее время низкая.</string>
-    <string name="current_position_status_ready_title">Текущее местоположение готово</string>
+    <string name="current_position_status_ready_title">Текущее местоположение определено</string>
     <string name="current_position_status_ready_message">Вы можете озвучить адрес или начать маршрут из избранных.</string>
 
     <string name="navigation_status_permission_lost_title">Доступ к местоположению потерян</string>
@@ -325,9 +325,9 @@
     <string name="format_step_preview_with_distance">%1$d. %2$s, %3$s</string>
     <string name="format_progress_step">Шаг %1$d из %2$d</string>
     <string name="format_found_matching_places">Найдено %1$d подходящих мест.</string>
-    <string name="format_preparing_route">Подготовка маршрута до %1$s...</string>
-    <string name="format_fallback_route_ready">Запасной маршрут до %1$s готов.</string>
-    <string name="format_route_ready">Маршрут до %1$s готов.</string>
+    <string name="format_preparing_route">Построение маршрута до %1$s...</string>
+    <string name="format_fallback_route_ready">Запасной маршрут до %1$s построен.</string>
+    <string name="format_route_ready">Маршрут до %1$s построен.</string>
     <string name="format_continue_toward">Продолжайте движение к %1$s.</string>
     <string name="format_navigation_upcoming_instruction_distance">Через %1$d метров, %2$s</string>
     <string name="format_navigation_upcoming_instruction_time">Через %1$d секунд, %2$s</string>
@@ -439,7 +439,7 @@
     <string name="location_announcement_disabled">Доступ к геолокации в данный момент отключён.</string>
     <string name="location_announcement_unavailable">Текущее местоположение пока недоступно.</string>
     <string name="location_announcement_approximate">Текущее местоположение может быть приблизительным.</string>
-    <string name="location_announcement_ready">Текущее местоположение готово.</string>
+    <string name="location_announcement_ready">Текущее местоположение определено.</string>
     <string name="status_telemetry_export_failed">Экспорт телеметрии не удался.</string>
     <string name="status_telemetry_cleared">Телеметрия очищена.</string>
     <string name="status_back_on_route">Вы вернулись на маршрут.</string>
@@ -453,7 +453,7 @@
     <string name="generic_next_segment">следующий сегмент</string>
 
     <string name="route_step_depart">Начинайте движение. Двигайтесь по %1$s</string>
-    <string name="route_step_depart_default">Начните движение</string>
+    <string name="route_step_depart_default">Начинайте движение</string>
     <string name="route_step_reach_route_start">Пройдите к началу маршрута.</string>
     <string name="route_step_turn_default">Продолжайте движение по маршруту</string>
     <string name="route_step_turn_bare_modifier">Поверните %1$s</string>
@@ -468,8 +468,8 @@
     <string name="route_modifier_right">направо</string>
     <string name="route_modifier_slight_left">плавно налево</string>
     <string name="route_modifier_slight_right">плавно направо</string>
-    <string name="route_modifier_sharp_left">резко налево</string>
-    <string name="route_modifier_sharp_right">резко направо</string>
+    <string name="route_modifier_sharp_left">круто налево</string>
+    <string name="route_modifier_sharp_right">круто направо</string>
     <string name="route_modifier_straight">прямо</string>
     <string name="route_modifier_uturn">развернитесь</string>
 
@@ -491,7 +491,7 @@
     <string name="diagnostics_event_onboarding_completed">Настройка завершена.</string>
     <string name="diagnostics_event_favorites_updated">Избранное обновлено.</string>
     <string name="diagnostics_event_route_requested">Запрошен маршрут к %1$s.</string>
-    <string name="diagnostics_event_route_loaded">Маршрут готов: %1$d м, %2$d мин.</string>
+    <string name="diagnostics_event_route_loaded">Маршрут построен: %1$d м, %2$d мин.</string>
     <string name="diagnostics_event_route_recalculated">Маршрут перестроен: %1$d м, %2$d мин.</string>
     <string name="diagnostics_event_heading_aligned">Направление выровнено.</string>
     <string name="diagnostics_event_navigation_started">Активная навигация запущена.</string>
