@@ -201,7 +201,7 @@
     <string name="settings_speech_source_active_label">Текущий источник голоса</string>
     <string name="settings_speech_source_system_status">Используется системный синтезатор Android.</string>
     <string name="format_settings_speech_source_screen_reader_active">Используется запущенная программа экранного доступа: %1$s.</string>
-    <string name="settings_speech_source_screen_reader_fallback">Запущенная программа экранного доступа не обнаружено. Navi Live будет использовать системный синтезатор.</string>
+    <string name="settings_speech_source_screen_reader_fallback">Запущенная программа экранного доступа не обнаружена. Navi Live будет использовать системный синтезатор.</string>
     <string name="settings_speech_preview_button">Воспроизвести образец голоса</string>
     <string name="settings_voice_preview_sample">Это образец голоса Navi Live для текущих настроек речи.</string>
     <string name="settings_system_tts_title">Системный синтезатор речи</string>
