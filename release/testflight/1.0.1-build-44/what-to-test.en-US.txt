@@ -1,0 +1,8 @@
+Check the Russian localization.
+Set the app language to Russian and move through the home screen, search, route summary, active navigation, and speech settings.
+
+Check route wording.
+Pay attention to Russian text for starting movement, route building, route ready messages, sharp turns, and the “I am here” action. The wording should sound natural and should consistently use the updated route-building terminology.
+
+Check status messages.
+Verify Russian GPS/location status, app status, and speech/screen-reader source text. There should be no grammar issues, leftover English, or broken placeholders.
