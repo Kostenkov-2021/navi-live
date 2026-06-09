@@ -36,8 +36,8 @@
 "route.action.start_guidance" = "Начать навигацию";
 "route.action.refresh" = "Обновить маршрут";
 "route.action.prepare" = "Построить маршрут";
-"route.status.loading" = "Расчёт маршрута";
-"route.status.location_required" = "Для расчёта маршрута необходимо знать ваше текущее местоположение.";
+"route.status.loading" = "Построение маршрута";
+"route.status.location_required" = "Для построения маршрута необходимо знать ваше текущее местоположение.";
 "route.status.ready" = "Маршрут построен.";
 "route.status.error" = "Не удалось построить маршрут прямо сейчас.";
 "route.status.missing_title" = "Маршрут не построен";
