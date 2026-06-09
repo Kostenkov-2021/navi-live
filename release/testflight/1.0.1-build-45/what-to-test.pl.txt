@@ -1,5 +1,3 @@
-POLSKI
-
 Sprawdź rosyjską lokalizację na iOS.
 Ustaw język aplikacji na rosyjski i przejdź przez wyszukiwanie, podsumowanie trasy oraz aktywną nawigację.
 
@@ -8,14 +6,3 @@ Zwróć uwagę, czy status ładowania trasy mówi po rosyjsku o „budowaniu tra
 
 Sprawdź spójność z poprzednimi poprawkami.
 Rosyjskie komunikaty trasy powinny konsekwentnie używać nowego słownictwa: budowanie trasy, trasa zbudowana, naturalne teksty skrętów i brak angielskich resztek.
-
-ENGLISH
-
-Check the Russian localization on iOS.
-Set the app language to Russian and move through search, route summary, and active navigation.
-
-Check route-building status text.
-Verify that the route loading status uses the Russian wording for “route building”, not “route calculation”. Also check the message shown when current location is required before building a route.
-
-Check consistency with previous fixes.
-Russian route messages should consistently use the updated route-building terminology, natural turn wording, and no leftover English text.
