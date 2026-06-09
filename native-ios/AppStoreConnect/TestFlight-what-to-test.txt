@@ -1,21 +1,21 @@
 POLSKI
 
-Sprawdź rosyjską lokalizację na iOS.
-Ustaw język aplikacji na rosyjski i przejdź przez wyszukiwanie, podsumowanie trasy oraz aktywną nawigację.
+Sprawdź stabilność lokalizacji podczas aktywnej nawigacji.
+Przejdź krótką trasę pieszą i zwróć uwagę, czy pozycja mniej pływa, czy aplikacja rzadziej zgłasza zejście z trasy oraz czy komunikaty nie przeskakują po chwilowych skokach GPS.
 
-Sprawdź komunikaty budowania trasy.
-Zwróć uwagę, czy status ładowania trasy mówi po rosyjsku o „budowaniu trasy”, a nie o „obliczaniu trasy”. Sprawdź też komunikat wymagający aktualnej lokalizacji przed zbudowaniem trasy.
+Sprawdź zachowanie przy słabszym GPS.
+Na zewnątrz i w pobliżu budynków sprawdź, czy aplikacja nie reaguje zbyt nerwowo na chwilowe pogorszenie dokładności i czy po dłuższej przerwie poprawnie wraca do bieżącej pozycji.
 
-Sprawdź spójność z poprzednimi poprawkami.
-Rosyjskie komunikaty trasy powinny konsekwentnie używać nowego słownictwa: budowanie trasy, trasa zbudowana, naturalne teksty skrętów i brak angielskich resztek.
+Sprawdź regresje.
+Wyszukiwanie, budowanie trasy, aktywna nawigacja, ulubione oraz ustawienia mowy i dźwięków powinny działać jak wcześniej.
 
 ENGLISH
 
-Check the Russian localization on iOS.
-Set the app language to Russian and move through search, route summary, and active navigation.
+Check location stability during active navigation.
+Walk a short route and verify that the position drifts less, off-route warnings are less nervous, and spoken guidance does not jump after short GPS spikes.
 
-Check route-building status text.
-Verify that the route loading status uses the Russian wording for “route building”, not “route calculation”. Also check the message shown when current location is required before building a route.
+Check behavior with weaker GPS.
+Test outdoors and near buildings. Verify that the app does not overreact to brief accuracy drops and that it returns to the current position correctly after a longer location gap.
 
-Check consistency with previous fixes.
-Russian route messages should consistently use the updated route-building terminology, natural turn wording, and no leftover English text.
+Check regressions.
+Search, route building, active navigation, favorites, and speech or sound settings should keep working as before.
