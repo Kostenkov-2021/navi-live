@@ -34,6 +34,18 @@ object SharedProductRules {
         const val gpsWeakAccuracyMeters: Float = 75f
 
         const val autoRecalculateCooldownMs: Long = 6000L
+
+        const val locationStabilizationStaleResetMs: Long = 20000L
+        const val locationStabilizationMaxUsableAccuracyMeters: Float = 100.0f
+        const val locationStabilizationStationaryDistanceMeters: Double = 4.0
+        const val locationStabilizationStationaryAccuracyMultiplier: Double = 0.45
+        const val locationStabilizationStationaryMaxDistanceMeters: Double = 12.0
+        const val locationStabilizationMaxWalkingSpeedMetersPerSecond: Double = 4.2
+        const val locationStabilizationJumpDistanceMinMeters: Double = 25.0
+        const val locationStabilizationJumpAccuracyMultiplier: Double = 1.25
+        const val locationStabilizationSmoothingMaxDistanceMeters: Double = 35.0
+        const val locationStabilizationSmoothingAlphaWhenAccuracyImproves: Double = 0.55
+        const val locationStabilizationSmoothingAlphaWhenAccuracyWorsens: Double = 0.35
     }
 
     object Search {

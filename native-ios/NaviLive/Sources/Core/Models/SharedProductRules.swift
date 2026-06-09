@@ -31,6 +31,18 @@ enum SharedProductRules {
     static let gpsWeakAccuracyMeters: Double = 75
 
     static let autoRecalculateCooldownMs: Int = 6000
+
+    static let locationStabilizationStaleResetMs: Int = 20000
+    static let locationStabilizationMaxUsableAccuracyMeters: Double = 100.0
+    static let locationStabilizationStationaryDistanceMeters: Double = 4.0
+    static let locationStabilizationStationaryAccuracyMultiplier: Double = 0.45
+    static let locationStabilizationStationaryMaxDistanceMeters: Double = 12.0
+    static let locationStabilizationMaxWalkingSpeedMetersPerSecond: Double = 4.2
+    static let locationStabilizationJumpDistanceMinMeters: Double = 25.0
+    static let locationStabilizationJumpAccuracyMultiplier: Double = 1.25
+    static let locationStabilizationSmoothingMaxDistanceMeters: Double = 35.0
+    static let locationStabilizationSmoothingAlphaWhenAccuracyImproves: Double = 0.55
+    static let locationStabilizationSmoothingAlphaWhenAccuracyWorsens: Double = 0.35
   }
 
   enum Search {

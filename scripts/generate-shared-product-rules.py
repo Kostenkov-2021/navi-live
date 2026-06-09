@@ -40,6 +40,7 @@ def escape_for_code_string(value: str) -> str:
 
 def render_android(rules: dict) -> str:
     navigation = rules["navigation"]
+    stabilization = navigation["locationStabilization"]
     search = rules["search"]
     scoring = search["scoring"]
     address = rules["address"]
@@ -92,6 +93,18 @@ object SharedProductRules {{
         const val gpsWeakAccuracyMeters: Float = {navigation['gpsWeakAccuracyMeters']}f
 
         const val autoRecalculateCooldownMs: Long = {navigation['autoRecalculateCooldownMs']}L
+
+        const val locationStabilizationStaleResetMs: Long = {stabilization['staleResetMs']}L
+        const val locationStabilizationMaxUsableAccuracyMeters: Float = {stabilization['maxUsableAccuracyMeters']}f
+        const val locationStabilizationStationaryDistanceMeters: Double = {stabilization['stationaryDistanceMeters']}
+        const val locationStabilizationStationaryAccuracyMultiplier: Double = {stabilization['stationaryAccuracyMultiplier']}
+        const val locationStabilizationStationaryMaxDistanceMeters: Double = {stabilization['stationaryMaxDistanceMeters']}
+        const val locationStabilizationMaxWalkingSpeedMetersPerSecond: Double = {stabilization['maxWalkingSpeedMetersPerSecond']}
+        const val locationStabilizationJumpDistanceMinMeters: Double = {stabilization['jumpDistanceMinMeters']}
+        const val locationStabilizationJumpAccuracyMultiplier: Double = {stabilization['jumpAccuracyMultiplier']}
+        const val locationStabilizationSmoothingMaxDistanceMeters: Double = {stabilization['smoothingMaxDistanceMeters']}
+        const val locationStabilizationSmoothingAlphaWhenAccuracyImproves: Double = {stabilization['smoothingAlphaWhenAccuracyImproves']}
+        const val locationStabilizationSmoothingAlphaWhenAccuracyWorsens: Double = {stabilization['smoothingAlphaWhenAccuracyWorsens']}
     }}
 
     object Search {{
@@ -153,6 +166,7 @@ object SharedProductRules {{
 
 def render_ios(rules: dict) -> str:
     navigation = rules["navigation"]
+    stabilization = navigation["locationStabilization"]
     search = rules["search"]
     scoring = search["scoring"]
     address = rules["address"]
@@ -202,6 +216,18 @@ enum SharedProductRules {{
     static let gpsWeakAccuracyMeters: Double = {navigation['gpsWeakAccuracyMeters']}
 
     static let autoRecalculateCooldownMs: Int = {navigation['autoRecalculateCooldownMs']}
+
+    static let locationStabilizationStaleResetMs: Int = {stabilization['staleResetMs']}
+    static let locationStabilizationMaxUsableAccuracyMeters: Double = {stabilization['maxUsableAccuracyMeters']}
+    static let locationStabilizationStationaryDistanceMeters: Double = {stabilization['stationaryDistanceMeters']}
+    static let locationStabilizationStationaryAccuracyMultiplier: Double = {stabilization['stationaryAccuracyMultiplier']}
+    static let locationStabilizationStationaryMaxDistanceMeters: Double = {stabilization['stationaryMaxDistanceMeters']}
+    static let locationStabilizationMaxWalkingSpeedMetersPerSecond: Double = {stabilization['maxWalkingSpeedMetersPerSecond']}
+    static let locationStabilizationJumpDistanceMinMeters: Double = {stabilization['jumpDistanceMinMeters']}
+    static let locationStabilizationJumpAccuracyMultiplier: Double = {stabilization['jumpAccuracyMultiplier']}
+    static let locationStabilizationSmoothingMaxDistanceMeters: Double = {stabilization['smoothingMaxDistanceMeters']}
+    static let locationStabilizationSmoothingAlphaWhenAccuracyImproves: Double = {stabilization['smoothingAlphaWhenAccuracyImproves']}
+    static let locationStabilizationSmoothingAlphaWhenAccuracyWorsens: Double = {stabilization['smoothingAlphaWhenAccuracyWorsens']}
   }}
 
   enum Search {{
@@ -263,7 +289,8 @@ enum SharedProductRules {{
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text.rstrip() + "\n")
 
 
 def main() -> None:

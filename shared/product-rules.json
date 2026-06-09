@@ -21,7 +21,20 @@
     },
     "guidanceLeadMeters": 12,
     "gpsWeakAccuracyMeters": 75,
-    "autoRecalculateCooldownMs": 6000
+    "autoRecalculateCooldownMs": 6000,
+    "locationStabilization": {
+      "staleResetMs": 20000,
+      "maxUsableAccuracyMeters": 100.0,
+      "stationaryDistanceMeters": 4.0,
+      "stationaryAccuracyMultiplier": 0.45,
+      "stationaryMaxDistanceMeters": 12.0,
+      "maxWalkingSpeedMetersPerSecond": 4.2,
+      "jumpDistanceMinMeters": 25.0,
+      "jumpAccuracyMultiplier": 1.25,
+      "smoothingMaxDistanceMeters": 35.0,
+      "smoothingAlphaWhenAccuracyImproves": 0.55,
+      "smoothingAlphaWhenAccuracyWorsens": 0.35
+    }
   },
   "search": {
     "includeGlobalFallbackIfFewerThan": 3,

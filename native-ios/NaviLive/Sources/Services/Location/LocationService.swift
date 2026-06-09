@@ -10,6 +10,7 @@ final class LocationService: NSObject, ObservableObject {
   @Published private(set) var isUpdating = false
 
   private let manager: CLLocationManager
+  private let stabilizer = LocationFixStabilizer()
   private var allowsBackgroundGuidance = false
 
   override init() {
@@ -47,6 +48,7 @@ final class LocationService: NSObject, ObservableObject {
   func stopUpdates() {
     manager.stopUpdatingLocation()
     manager.stopUpdatingHeading()
+    stabilizer.reset()
     allowsBackgroundGuidance = false
     updateBackgroundLocationAccess()
     isUpdating = false
@@ -85,12 +87,14 @@ extension LocationService: CLLocationManagerDelegate {
   nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
     guard let location = locations.last else { return }
     Task { @MainActor in
-      latestFix = LocationFix(
+      let rawFix = LocationFix(
         point: GeoPoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude),
         accuracyMeters: max(0, location.horizontalAccuracy),
         timestamp: location.timestamp,
         courseDegrees: location.course >= 0 ? location.course : nil
       )
+      guard let stabilizedFix = stabilizer.stabilize(rawFix) else { return }
+      latestFix = stabilizedFix
     }
   }
 
@@ -98,5 +102,102 @@ extension LocationService: CLLocationManagerDelegate {
     Task { @MainActor in
       headingDegrees = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
     }
+  }
+}
+
+final class LocationFixStabilizer {
+  private var stableFix: LocationFix?
+
+  func reset() {
+    stableFix = nil
+  }
+
+  func stabilize(_ rawFix: LocationFix) -> LocationFix? {
+    guard rawFix.accuracyMeters.isFinite else { return nil }
+    let normalizedFix = LocationFix(
+      point: rawFix.point,
+      accuracyMeters: max(0, rawFix.accuracyMeters),
+      timestamp: rawFix.timestamp,
+      courseDegrees: rawFix.courseDegrees
+    )
+    guard let previous = stableFix else {
+      stableFix = normalizedFix
+      return normalizedFix
+    }
+
+    let elapsedSeconds = normalizedFix.timestamp.timeIntervalSince(previous.timestamp)
+    guard elapsedSeconds > 0 else { return nil }
+    if elapsedSeconds * 1000 > Double(SharedProductRules.Navigation.locationStabilizationStaleResetMs) {
+      stableFix = normalizedFix
+      return normalizedFix
+    }
+
+    if normalizedFix.accuracyMeters > SharedProductRules.Navigation.locationStabilizationMaxUsableAccuracyMeters {
+      return holdPreviousPoint(previous, incoming: normalizedFix)
+    }
+
+    let distanceMeters = previous.point.distance(to: normalizedFix.point)
+    if distanceMeters <= stationaryThresholdMeters(previous: previous, incoming: normalizedFix) {
+      return holdPreviousPoint(previous, incoming: normalizedFix)
+    }
+
+    let jumpDistanceThreshold = max(
+      SharedProductRules.Navigation.locationStabilizationJumpDistanceMinMeters,
+      (previous.accuracyMeters + normalizedFix.accuracyMeters) *
+        SharedProductRules.Navigation.locationStabilizationJumpAccuracyMultiplier
+    )
+    let speedMetersPerSecond = distanceMeters / elapsedSeconds
+    if speedMetersPerSecond > SharedProductRules.Navigation.locationStabilizationMaxWalkingSpeedMetersPerSecond,
+       distanceMeters > jumpDistanceThreshold {
+      return holdPreviousPoint(previous, incoming: normalizedFix)
+    }
+
+    let stabilized: LocationFix
+    if distanceMeters <= SharedProductRules.Navigation.locationStabilizationSmoothingMaxDistanceMeters {
+      stabilized = smooth(previous: previous, incoming: normalizedFix)
+    } else {
+      stabilized = normalizedFix
+    }
+    stableFix = stabilized
+    return stabilized
+  }
+
+  private func holdPreviousPoint(_ previous: LocationFix, incoming: LocationFix) -> LocationFix {
+    let held = LocationFix(
+      point: previous.point,
+      accuracyMeters: incoming.accuracyMeters,
+      timestamp: incoming.timestamp,
+      courseDegrees: incoming.courseDegrees ?? previous.courseDegrees
+    )
+    stableFix = held
+    return held
+  }
+
+  private func stationaryThresholdMeters(previous: LocationFix, incoming: LocationFix) -> Double {
+    let accuracyWeighted = max(previous.accuracyMeters, incoming.accuracyMeters) *
+      SharedProductRules.Navigation.locationStabilizationStationaryAccuracyMultiplier
+    return min(
+      max(
+        SharedProductRules.Navigation.locationStabilizationStationaryDistanceMeters,
+        accuracyWeighted
+      ),
+      SharedProductRules.Navigation.locationStabilizationStationaryMaxDistanceMeters
+    )
+  }
+
+  private func smooth(previous: LocationFix, incoming: LocationFix) -> LocationFix {
+    let alpha = incoming.accuracyMeters <= previous.accuracyMeters
+      ? SharedProductRules.Navigation.locationStabilizationSmoothingAlphaWhenAccuracyImproves
+      : SharedProductRules.Navigation.locationStabilizationSmoothingAlphaWhenAccuracyWorsens
+    let point = GeoPoint(
+      latitude: previous.point.latitude + (incoming.point.latitude - previous.point.latitude) * alpha,
+      longitude: previous.point.longitude + (incoming.point.longitude - previous.point.longitude) * alpha
+    )
+    return LocationFix(
+      point: point,
+      accuracyMeters: incoming.accuracyMeters,
+      timestamp: incoming.timestamp,
+      courseDegrees: incoming.courseDegrees ?? previous.courseDegrees
+    )
   }
 }
