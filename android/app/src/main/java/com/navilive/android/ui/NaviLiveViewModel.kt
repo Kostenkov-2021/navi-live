@@ -807,6 +807,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                     from = currentPoint,
                     to = targetPoint,
                     includePedestrianCrossings = _uiState.value.settingsState.pedestrianCrossingAlerts,
+                    includeJunctionAlerts = _uiState.value.settingsState.junctionAlerts,
                 )
                 routeCache[place.id] = summary
                 applyRouteSummary(
@@ -1009,21 +1010,17 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                 ?: string(R.string.generic_follow_route_guidance)
         }
 
-        val upcomingStepIndex = (session.currentStepIndex + 1).coerceAtMost(session.steps.lastIndex)
-        val upcomingStep = session.steps.getOrNull(upcomingStepIndex)
-        val firstInstruction = upcomingStep
+        val currentStepIndex = session.currentStepIndex.coerceIn(0, session.steps.lastIndex)
+        val currentStep = session.steps.getOrNull(currentStepIndex)
+        val firstInstruction = currentStep
             ?.instruction
             ?.trim()
             ?.takeIf { it.isNotBlank() }
-            ?: state.nextInstruction.trim().takeIf { it.isNotBlank() }
             ?: state.currentInstruction.trim().takeIf { it.isNotBlank() }
             ?: string(R.string.generic_follow_route_guidance)
-        val firstMessage = formatRepeatInstructionWithDistance(
-            distanceMeters = state.distanceToNextMeters,
-            instruction = firstInstruction,
-        )
+        val firstMessage = string(R.string.format_navigation_immediate_instruction, firstInstruction)
 
-        val followingStep = session.steps.getOrNull(upcomingStepIndex + 1)
+        val followingStep = session.steps.getOrNull(currentStepIndex + 1)
         val followingInstruction = followingStep
             ?.instruction
             ?.trim()
@@ -1031,7 +1028,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
             ?: return firstMessage
         val followingMessage = string(
             R.string.format_navigation_repeat_following_distance,
-            followingStep.distanceMeters.coerceAtLeast(0),
+            state.distanceToNextMeters.coerceAtLeast(0),
             followingInstruction,
         )
         return string(R.string.format_navigation_repeat_plan_two_steps, firstMessage, followingMessage)
@@ -1215,6 +1212,7 @@ class NaviLiveViewModel(application: Application) : AndroidViewModel(application
                     from = currentPoint,
                     to = destinationPoint,
                     includePedestrianCrossings = _uiState.value.settingsState.pedestrianCrossingAlerts,
+                    includeJunctionAlerts = _uiState.value.settingsState.junctionAlerts,
                 )
                 routeCache[destination.id] = summary
                 applyRouteSummary(

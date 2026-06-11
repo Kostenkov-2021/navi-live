@@ -27,7 +27,7 @@ enum SharedProductRules {
     static let immediateInstructionThresholdMinMeters: Int = 5
     static let immediateInstructionThresholdMaxMeters: Int = 8
 
-    static let guidanceLeadMeters: Int = 12
+    static let guidanceLeadMeters: Int = 7
     static let gpsWeakAccuracyMeters: Double = 75
 
     static let autoRecalculateCooldownMs: Int = 6000

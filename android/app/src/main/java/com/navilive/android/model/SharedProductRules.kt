@@ -30,7 +30,7 @@ object SharedProductRules {
         const val immediateInstructionThresholdMinMeters: Int = 5
         const val immediateInstructionThresholdMaxMeters: Int = 8
 
-        const val guidanceLeadMeters: Int = 12
+        const val guidanceLeadMeters: Int = 7
         const val gpsWeakAccuracyMeters: Float = 75f
 
         const val autoRecalculateCooldownMs: Long = 6000L

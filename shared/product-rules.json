@@ -19,7 +19,7 @@
       "thresholdMinMeters": 5,
       "thresholdMaxMeters": 8
     },
-    "guidanceLeadMeters": 12,
+    "guidanceLeadMeters": 7,
     "gpsWeakAccuracyMeters": 75,
     "autoRecalculateCooldownMs": 6000,
     "locationStabilization": {

@@ -105,9 +105,13 @@ private struct NamedRouteWay {
   let geometry: [GeoPoint]
 }
 
-private struct RouteCrossingCandidate {
+private struct RouteAlertCandidate {
   let point: GeoPoint
   let distanceAlongRouteMeters: Double
+  let instruction: String
+  let kind: RouteStepKind
+  let roadName: String?
+  let maneuverType: String?
 }
 
 private struct RouteProjection {
@@ -218,10 +222,14 @@ actor NavigationAPIClient {
   private let crossingRequestTimeout: TimeInterval = 2
   private let crossingDuplicateProximityMeters = 3.0
   private let crossingTurnProximityMeters = 35.0
-  private let crossingNodeLateralLimitMeters = 3.0
-  private let crossingCloseRouteMatchMeters = 1.5
-  private let crossingWayLateralLimitMeters = 3.5
-  private let crossingWayAlignmentToleranceDegrees = 45.0
+  private let crossingNodeLateralLimitMeters = 1.5
+  private let crossingWayLateralLimitMeters = 2.5
+  private let crossingWayAlignmentToleranceDegrees = 30.0
+  private let routeAlertDeduplicateMeters = 18.0
+  private let streetCrossingDeduplicateMeters = 25.0
+  private let streetCrossingLateralLimitMeters = 4.0
+  private let streetCrossingMinimumBearingDifferenceDegrees = 55.0
+  private let streetCrossingManeuverType = "street_crossing"
   private let routeStartApproachThresholdMeters = 18.0
   private let minimumInferredRoadStepDistanceMeters = 45
   private let approachManeuverType = "approach"
@@ -440,7 +448,8 @@ actor NavigationAPIClient {
   func buildWalkingRoute(
     from start: GeoPoint,
     to destination: Place,
-    includePedestrianCrossings: Bool = true
+    includePedestrianCrossings: Bool = true,
+    includeJunctionAlerts: Bool = true
   ) async throws -> RouteSummary {
     guard let destinationPoint = destination.point else {
       throw NavigationAPIError.noRoute
@@ -484,9 +493,13 @@ actor NavigationAPIClient {
     let simplifiedSteps = normalizePotentialStreetCrossingSteps(simplifyRouteSteps(baseSteps))
     let baseRouteSteps = routeStepsWithStartApproach(start: start, pathPoints: points, steps: simplifiedSteps)
 
-    let steps = includePedestrianCrossings
-      ? await routeStepsAddingPedestrianCrossings(steps: baseRouteSteps, pathPoints: points)
-      : baseRouteSteps
+    let steps = await routeStepsAddingRouteAlerts(
+      steps: baseRouteSteps,
+      pathPoints: points,
+      namedRouteWays: namedRouteWays,
+      includePedestrianCrossings: includePedestrianCrossings,
+      includeJunctionAlerts: includeJunctionAlerts
+    )
 
     return RouteSummary(
       distanceMeters: Int(route.distance.rounded()),
@@ -606,6 +619,30 @@ actor NavigationAPIClient {
       return false
     }
     return tags["area"] != "yes"
+  }
+
+  private func isStreetCrossingWay(highway: String?) -> Bool {
+    guard let highway else { return false }
+    return [
+      "primary",
+      "secondary",
+      "tertiary",
+      "residential",
+      "living_street",
+      "unclassified",
+      "service",
+      "pedestrian"
+    ].contains(highway)
+  }
+
+  private func localWayBearingDegrees(points: [GeoPoint], index: Int) -> Double? {
+    guard points.count >= 2 else { return nil }
+    let previousIndex = max(index - 1, 0)
+    let nextIndex = min(index + 1, points.count - 1)
+    let start = points[previousIndex]
+    let end = points[nextIndex]
+    guard start != end else { return nil }
+    return bearingDegrees(from: start, to: end)
   }
 
   private func inferredRoadName(
@@ -797,53 +834,70 @@ actor NavigationAPIClient {
     )
   }
 
-  private func routeStepsAddingPedestrianCrossings(
+  private func routeStepsAddingRouteAlerts(
     steps: [RouteStep],
-    pathPoints: [GeoPoint]
+    pathPoints: [GeoPoint],
+    namedRouteWays: [NamedRouteWay],
+    includePedestrianCrossings: Bool,
+    includeJunctionAlerts: Bool
   ) async -> [RouteStep] {
     guard !steps.isEmpty, pathPoints.count >= 2 else { return steps }
-    let crossings = (try? await fetchPedestrianCrossings(pathPoints: pathPoints)) ?? []
-    guard !crossings.isEmpty else { return steps }
-
     let routeLength = routeLengthMeters(pathPoints: pathPoints)
+    var alerts: [RouteAlertCandidate] = []
+    if includePedestrianCrossings {
+      alerts += (try? await fetchPedestrianCrossings(pathPoints: pathPoints, routeLengthMeters: routeLength)) ?? []
+    }
+    if includeJunctionAlerts {
+      alerts += routeStreetCrossings(
+        pathPoints: pathPoints,
+        namedRouteWays: namedRouteWays,
+        routeLengthMeters: routeLength
+      )
+    }
+    alerts = deduplicatedRouteAlerts(alerts)
+    guard !alerts.isEmpty else { return steps }
+
     let stepDistances = stepDistancesAlongRoute(
       steps: steps,
       pathPoints: pathPoints,
       routeLengthMeters: routeLength
     )
     var augmented: [RouteStep] = [steps[0]]
-    var crossingIndex = 0
+    var alertIndex = 0
     var lastAlongMeters = stepDistances.first ?? 0
 
     for stepIndex in 1..<steps.count {
       let stepAlongMeters = stepDistances[stepIndex]
       let nextStep = steps[stepIndex]
-      while crossingIndex < crossings.count,
-            crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters {
-        let crossing = crossings[crossingIndex]
+      while alertIndex < alerts.count,
+            alerts[alertIndex].distanceAlongRouteMeters < stepAlongMeters {
+        let alert = alerts[alertIndex]
         let previousStep = augmented.last(where: { $0.kind == .instruction })
-        let distanceFromPreviousRaw = crossing.distanceAlongRouteMeters - lastAlongMeters
-        let distanceToNextStep = stepAlongMeters - crossing.distanceAlongRouteMeters
-        if shouldSuppressCrossingAlert(
+        let distanceFromPreviousRaw = alert.distanceAlongRouteMeters - lastAlongMeters
+        let distanceToNextStep = stepAlongMeters - alert.distanceAlongRouteMeters
+        if shouldSuppressRouteAlert(
+          alert: alert,
           distanceFromPreviousMeters: distanceFromPreviousRaw,
           previousStep: previousStep,
           distanceToNextStepMeters: distanceToNextStep,
           nextStep: nextStep
         ) {
-          crossingIndex += 1
+          alertIndex += 1
           continue
         }
         let distanceFromPrevious = max(Int(distanceFromPreviousRaw.rounded()), 1)
         augmented.append(
           RouteStep(
-            instruction: L10n.text("navigation.step.crossing", table: .navigation),
+            instruction: alert.instruction,
             distanceMeters: distanceFromPrevious,
-            maneuverPoint: crossing.point,
-            kind: .pedestrianCrossing
+            maneuverPoint: alert.point,
+            kind: alert.kind,
+            maneuverType: alert.maneuverType,
+            roadName: alert.roadName
           )
         )
-        lastAlongMeters = crossing.distanceAlongRouteMeters
-        crossingIndex += 1
+        lastAlongMeters = alert.distanceAlongRouteMeters
+        alertIndex += 1
       }
       augmented.append(steps[stepIndex])
       lastAlongMeters = max(lastAlongMeters, stepAlongMeters)
@@ -851,13 +905,42 @@ actor NavigationAPIClient {
     return augmented
   }
 
-  private func shouldSuppressCrossingAlert(
+  private func deduplicatedRouteAlerts(_ alerts: [RouteAlertCandidate]) -> [RouteAlertCandidate] {
+    var deduplicated: [RouteAlertCandidate] = []
+    for candidate in alerts.sorted(by: {
+      if $0.distanceAlongRouteMeters != $1.distanceAlongRouteMeters {
+        return $0.distanceAlongRouteMeters < $1.distanceAlongRouteMeters
+      }
+      return isNamedStreetCrossing($0) && !isNamedStreetCrossing($1)
+    }) {
+      if let existingIndex = deduplicated.firstIndex(where: {
+        abs($0.distanceAlongRouteMeters - candidate.distanceAlongRouteMeters) < routeAlertDeduplicateMeters
+      }) {
+        if isNamedStreetCrossing(candidate), !isNamedStreetCrossing(deduplicated[existingIndex]) {
+          deduplicated[existingIndex] = candidate
+        }
+      } else {
+        deduplicated.append(candidate)
+      }
+    }
+    return deduplicated.sorted { $0.distanceAlongRouteMeters < $1.distanceAlongRouteMeters }
+  }
+
+  private func shouldSuppressRouteAlert(
+    alert: RouteAlertCandidate,
     distanceFromPreviousMeters: Double,
     previousStep: RouteStep?,
     distanceToNextStepMeters: Double,
     nextStep: RouteStep
   ) -> Bool {
     if distanceFromPreviousMeters < crossingDuplicateProximityMeters { return true }
+    if isNamedStreetCrossing(alert) {
+      if let alertRoad = normalizedRouteRoadName(alert.roadName) {
+        if normalizedRouteRoadName(previousStep?.roadName) == alertRoad { return true }
+        if normalizedRouteRoadName(nextStep.roadName) == alertRoad { return true }
+      }
+      return false
+    }
     if distanceFromPreviousMeters < crossingTurnProximityMeters,
        previousStep?.isTurnLikeManeuver == true {
       return true
@@ -869,7 +952,14 @@ actor NavigationAPIClient {
     return false
   }
 
-  private func fetchPedestrianCrossings(pathPoints: [GeoPoint]) async throws -> [RouteCrossingCandidate] {
+  private func isNamedStreetCrossing(_ alert: RouteAlertCandidate) -> Bool {
+    alert.maneuverType == streetCrossingManeuverType && alert.roadName?.isEmpty == false
+  }
+
+  private func fetchPedestrianCrossings(
+    pathPoints: [GeoPoint],
+    routeLengthMeters routeLength: Double
+  ) async throws -> [RouteAlertCandidate] {
     let urls = buildPedestrianCrossingURLs(pathPoints: pathPoints)
     var decodedResponse: OverpassResponseDTO?
     var lastError: Error?
@@ -894,8 +984,7 @@ actor NavigationAPIClient {
       throw lastError ?? NavigationAPIError.badResponse
     }
 
-    let routeLength = routeLengthMeters(pathPoints: pathPoints)
-    let candidates = decoded.elements.compactMap { item -> RouteCrossingCandidate? in
+    let candidates = decoded.elements.compactMap { item -> RouteAlertCandidate? in
       guard let point = overpassPoint(for: item),
             let projection = projectOntoRoute(pathPoints: pathPoints, point: point) else {
         return nil
@@ -903,13 +992,17 @@ actor NavigationAPIClient {
       guard isPedestrianCrossingOnRoute(item: item, routeProjection: projection) else { return nil }
       guard projection.distanceAlongRouteMeters >= 20 else { return nil }
       guard projection.distanceAlongRouteMeters <= routeLength - 20 else { return nil }
-      return RouteCrossingCandidate(
+      return RouteAlertCandidate(
         point: point,
-        distanceAlongRouteMeters: projection.distanceAlongRouteMeters
+        distanceAlongRouteMeters: projection.distanceAlongRouteMeters,
+        instruction: L10n.text("navigation.step.crossing", table: .navigation),
+        kind: .pedestrianCrossing,
+        roadName: nil,
+        maneuverType: nil
       )
     }
 
-    var deduplicated: [RouteCrossingCandidate] = []
+    var deduplicated: [RouteAlertCandidate] = []
     for candidate in candidates.sorted(by: { $0.distanceAlongRouteMeters < $1.distanceAlongRouteMeters }) {
       if let previous = deduplicated.last,
          candidate.distanceAlongRouteMeters - previous.distanceAlongRouteMeters < 25 {
@@ -918,6 +1011,50 @@ actor NavigationAPIClient {
       deduplicated.append(candidate)
     }
     return deduplicated
+  }
+
+  private func routeStreetCrossings(
+    pathPoints: [GeoPoint],
+    namedRouteWays: [NamedRouteWay],
+    routeLengthMeters routeLength: Double
+  ) -> [RouteAlertCandidate] {
+    guard pathPoints.count >= 2, !namedRouteWays.isEmpty else { return [] }
+    var candidates: [RouteAlertCandidate] = []
+    for way in namedRouteWays {
+      guard isStreetCrossingWay(highway: way.highway),
+            let normalizedName = normalizedRouteRoadName(way.name) else {
+        continue
+      }
+      for (index, point) in way.geometry.enumerated() {
+        guard let projection = projectOntoRoute(pathPoints: pathPoints, point: point) else { continue }
+        guard projection.lateralDistanceMeters <= streetCrossingLateralLimitMeters else { continue }
+        guard projection.distanceAlongRouteMeters >= 20 else { continue }
+        guard projection.distanceAlongRouteMeters <= routeLength - 20 else { continue }
+        guard let wayBearing = localWayBearingDegrees(points: way.geometry, index: index) else { continue }
+        let bearingDifference = undirectedBearingDifference(
+          projection.segmentBearingDegrees,
+          wayBearing
+        )
+        guard bearingDifference >= streetCrossingMinimumBearingDifferenceDegrees else { continue }
+        if candidates.contains(where: {
+          normalizedRouteRoadName($0.roadName) == normalizedName &&
+            abs($0.distanceAlongRouteMeters - projection.distanceAlongRouteMeters) < streetCrossingDeduplicateMeters
+        }) {
+          continue
+        }
+        candidates.append(
+          RouteAlertCandidate(
+            point: point,
+            distanceAlongRouteMeters: projection.distanceAlongRouteMeters,
+            instruction: L10n.text("navigation.step.cross_street", table: .navigation, way.name),
+            kind: .instruction,
+            roadName: way.name,
+            maneuverType: streetCrossingManeuverType
+          )
+        )
+      }
+    }
+    return candidates.sorted { $0.distanceAlongRouteMeters < $1.distanceAlongRouteMeters }
   }
 
   private func buildPedestrianCrossingURLs(pathPoints: [GeoPoint]) -> [URL] {
@@ -953,9 +1090,6 @@ actor NavigationAPIClient {
     }
     guard routeProjection.lateralDistanceMeters <= crossingWayLateralLimitMeters else {
       return false
-    }
-    if routeProjection.lateralDistanceMeters <= crossingCloseRouteMatchMeters {
-      return true
     }
     let crossingBearing = bearingDegrees(from: crossingGeometry.first!, to: crossingGeometry.last!)
     let bearingDifference = undirectedBearingDifference(

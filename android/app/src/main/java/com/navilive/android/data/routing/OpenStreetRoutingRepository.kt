@@ -72,9 +72,13 @@ class OpenStreetRoutingRepository(
         val isCategoryOnly: Boolean = wantsAnyCategory && nameSearchTerms.isEmpty()
     }
 
-    private data class RouteCrossingCandidate(
+    private data class RouteAlertCandidate(
         val point: GeoPoint,
         val distanceAlongRouteMeters: Double,
+        val instruction: String,
+        val kind: RouteStepKind,
+        val roadName: String? = null,
+        val maneuverType: String? = null,
     )
 
     private data class RouteProjection(
@@ -167,10 +171,14 @@ class OpenStreetRoutingRepository(
         const val CROSSING_REQUEST_TIMEOUT_MS = 2_000
         const val CROSSING_DUPLICATE_PROXIMITY_METERS = 3.0
         const val CROSSING_TURN_PROXIMITY_METERS = 35.0
-        const val CROSSING_NODE_LATERAL_LIMIT_METERS = 3.0
-        const val CROSSING_CLOSE_ROUTE_MATCH_METERS = 1.5
-        const val CROSSING_WAY_LATERAL_LIMIT_METERS = 3.5
-        const val CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES = 45.0
+        const val CROSSING_NODE_LATERAL_LIMIT_METERS = 1.5
+        const val CROSSING_WAY_LATERAL_LIMIT_METERS = 2.5
+        const val CROSSING_WAY_ALIGNMENT_TOLERANCE_DEGREES = 30.0
+        const val ROUTE_ALERT_DEDUPLICATE_METERS = 18.0
+        const val STREET_CROSSING_DEDUPLICATE_METERS = 25.0
+        const val STREET_CROSSING_LATERAL_LIMIT_METERS = 4.0
+        const val STREET_CROSSING_MIN_BEARING_DIFFERENCE_DEGREES = 55.0
+        const val STREET_CROSSING_MANEUVER_TYPE = "street_crossing"
         const val ROUTE_START_APPROACH_THRESHOLD_METERS = 18.0
         const val MIN_INFERRED_ROAD_STEP_DISTANCE_METERS = 45
         const val APPROACH_MANEUVER_TYPE = "approach"
@@ -344,6 +352,7 @@ class OpenStreetRoutingRepository(
         from: GeoPoint,
         to: GeoPoint,
         includePedestrianCrossings: Boolean = true,
+        includeJunctionAlerts: Boolean = true,
     ): RouteSummary {
         return withContext(Dispatchers.IO) {
             val coordinateString = "${from.longitude},${from.latitude};${to.longitude},${to.latitude}"
@@ -378,14 +387,13 @@ class OpenStreetRoutingRepository(
                     simplifyRouteSteps(parseSteps(steps, namedRouteWays)),
                 ),
             )
-            val parsedSteps = if (includePedestrianCrossings) {
-                addPedestrianCrossingSteps(
-                    steps = baseSteps,
-                    pathPoints = pathPoints,
-                )
-            } else {
-                baseSteps
-            }
+            val parsedSteps = addRouteAlertSteps(
+                steps = baseSteps,
+                pathPoints = pathPoints,
+                namedRouteWays = namedRouteWays,
+                includePedestrianCrossings = includePedestrianCrossings,
+                includeJunctionAlerts = includeJunctionAlerts,
+            )
 
             val currentInstruction = parsedSteps.firstOrNull()?.instruction ?: stepInstruction(steps, 0)
             val nextInstruction = parsedSteps.getOrNull(1)?.instruction ?: stepInstruction(steps, 1)
@@ -572,18 +580,29 @@ class OpenStreetRoutingRepository(
         lastIndex = lastIndex,
     )
 
-    private fun addPedestrianCrossingSteps(
+    private fun addRouteAlertSteps(
         steps: List<RouteStep>,
         pathPoints: List<GeoPoint>,
+        namedRouteWays: List<NamedRouteWay>,
+        includePedestrianCrossings: Boolean,
+        includeJunctionAlerts: Boolean,
     ): List<RouteStep> {
         if (steps.isEmpty() || pathPoints.size < 2) return steps
-        val crossings = runCatching { queryPedestrianCrossings(pathPoints) }.getOrDefault(emptyList())
-        if (crossings.isEmpty()) return steps
-
+        if (!includePedestrianCrossings && !includeJunctionAlerts) return steps
         val routeLengthMeters = routeLengthMeters(pathPoints)
+        val alerts = buildList {
+            if (includePedestrianCrossings) {
+                addAll(runCatching { queryPedestrianCrossings(pathPoints, routeLengthMeters) }.getOrDefault(emptyList()))
+            }
+            if (includeJunctionAlerts) {
+                addAll(queryRouteStreetCrossings(pathPoints, namedRouteWays, routeLengthMeters))
+            }
+        }.let(::deduplicateRouteAlerts)
+        if (alerts.isEmpty()) return steps
+
         val stepDistances = stepDistancesAlongRoute(steps, pathPoints, routeLengthMeters)
         val augmented = mutableListOf<RouteStep>()
-        var crossingIndex = 0
+        var alertIndex = 0
         var lastAlongMeters = stepDistances.firstOrNull() ?: 0.0
 
         augmented += steps.first()
@@ -591,35 +610,38 @@ class OpenStreetRoutingRepository(
             val stepAlongMeters = stepDistances[stepIndex]
             val nextStep = steps[stepIndex]
             while (
-                crossingIndex < crossings.size &&
-                crossings[crossingIndex].distanceAlongRouteMeters < stepAlongMeters
+                alertIndex < alerts.size &&
+                alerts[alertIndex].distanceAlongRouteMeters < stepAlongMeters
             ) {
-                val crossing = crossings[crossingIndex]
+                val alert = alerts[alertIndex]
                 val previousStep = augmented.lastOrNull { it.kind == RouteStepKind.Instruction }
-                val distanceFromPreviousRaw = crossing.distanceAlongRouteMeters - lastAlongMeters
-                val distanceToNextStep = stepAlongMeters - crossing.distanceAlongRouteMeters
+                val distanceFromPreviousRaw = alert.distanceAlongRouteMeters - lastAlongMeters
+                val distanceToNextStep = stepAlongMeters - alert.distanceAlongRouteMeters
                 if (
-                    shouldSuppressCrossingAlert(
+                    shouldSuppressRouteAlert(
+                        alert = alert,
                         distanceFromPreviousMeters = distanceFromPreviousRaw,
                         previousStep = previousStep,
                         distanceToNextStepMeters = distanceToNextStep,
                         nextStep = nextStep,
                     )
                 ) {
-                    crossingIndex += 1
+                    alertIndex += 1
                     continue
                 }
                 val distanceFromPrevious = distanceFromPreviousRaw
                     .roundToInt()
                     .coerceAtLeast(1)
                 augmented += RouteStep(
-                    instruction = string(R.string.route_step_crossing),
+                    instruction = alert.instruction,
                     distanceMeters = distanceFromPrevious,
-                    maneuverPoint = crossing.point,
-                    kind = RouteStepKind.PedestrianCrossing,
+                    maneuverPoint = alert.point,
+                    kind = alert.kind,
+                    maneuverType = alert.maneuverType,
+                    roadName = alert.roadName,
                 )
-                lastAlongMeters = crossing.distanceAlongRouteMeters
-                crossingIndex += 1
+                lastAlongMeters = alert.distanceAlongRouteMeters
+                alertIndex += 1
             }
             augmented += steps[stepIndex]
             lastAlongMeters = maxOf(lastAlongMeters, stepAlongMeters)
@@ -627,13 +649,44 @@ class OpenStreetRoutingRepository(
         return augmented
     }
 
-    private fun shouldSuppressCrossingAlert(
+    private fun deduplicateRouteAlerts(alerts: List<RouteAlertCandidate>): List<RouteAlertCandidate> {
+        val deduplicated = mutableListOf<RouteAlertCandidate>()
+        for (candidate in alerts.sortedWith(compareBy<RouteAlertCandidate> {
+            it.distanceAlongRouteMeters
+        }.thenBy {
+            if (it.isNamedStreetCrossing()) 0 else 1
+        })) {
+            val existingIndex = deduplicated.indexOfFirst {
+                abs(it.distanceAlongRouteMeters - candidate.distanceAlongRouteMeters) < ROUTE_ALERT_DEDUPLICATE_METERS
+            }
+            if (existingIndex == -1) {
+                deduplicated += candidate
+                continue
+            }
+            val existing = deduplicated[existingIndex]
+            if (candidate.isNamedStreetCrossing() && !existing.isNamedStreetCrossing()) {
+                deduplicated[existingIndex] = candidate
+            }
+        }
+        return deduplicated.sortedBy { it.distanceAlongRouteMeters }
+    }
+
+    private fun shouldSuppressRouteAlert(
+        alert: RouteAlertCandidate,
         distanceFromPreviousMeters: Double,
         previousStep: RouteStep?,
         distanceToNextStepMeters: Double,
         nextStep: RouteStep,
     ): Boolean {
         if (distanceFromPreviousMeters < CROSSING_DUPLICATE_PROXIMITY_METERS) return true
+        if (alert.isNamedStreetCrossing()) {
+            val alertRoad = normalizedRouteRoadName(alert.roadName)
+            if (alertRoad != null) {
+                if (normalizedRouteRoadName(previousStep?.roadName) == alertRoad) return true
+                if (normalizedRouteRoadName(nextStep.roadName) == alertRoad) return true
+            }
+            return false
+        }
         if (
             distanceFromPreviousMeters < CROSSING_TURN_PROXIMITY_METERS &&
             previousStep?.isTurnLikeManeuver() == true
@@ -649,10 +702,16 @@ class OpenStreetRoutingRepository(
         return false
     }
 
+    private fun RouteAlertCandidate.isNamedStreetCrossing(): Boolean =
+        maneuverType == STREET_CROSSING_MANEUVER_TYPE && !roadName.isNullOrBlank()
+
     private fun RouteStep.isTurnLikeManeuver(): Boolean =
         RouteStepSimplificationCore.isTurnLikeManeuver(this)
 
-    private fun queryPedestrianCrossings(pathPoints: List<GeoPoint>): List<RouteCrossingCandidate> {
+    private fun queryPedestrianCrossings(
+        pathPoints: List<GeoPoint>,
+        routeLengthMeters: Double,
+    ): List<RouteAlertCandidate> {
         val endpoints = buildPedestrianCrossingEndpoints(pathPoints)
         var response: String? = null
         for (endpoint in endpoints) {
@@ -661,9 +720,8 @@ class OpenStreetRoutingRepository(
         }
         response ?: return emptyList()
 
-        val routeLengthMeters = routeLengthMeters(pathPoints)
         val elements = JSONObject(response).optJSONArray("elements") ?: return emptyList()
-        val candidates = mutableListOf<RouteCrossingCandidate>()
+        val candidates = mutableListOf<RouteAlertCandidate>()
         for (index in 0 until elements.length()) {
             val item = elements.optJSONObject(index) ?: continue
             val point = overpassPoint(item) ?: continue
@@ -671,13 +729,15 @@ class OpenStreetRoutingRepository(
             if (!isPedestrianCrossingOnRoute(item, projection)) continue
             if (projection.distanceAlongRouteMeters < 20.0) continue
             if (projection.distanceAlongRouteMeters > routeLengthMeters - 20.0) continue
-            candidates += RouteCrossingCandidate(
+            candidates += RouteAlertCandidate(
                 point = point,
                 distanceAlongRouteMeters = projection.distanceAlongRouteMeters,
+                instruction = string(R.string.route_step_crossing),
+                kind = RouteStepKind.PedestrianCrossing,
             )
         }
 
-        val deduplicated = mutableListOf<RouteCrossingCandidate>()
+        val deduplicated = mutableListOf<RouteAlertCandidate>()
         for (candidate in candidates.sortedBy { it.distanceAlongRouteMeters }) {
             val previous = deduplicated.lastOrNull()
             if (previous == null || candidate.distanceAlongRouteMeters - previous.distanceAlongRouteMeters >= 25.0) {
@@ -685,6 +745,48 @@ class OpenStreetRoutingRepository(
             }
         }
         return deduplicated
+    }
+
+    private fun queryRouteStreetCrossings(
+        pathPoints: List<GeoPoint>,
+        namedRouteWays: List<NamedRouteWay>,
+        routeLengthMeters: Double,
+    ): List<RouteAlertCandidate> {
+        if (pathPoints.size < 2 || namedRouteWays.isEmpty()) return emptyList()
+        val candidates = mutableListOf<RouteAlertCandidate>()
+        for (way in namedRouteWays) {
+            if (!isStreetCrossingWay(way.highway)) continue
+            val normalizedName = normalizedRouteRoadName(way.name) ?: continue
+            way.geometry.forEachIndexed { index, point ->
+                val projection = projectOntoRoute(pathPoints, point) ?: return@forEachIndexed
+                if (projection.lateralDistanceMeters > STREET_CROSSING_LATERAL_LIMIT_METERS) return@forEachIndexed
+                if (projection.distanceAlongRouteMeters < 20.0) return@forEachIndexed
+                if (projection.distanceAlongRouteMeters > routeLengthMeters - 20.0) return@forEachIndexed
+                val wayBearing = localWayBearingDegrees(way.geometry, index) ?: return@forEachIndexed
+                val bearingDifference = undirectedBearingDifference(
+                    projection.segmentBearingDegrees,
+                    wayBearing,
+                )
+                if (bearingDifference < STREET_CROSSING_MIN_BEARING_DIFFERENCE_DEGREES) return@forEachIndexed
+                if (
+                    candidates.any {
+                        normalizedRouteRoadName(it.roadName) == normalizedName &&
+                            abs(it.distanceAlongRouteMeters - projection.distanceAlongRouteMeters) < STREET_CROSSING_DEDUPLICATE_METERS
+                    }
+                ) {
+                    return@forEachIndexed
+                }
+                candidates += RouteAlertCandidate(
+                    point = point,
+                    distanceAlongRouteMeters = projection.distanceAlongRouteMeters,
+                    instruction = string(R.string.route_step_cross_named_street, way.name),
+                    kind = RouteStepKind.Instruction,
+                    roadName = way.name,
+                    maneuverType = STREET_CROSSING_MANEUVER_TYPE,
+                )
+            }
+        }
+        return candidates.sortedBy { it.distanceAlongRouteMeters }
     }
 
     private fun buildPedestrianCrossingEndpoints(pathPoints: List<GeoPoint>): List<String> {
@@ -717,9 +819,6 @@ class OpenStreetRoutingRepository(
         }
         if (routeProjection.lateralDistanceMeters > CROSSING_WAY_LATERAL_LIMIT_METERS) {
             return false
-        }
-        if (routeProjection.lateralDistanceMeters <= CROSSING_CLOSE_ROUTE_MATCH_METERS) {
-            return true
         }
         val crossingBearing = bearingDegrees(crossingGeometry.first(), crossingGeometry.last())
         val bearingDifference = undirectedBearingDifference(
@@ -795,6 +894,29 @@ class OpenStreetRoutingRepository(
         if (highway in setOf("platform", "corridor", "elevator", "construction", "proposed")) return false
         if (tags["area"] == "yes") return false
         return true
+    }
+
+    private fun isStreetCrossingWay(highway: String?): Boolean {
+        return highway in setOf(
+            "primary",
+            "secondary",
+            "tertiary",
+            "residential",
+            "living_street",
+            "unclassified",
+            "service",
+            "pedestrian",
+        )
+    }
+
+    private fun localWayBearingDegrees(points: List<GeoPoint>, index: Int): Double? {
+        if (points.size < 2) return null
+        val previousIndex = (index - 1).coerceAtLeast(0)
+        val nextIndex = (index + 1).coerceAtMost(points.lastIndex)
+        val start = points[previousIndex]
+        val end = points[nextIndex]
+        if (start == end) return null
+        return bearingDegrees(start, end)
     }
 
     private fun inferRoadNameForStep(

@@ -1088,7 +1088,9 @@ private fun ActiveNavigationRouteStepsCard(
 
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .semantics { isTraversalGroup = true },
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             CardTitle(stringResource(R.string.active_navigation_route_steps))
@@ -1116,6 +1118,12 @@ private fun ActiveNavigationRouteStepsCard(
                 }
                 Text(
                     text = spokenText,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clearAndSetSemantics {
+                            contentDescription = spokenText
+                            traversalIndex = index.toFloat()
+                        },
                     color = when {
                         isCurrent -> MaterialTheme.colorScheme.onSurface
                         step.kind == RouteStepKind.PedestrianCrossing -> MaterialTheme.colorScheme.tertiary

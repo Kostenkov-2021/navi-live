@@ -372,7 +372,8 @@ final class AppModel: ObservableObject {
       let summary = try await navigationAPI.buildWalkingRoute(
         from: start,
         to: place,
-        includePedestrianCrossings: settings.pedestrianCrossingAlerts
+        includePedestrianCrossings: settings.pedestrianCrossingAlerts,
+        includeJunctionAlerts: settings.junctionAlerts
       )
       selectedRouteSummary = summary
       lastRoutePlaceID = place.id
@@ -443,17 +444,13 @@ final class AppModel: ObservableObject {
       return fallback.isEmpty ? L10n.text("route.follow_default", table: .navigation) : fallback
     }
 
-    let upcomingStepIndex = min(activeNavigationState.currentStepIndex + 1, steps.count - 1)
-    let firstInstruction = steps[upcomingStepIndex].instruction
+    let currentStepIndex = min(max(activeNavigationState.currentStepIndex, 0), steps.count - 1)
+    let firstInstruction = steps[currentStepIndex].instruction
       .trimmingCharacters(in: .whitespacesAndNewlines)
-    let firstMessage = formattedNavigationInstruction(
-      distanceMeters: activeNavigationState.distanceToNextMeters,
-      instruction: firstInstruction.isEmpty
-        ? activeNavigationState.nextInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
-        : firstInstruction
-    )
+    let normalizedFirstInstruction = firstInstruction.isEmpty ? fallback : firstInstruction
+    let firstMessage = L10n.text("active.spoken.now", table: .navigation, normalizedFirstInstruction)
 
-    let followingStepIndex = upcomingStepIndex + 1
+    let followingStepIndex = currentStepIndex + 1
     guard steps.indices.contains(followingStepIndex) else {
       return firstMessage
     }
@@ -1015,7 +1012,8 @@ final class AppModel: ObservableObject {
       let summary = try await navigationAPI.buildWalkingRoute(
         from: start,
         to: place,
-        includePedestrianCrossings: settings.pedestrianCrossingAlerts
+        includePedestrianCrossings: settings.pedestrianCrossingAlerts,
+        includeJunctionAlerts: settings.junctionAlerts
       )
       selectedRouteSummary = summary
       activeNavigationState = liveNavigationEngine.loadRoute(
